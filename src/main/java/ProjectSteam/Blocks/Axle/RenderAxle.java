@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
 import org.joml.Matrix3f;
@@ -55,7 +56,7 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
 
         BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
         if (axleState.getBlock() instanceof BlockAxle) {
-            BlockAxle.axis facingAxis = axleState.getValue(BlockAxle.ROTATION_AXIS);
+            Direction.Axis facingAxis = axleState.getValue(BlockAxle.ROTATION_AXIS);
 
             tile.vertexBuffer.bind();
 
@@ -76,11 +77,11 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
 
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
-            if (facingAxis == BlockAxle.axis.Z) {
+            if (facingAxis == Direction.Axis.Z) {
                 // no rotation
-            } else if (facingAxis == BlockAxle.axis.X) {
+            } else if (facingAxis == Direction.Axis.X) {
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0, 1f, 0, 90));
-            } else if (facingAxis == BlockAxle.axis.Y) {
+            } else if (facingAxis == Direction.Axis.Y) {
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
             }
 

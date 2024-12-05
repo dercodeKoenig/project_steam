@@ -1,8 +1,14 @@
 package ProjectSteam.api;
 
 import net.minecraft.core.Direction;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 public interface IMechanicalBlock {
 
@@ -19,7 +25,6 @@ public interface IMechanicalBlock {
      *
      *
      */
-
 
 
     /**
@@ -47,11 +52,11 @@ public interface IMechanicalBlock {
      * The master will after the collection of MechanicalData calculate the rotation it will output
      * to is connected parts. Every part will receive the rotation and has to propagate the rotation
      * to its connected blocks. The Parts have to transform the rotation for example in case of gear-reduction.
-     *
+     * <p>
      * If a block receives during one tick 2 different rotations, the gearing is broken/invalid
      * you need to return false if this happens. you can check if the last propagatedRotation is more than 1% different
      * from the previous received one to avoid numerical problems because you can not compare double for equality.
-     *
+     * <p>
      * You can reset the last received rotation in any other tick stage
      */
     boolean propagateRotation(double rotation);
@@ -59,5 +64,27 @@ public interface IMechanicalBlock {
     /**
      * to check if the block south to me (z+1) is connected to me i will ask him connectsAtFace(NORTH)
      **/
-    boolean connectsAtFace(Direction otherFace);
+    boolean connectsAtFace(Direction face);
+
+
+    default List<IMechanicalBlock> getConnectedParts(BlockEntity be) {
+        List<IMechanicalBlock> connectedBlocks = new ArrayList<>();
+        IMechanicalBlock me = (IMechanicalBlock) be;
+        ChunkPos myChunkPos = new ChunkPos(be.getBlockPos());
+        for (Direction i : Direction.values()) {
+            if (me.connectsAtFace(i)) {
+                // make sure the chunk is loaded for correct calculations
+                ChunkPos otherBlocksChunkPos = new ChunkPos(be.getBlockPos().relative(i));
+                if (!myChunkPos.equals(otherBlocksChunkPos)) {
+                    ChunkAccess otherBlocksChunk = be.getLevel().getChunk(otherBlocksChunkPos.x, otherBlocksChunkPos.z, ChunkStatus.FULL, true);
+                }
+
+                BlockEntity other = be.getLevel().getBlockEntity(be.getBlockPos().relative(i));
+                if (other instanceof IMechanicalBlock othermechBlock && othermechBlock.connectsAtFace(i.getOpposite())) {
+                    connectedBlocks.add(othermechBlock);
+                }
+            }
+        }
+        return connectedBlocks;
+    }
 }

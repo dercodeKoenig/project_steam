@@ -2,10 +2,13 @@ package ProjectSteam.Blocks.Axle;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ProjectSteam.api.IMechanicalBlock;
+import ProjectSteam.api.MechanicalData;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -15,12 +18,14 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+import static ProjectSteam.Blocks.Axle.BlockAxle.ROTATION_AXIS;
 import static ProjectSteam.Registry.ENTITY_AXLE;
 
-public class EntityAxle extends BlockEntity implements INetworkTagReceiver {
+public class EntityAxle extends BlockEntity implements INetworkTagReceiver, IMechanicalBlock {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
@@ -97,5 +102,33 @@ public class EntityAxle extends BlockEntity implements INetworkTagReceiver {
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
 
+    }
+
+
+    @Override
+    public void propagateTick(boolean isMasterTick) {
+
+    }
+
+    @Override
+    public void getPropagatedData(MechanicalData data, @Nullable Direction requestedFrom) {
+
+    }
+
+    @Override
+    public boolean propagateRotation(double rotation) {
+        return false;
+    }
+
+    @Override
+    public boolean connectsAtFace(Direction face) {
+        BlockState myState = level.getBlockState(getBlockPos());
+        if (myState.getBlock() instanceof BlockAxle axle) {
+            Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
+            if (face.getAxis() == blockAxis) {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -11,6 +11,7 @@ public class utils {
         // Find the maximum weight to normalize weights
         for (Pair<Double, Double> momentum : values_weights) {
             maxWeight = Math.max(maxWeight, momentum.second);
+            System.out.println(momentum.first+":"+momentum.second);
         }
 
         if (maxWeight == 0) {

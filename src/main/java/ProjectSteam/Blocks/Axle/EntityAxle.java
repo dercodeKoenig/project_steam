@@ -97,8 +97,8 @@ public class EntityAxle extends MechanicalPartBlockEntityBase {
         if(!level.isClientSide)
             if(blockPos.getZ() == 2)
                 ((EntityAxle)t).myForce = 1;
-        ((EntityAxle)t).myMass = 2;
-        ((EntityAxle)t).myFriction = 0.01;
+        ((EntityAxle)t).myMass = 5;
+        ((EntityAxle)t).myFriction = 0.05;
         ((EntityAxle)t).tick();
     }
 }

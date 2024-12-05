@@ -61,17 +61,26 @@ public abstract class MechanicalPartBlockEntityBase extends BlockEntity implemen
         if(!level.isClientSide){
             List<Pair<Double, Double>> momentums = new ArrayList<>();
             HashSet<BlockPos> w = new HashSet<>();
-            gatherWeightedMomentums(momentums,null,w);
-            double myTargetMomentum = calculateWeightedAverage(momentums);
+            boolean success = gatherWeightedMomentums(momentums,null,w);
+if(success) {
+    MechanicalData data = new MechanicalData();
+    w.clear();
+    getPropagatedData(data, null, w);
 
-            // little workaround bc i have only implemented to propagate rotation
-            // but when a rotation is received they all should update their velocity
-            HashSet<BlockPos> worked= new HashSet<>();
-            propagateRotation(-myTargetMomentum / myMass, null, worked);
-            worked.clear();
-            propagateRotation(myTargetMomentum / myMass, null, worked);
+    double myTargetMomentum = 0;
+    for(Pair<Double, Double > i : momentums){
+        myTargetMomentum+=i.first*i.second;
+    }
 
-            System.out.println("target velocity:"+internalVelocity);
+    // little workaround bc i have only implemented to propagate rotation
+    // but when a rotation is received they all should update their velocity
+    HashSet<BlockPos> worked = new HashSet<>();
+    propagateRotation(-myTargetMomentum / data.combinedMass, null, worked);
+    worked.clear();
+    propagateRotation(myTargetMomentum / data.combinedMass, null, worked);
+
+    System.out.println("target velocity:" + internalVelocity);
+}
         }
     }
 
@@ -182,13 +191,13 @@ public abstract class MechanicalPartBlockEntityBase extends BlockEntity implemen
                 double rotationMultiplierToInside = getRotationMultiplierToInside(i);
 
                 data.combinedForce += d.combinedForce / rotationMultiplierToInside;
-                data.combinedMass += d.combinedMass / (rotationMultiplierToInside * rotationMultiplierToInside);
+                data.combinedMass += d.combinedMass / (rotationMultiplierToInside);
             }
 
             double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
             double actualForce = (-internalVelocity * myFriction + myForce) / rotationMultiplierToOutside;
-            double scaledMass = myMass / (rotationMultiplierToOutside * rotationMultiplierToOutside);
+            double scaledMass = myMass / (rotationMultiplierToOutside);
 
             data.combinedForce += actualForce;
             data.combinedMass += scaledMass;
@@ -244,17 +253,17 @@ public abstract class MechanicalPartBlockEntityBase extends BlockEntity implemen
                     return false;
                 }
                 for (Pair<Double, Double> o : momentums3) {
-                    momentums2.add(Pair.of(o.first * rotationMultiplierToInside, o.second / rotationMultiplierToInside));
+                    momentums2.add(Pair.of(o.first / rotationMultiplierToInside, o.second / rotationMultiplierToInside));
                 }
             }
 
             double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
             for (Pair<Double, Double> o : momentums2) {
-                momentums.add(Pair.of(o.first * rotationMultiplierToOutside, o.second / rotationMultiplierToOutside));
+                momentums.add(Pair.of(o.first / rotationMultiplierToOutside, o.second / rotationMultiplierToOutside));
             }
 
-            double myMomentum = internalVelocity * myMass * rotationMultiplierToOutside;
+            double myMomentum = internalVelocity * myMass / rotationMultiplierToOutside;
             Pair<Double, Double> scaledMomentumWithWeight = Pair.of(myMomentum, 1 / rotationMultiplierToOutside);
             momentums.add(scaledMomentumWithWeight);
 

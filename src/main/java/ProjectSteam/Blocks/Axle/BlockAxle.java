@@ -10,6 +10,8 @@ import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
@@ -70,13 +72,11 @@ public class BlockAxle extends Block implements EntityBlock {
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockEntity tile = level.getBlockEntity(pos);
-        if (tile instanceof IMechanicalBlock mechPart) {
-            if (mechPart.getConnectedParts(tile).isEmpty()) {
+        if (tile instanceof IMechanicalBlock mechBlock) {
+            if (mechBlock.getConnectedParts(tile, state).isEmpty()) {
                 BlockEntity neighbor = tile.getLevel().getBlockEntity(tile.getBlockPos().relative(direction));
-                System.out.println(tile.getBlockPos()+":"+tile.getBlockPos().relative(direction)+":"+direction);
                 if (neighbor instanceof IMechanicalBlock otherMechBlock) {
-                    System.out.println("mechanical block found");
-                    if (otherMechBlock.connectsAtFace(direction.getOpposite())) {
+                    if (otherMechBlock.connectsAtFace(direction.getOpposite(), null)) {
                         state = state.setValue(ROTATION_AXIS, direction.getAxis());
                     }
                 }
@@ -92,8 +92,8 @@ public class BlockAxle extends Block implements EntityBlock {
     }
 
     
-    //@Override
-    //public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-    //    return EntityAxle::tick;
-    //}
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return EntityAxle::tick;
+    }
 }

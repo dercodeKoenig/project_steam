@@ -1,14 +1,16 @@
 package ProjectSteam.api;
 
+import com.ibm.icu.impl.Pair;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public interface IMechanicalBlock {
 
@@ -34,8 +36,10 @@ public interface IMechanicalBlock {
      * The master will propagate the tick through all connected parts and ask all tick-able parts to tick
      * The tick-able part needs to keep track of if it already ticked during this server tick or not to not double tick
      * This can be done by setting a boolean to true in propagateTick and set it to false in the following getPropagatedData() call
+     *
+     * retuns false if not all the network is loaded
      **/
-    void propagateTick(boolean isMasterTick);
+    boolean propagateTick();
 
     /**
      * The master will request the MechanicalData for its connected parts and it will be propagated through the network
@@ -45,7 +49,7 @@ public interface IMechanicalBlock {
      * It is required to check for if you already answered the call once during this tick to avoid endless
      * recursion in case of a loop in the connections. use a simple boolean for it and reset it in any other stage of the tick sequence, for example in propagateTick()
      */
-    void getPropagatedData(MechanicalData data, @Nullable Direction requestedFrom);
+    void getPropagatedData(MechanicalData data, @Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions);
 
 
     /**
@@ -59,29 +63,55 @@ public interface IMechanicalBlock {
      * <p>
      * You can reset the last received rotation in any other tick stage
      */
-    boolean propagateRotation(double rotation);
+    boolean propagateRotation(double rotation, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions);
+
+    /**
+     * This is to keep the total energy the same when a block is added
+     */
+    boolean gatherWeightedMomentums(List<Pair<Double, Double>> momentums , @Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions);
+
 
     /**
      * to check if the block south to me (z+1) is connected to me i will ask him connectsAtFace(NORTH)
      **/
-    boolean connectsAtFace(Direction face);
+    boolean connectsAtFace(Direction face, @Nullable BlockState myState);
 
 
-    default List<IMechanicalBlock> getConnectedParts(BlockEntity be) {
-        List<IMechanicalBlock> connectedBlocks = new ArrayList<>();
-        IMechanicalBlock me = (IMechanicalBlock) be;
-        ChunkPos myChunkPos = new ChunkPos(be.getBlockPos());
+    default double getRotationMultiplierToInside(@Nullable Direction receivingFace){
+        return 1;
+    }
+    default     double getRotationMultiplierToOutside(@Nullable Direction outputFace){
+        return 1;
+    }
+
+
+
+
+
+
+    /**
+     will return null if any block nex to it is not loaded to avoid false updates
+     to make the network work, every part of it has to be loaded. if only one part is not loaded,
+     no more updates will happen
+     */
+    @Nullable
+    default Map<Direction, IMechanicalBlock> getConnectedParts(BlockEntity mechanicalBlockBE, @Nullable BlockState myBlockState) {
+
+        Map<Direction, IMechanicalBlock> connectedBlocks = new HashMap<>();
+
+        if (myBlockState == null)
+            myBlockState = mechanicalBlockBE.getLevel().getBlockState(mechanicalBlockBE.getBlockPos());
+
         for (Direction i : Direction.values()) {
-            if (me.connectsAtFace(i)) {
-                // make sure the chunk is loaded for correct calculations
-                ChunkPos otherBlocksChunkPos = new ChunkPos(be.getBlockPos().relative(i));
-                if (!myChunkPos.equals(otherBlocksChunkPos)) {
-                    ChunkAccess otherBlocksChunk = be.getLevel().getChunk(otherBlocksChunkPos.x, otherBlocksChunkPos.z, ChunkStatus.FULL, true);
-                }
+            if (((IMechanicalBlock) mechanicalBlockBE).connectsAtFace(i, myBlockState)) {
+                // make sure the chunk is loaded for correct calculations or return null
+                if(!mechanicalBlockBE.getLevel().isLoaded(mechanicalBlockBE.getBlockPos().relative(i)))
+                    return null;
 
-                BlockEntity other = be.getLevel().getBlockEntity(be.getBlockPos().relative(i));
-                if (other instanceof IMechanicalBlock othermechBlock && othermechBlock.connectsAtFace(i.getOpposite())) {
-                    connectedBlocks.add(othermechBlock);
+
+                BlockEntity other = mechanicalBlockBE.getLevel().getBlockEntity(mechanicalBlockBE.getBlockPos().relative(i));
+                if (other instanceof IMechanicalBlock othermechBlock && othermechBlock.connectsAtFace(i.getOpposite(), null)) {
+                    connectedBlocks.put(i, othermechBlock);
                 }
             }
         }

@@ -1,8 +1,7 @@
 package ProjectSteam.Blocks.Axle;
 
-import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.api.IMechanicalBlock;
+import ProjectSteam.api.MechanicalPartBlockEntityBase;
 import ProjectSteam.api.MechanicalData;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -12,6 +11,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
@@ -25,7 +25,7 @@ import java.util.*;
 import static ProjectSteam.Blocks.Axle.BlockAxle.ROTATION_AXIS;
 import static ProjectSteam.Registry.ENTITY_AXLE;
 
-public class EntityAxle extends BlockEntity implements INetworkTagReceiver, IMechanicalBlock {
+public class EntityAxle extends MechanicalPartBlockEntityBase {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
@@ -44,13 +44,6 @@ public class EntityAxle extends BlockEntity implements INetworkTagReceiver, IMec
     @Override
     public void onLoad() {
         super.onLoad();
-
-        if (level.isClientSide) {
-            UUID from = Minecraft.getInstance().player.getUUID();
-            CompoundTag tag = new CompoundTag();
-            tag.putUUID("client_onload", from);
-            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, tag));
-        }
     }
 
     @Override
@@ -64,32 +57,15 @@ public class EntityAxle extends BlockEntity implements INetworkTagReceiver, IMec
         super.setRemoved();
     }
 
-    //public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-    //    ((EntityAxle) t).tick();
-    //}
 
     @Override
     public void readServer(CompoundTag compoundTag) {
-        if (compoundTag.contains("client_onload")) {
-            UUID from = compoundTag.getUUID("client_onload");
-            ServerPlayer playerFrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            CompoundTag updateTag = new CompoundTag();
-
-            updateTag.putLong("time", System.currentTimeMillis());
-            PacketDistributor.sendToPlayer(playerFrom, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
-        }
+        super.readServer(compoundTag);
     }
-
-    long lastUpdate = 0;
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-        if (compoundTag.contains(("time"))) {
-            long updateTime = compoundTag.getLong("time");
-            if (updateTime >= lastUpdate) {
-
-            }
-        }
+    super.readClient(compoundTag);
     }
 
     @Override
@@ -104,31 +80,25 @@ public class EntityAxle extends BlockEntity implements INetworkTagReceiver, IMec
 
     }
 
-
     @Override
-    public void propagateTick(boolean isMasterTick) {
-
-    }
-
-    @Override
-    public void getPropagatedData(MechanicalData data, @Nullable Direction requestedFrom) {
-
-    }
-
-    @Override
-    public boolean propagateRotation(double rotation) {
-        return false;
-    }
-
-    @Override
-    public boolean connectsAtFace(Direction face) {
-        BlockState myState = level.getBlockState(getBlockPos());
-        if (myState.getBlock() instanceof BlockAxle axle) {
+    public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
+        if (myState == null)
+            myState = level.getBlockState(getBlockPos());
+        if (myState.getBlock() instanceof BlockAxle) {
             Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
             if (face.getAxis() == blockAxis) {
                 return true;
             }
         }
         return false;
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        if(!level.isClientSide)
+            if(blockPos.getZ() == 2)
+                ((EntityAxle)t).myForce = 1;
+        ((EntityAxle)t).myMass = 2;
+        ((EntityAxle)t).myFriction = 0.01;
+        ((EntityAxle)t).tick();
     }
 }

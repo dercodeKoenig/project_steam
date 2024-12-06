@@ -40,7 +40,7 @@ public interface IMechanicalBlock {
     }
 
     default double getRotationMultiplierToOutside(@Nullable Direction outputFace) {
-        return 1;
+        return 1/getRotationMultiplierToInside(outputFace);
     }
 
 
@@ -130,6 +130,7 @@ public interface IMechanicalBlock {
         if (!level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace) - myData.internalVelocity) > 0.00001) {
             // break this block because something is wrong with the network
             System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos());
+            System.out.println("current reveiced rotation from face "+receivingFace+":"+velocity * getRotationMultiplierToInside(receivingFace)+". Last received velocity: "+myData.internalVelocity);
 
             BlockPos pos = myTile.getBlockPos();
             ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
@@ -190,7 +191,6 @@ public interface IMechanicalBlock {
             propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass, null, worked);
 
             System.out.println("target velocity:" + getMechanicalData().internalVelocity);
-            System.out.println("");
         }
     }
 
@@ -229,7 +229,7 @@ public interface IMechanicalBlock {
                 data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
                 myData.internalVelocity += data.combinedTransformedForce / data.combinedTransformedMass;
                 myData.internalVelocity -= (data.combinedTransformedResistanceForce * Math.signum(myData.internalVelocity) / data.combinedTransformedMass);
-                System.out.println(myData.internalVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
+                //System.out.println(myData.internalVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
                 if (Math.abs(myData.internalVelocity) < 0.0001) myData.internalVelocity = 0;
 
                 propagateVelocityUpdate(myData.internalVelocity, null, workedPositions);
@@ -251,6 +251,7 @@ public interface IMechanicalBlock {
             }
             if (myData.last_internalVelocity != myData.internalVelocity) {
                 myData.last_internalVelocity = myData.internalVelocity;
+                myData.me.setChanged();
                 CompoundTag updateTag = new CompoundTag();
                 updateTag.putDouble("velocity", myData.internalVelocity);
                 for (UUID i : myData.clientsTrackingThisAsMaster.keySet()) {

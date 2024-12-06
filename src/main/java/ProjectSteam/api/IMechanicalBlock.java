@@ -72,6 +72,7 @@ public interface IMechanicalBlock {
         if (!workedPositions.contains(myTile.getBlockPos())) {
             workedPositions.add(myTile.getBlockPos());
 
+            MechanicalFlowData myInputFlowData = new MechanicalFlowData();
             // update the connected parts
             for (Direction i : myData.connectedParts.keySet()) {
                 MechanicalFlowData d = new MechanicalFlowData();
@@ -80,24 +81,24 @@ public interface IMechanicalBlock {
 
                 double rotationMultiplierToInside = getRotationMultiplierToInside(i);
 
-                data.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
-                data.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
-                data.combinedTransformedMomentum += d.combinedTransformedMomentum * Math.signum(rotationMultiplierToInside);
-                data.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
+                myInputFlowData.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
+                myInputFlowData.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
+                myInputFlowData.combinedTransformedMomentum += d.combinedTransformedMomentum * Math.signum(rotationMultiplierToInside);
+                myInputFlowData.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
             }
 
             double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
+            myInputFlowData.combinedTransformedForce +=getTorqueProduced();
+            myInputFlowData.combinedTransformedMass += getMass();
+            myInputFlowData.combinedTransformedMomentum += myData.internalVelocity * getMass();
+            myInputFlowData.combinedTransformedResistanceForce +=getTorqueResistance();
 
-            data.combinedTransformedForce += getTorqueProduced() / rotationMultiplierToOutside;
 
-            data.combinedTransformedResistanceForce += Math.abs(getTorqueResistance() / rotationMultiplierToOutside);
-
-            double scaledMass = getMass() / (rotationMultiplierToOutside);
-            data.combinedTransformedMass += Math.abs(scaledMass);
-
-            double myMomentum = myData.internalVelocity * getMass();
-            data.combinedTransformedMomentum += myMomentum * Math.signum(rotationMultiplierToOutside);
+            data.combinedTransformedForce += myInputFlowData.combinedTransformedForce / rotationMultiplierToOutside;
+            data.combinedTransformedResistanceForce += Math.abs( myInputFlowData.combinedTransformedResistanceForce / rotationMultiplierToOutside);
+            data.combinedTransformedMass += Math.abs(myInputFlowData.combinedTransformedMass / rotationMultiplierToOutside);
+            data.combinedTransformedMomentum += myInputFlowData.combinedTransformedMomentum * Math.signum(rotationMultiplierToOutside);
 
         }
     }

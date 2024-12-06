@@ -93,12 +93,26 @@ public class EntityAxle extends MechanicalPartBlockEntityBase {
         return false;
     }
 
+
+    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
+        if(receivingFace != null && receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
+            return -1;
+        return 1;
+    }
+    public      double getRotationMultiplierToOutside(@javax.annotation.Nullable Direction outputFace){
+        if(outputFace != null && outputFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
+            return -1;
+        return 1;
+    }
+
+
+
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         if(!level.isClientSide)
             if(blockPos.getZ() == 2)
-                ((EntityAxle)t).myForce = 1;
-        ((EntityAxle)t).myMass = 5;
-        ((EntityAxle)t).myFriction = 0.05;
+                ((EntityAxle)t).myForce = 0.1;
+        ((EntityAxle)t).myMass = 1;
+        ((EntityAxle)t).myFriction = 0.03;
         ((EntityAxle)t).tick();
     }
 }

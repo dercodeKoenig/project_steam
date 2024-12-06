@@ -63,12 +63,9 @@ public interface IMechanicalBlock {
      * <p>
      * You can reset the last received rotation in any other tick stage
      */
-    boolean propagateRotation(double rotation, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions);
+    void propagateRotation(double rotation, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions);
 
-    /**
-     * This is to keep the total energy the same when a block is added
-     */
-    boolean gatherWeightedMomentums(List<Pair<Double, Double>> momentums , @Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions);
+    void propagateVelocityUpdate(double velocity, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions);
 
 
     /**

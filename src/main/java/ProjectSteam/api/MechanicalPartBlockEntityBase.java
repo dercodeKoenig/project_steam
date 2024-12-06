@@ -2,7 +2,6 @@ package ProjectSteam.api;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import com.ibm.icu.impl.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -18,9 +17,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-import static ProjectSteam.utils.calculateWeightedAverage;
-
-public abstract class MechanicalPartBlockEntityBase extends BlockEntity implements IMechanicalBlock, INetworkTagReceiver {
+public abstract class MechanicalPartBlockEntityBase extends BlockEntity implements IMechanicalBlock, INetworkTagReceiver, ITorqueConsumer, ITorqueProducer {
     public MechanicalPartBlockEntityBase(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
     }
@@ -39,16 +36,21 @@ public abstract class MechanicalPartBlockEntityBase extends BlockEntity implemen
     boolean hasReceivedUpdate;
 
     public double currentRotation;
-    public double rotationAlreadyReceived;
+    public double rotationReceivedDuringLastPropagation;
 
     public double internalVelocity;
     public double last_internalVelocity;
 
     public double myMass = 1;
-    public double myFriction = 0.1;
-    public double myForce = 0.0;
-
-
+    public double myForce = 0;
+    public double myFriction = 0;
+    public double getTorqueConsumed(){return myFriction;}
+    public double getTorqueProduced(){return myForce;}
+    /*
+    public double getTorqueProduced(){
+    return myForce * (1-velocity/maxvelocity);
+    }
+     */
 
 
     @Override
@@ -58,46 +60,26 @@ public abstract class MechanicalPartBlockEntityBase extends BlockEntity implemen
             tag.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, tag));
         }
-        if(!level.isClientSide){
-            List<Pair<Double, Double>> momentums = new ArrayList<>();
+        if (!level.isClientSide) {
+            MechanicalData data = new MechanicalData();
             HashSet<BlockPos> w = new HashSet<>();
-            boolean success = gatherWeightedMomentums(momentums,null,w);
-if(success) {
-    MechanicalData data = new MechanicalData();
-    w.clear();
-    getPropagatedData(data, null, w);
+            connectedParts = getConnectedParts(this, null);
+            if (connectedParts != null) {
 
-    double myTargetMomentum = 0;
-    for(Pair<Double, Double > i : momentums){
-        myTargetMomentum+=i.first*i.second;
-    }
+                getPropagatedData(data, null, w);
 
-    // little workaround bc i have only implemented to propagate rotation
-    // but when a rotation is received they all should update their velocity
-    HashSet<BlockPos> worked = new HashSet<>();
-    propagateRotation(-myTargetMomentum / data.combinedMass, null, worked);
-    worked.clear();
-    propagateRotation(myTargetMomentum / data.combinedMass, null, worked);
 
-    System.out.println("target velocity:" + internalVelocity);
-}
+                HashSet<BlockPos> worked = new HashSet<>();
+                propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass, null, worked);
+
+                System.out.println("target velocity:" + internalVelocity);
+                System.out.println("");
+            }
         }
     }
 
 
     public void tick() {
-
-        if (level.getGameTime() % 100 == 0) {
-            if (level.isClientSide()) {
-
-            } else {
-                for (UUID i : clientsTrackingThisAsMaster.keySet()) {
-                    System.out.println(getBlockPos() + " is tracked by " + i + " as master");
-                }
-            }
-        }
-
-
         if (level.isClientSide()) {
             if (!hasReceivedUpdate) {
 
@@ -119,25 +101,23 @@ if(success) {
         if (!hasReceivedUpdate) {
             if (!level.isClientSide()) {
 
-                if (level.getGameTime() % 100 == 0) {
-                    System.out.println(getBlockPos() + ": is server master");
-                }
-
                 boolean success = propagateTick();
-
-                HashSet<BlockPos> workedPositions = new HashSet<>();
+                // if not success, one or more elements are not in loaded chunks so do not update them
                 if (success) {
+                    HashSet<BlockPos> workedPositions = new HashSet<>();
                     MechanicalData data = new MechanicalData();
                     getPropagatedData(data, null, workedPositions);
                     workedPositions.clear();
 
-                    data.combinedMass = Math.max(data.combinedMass, 0.01);
-                    internalVelocity += data.combinedForce / data.combinedMass;
-                    if (internalVelocity < 0.0001) internalVelocity = 0;
+                    data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
+                    internalVelocity += data.combinedTransformedForce  / data.combinedTransformedMass;
+                    internalVelocity -= (data.combinedTransformedResistanceForce *Math.signum(internalVelocity)/ data.combinedTransformedMass);
+                    System.out.println(internalVelocity+":"+getBlockPos()+":"+data.combinedTransformedForce+":"+data.combinedTransformedMass+":"+data.combinedTransformedResistanceForce);
+                    if (Math.abs(internalVelocity) < 0.0001) internalVelocity = 0;
 
-                } else internalVelocity = 0;
+                    propagateRotation(internalVelocity, null, workedPositions);
 
-                propagateRotation(internalVelocity, null, workedPositions);
+                }
             }
         }
         hasReceivedUpdate = false;
@@ -170,8 +150,10 @@ if(success) {
             connectedParts = getConnectedParts(this, null);
             if(connectedParts == null)return false;
             for (IMechanicalBlock i : connectedParts.values()) {
-                i.propagateTick();
+                if(!i.propagateTick())return false;
             }
+
+            // here you can do all the stuff you would do otherwise in the normal tick()
         }
         return true;
     }
@@ -179,7 +161,8 @@ if(success) {
 
     @Override
     public void getPropagatedData(MechanicalData data, @Nullable Direction requestedFrom,HashSet<BlockPos> workedPositions) {
-        if (!workedPositions.contains(getBlockPos())) {
+            if(connectedParts == null)return;
+            if (!workedPositions.contains(getBlockPos())) {
             workedPositions.add(getBlockPos());
 
             // update the connected parts
@@ -190,85 +173,71 @@ if(success) {
 
                 double rotationMultiplierToInside = getRotationMultiplierToInside(i);
 
-                data.combinedForce += d.combinedForce / rotationMultiplierToInside;
-                data.combinedMass += d.combinedMass / (rotationMultiplierToInside);
+                data.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
+                data.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
+                data.combinedTransformedMomentum += d.combinedTransformedMomentum * Math.signum(rotationMultiplierToInside);
+                data.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
             }
 
             double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
-            double actualForce = (-internalVelocity * myFriction + myForce) / rotationMultiplierToOutside;
+            if (this instanceof ITorqueProducer fp)
+                data.combinedTransformedForce += fp.getTorqueProduced() / rotationMultiplierToOutside;
+            if (this instanceof ITorqueConsumer fc)
+                data.combinedTransformedResistanceForce += Math.abs(fc.getTorqueConsumed() / rotationMultiplierToOutside);
+
             double scaledMass = myMass / (rotationMultiplierToOutside);
+            data.combinedTransformedMass += Math.abs(scaledMass);
 
-            data.combinedForce += actualForce;
-            data.combinedMass += scaledMass;
+            double myMomentum = internalVelocity * myMass;
+            data.combinedTransformedMomentum += myMomentum * Math.signum(rotationMultiplierToOutside);
 
         }
     }
 
     @Override
-    public boolean propagateRotation(double rotation, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
-        if (workedPositions.contains(getBlockPos()) && Math.abs(rotation - rotationAlreadyReceived) > 0.00001) {
-            // break this block because something is wrong with the network
-            level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
-            //return false;
-        }
+    public void propagateRotation(double rotation, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
+            if(connectedParts == null)return;
+            if (!level.isClientSide && workedPositions.contains(getBlockPos()) && Math.abs(rotation  * getRotationMultiplierToInside(receivingFace) - rotationReceivedDuringLastPropagation) > 0.00001) {
+                // break this block because something is wrong with the network
+                System.out.println(getBlockPos());
+                level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
+            }
         if (!workedPositions.contains(getBlockPos())) {
             workedPositions.add(getBlockPos());
 
-            rotationAlreadyReceived = rotation;
-            internalVelocity = rotation * getRotationMultiplierToInside(receivingFace);
+            rotationReceivedDuringLastPropagation = rotation  * getRotationMultiplierToInside(receivingFace);
+            internalVelocity = rotationReceivedDuringLastPropagation;
 
-            this.currentRotation += rotation;
+            this.currentRotation += rotationReceivedDuringLastPropagation;
             if(this.currentRotation > 360)this.currentRotation-=360;
-            if(this.currentRotation < 0)this.currentRotation=0;
+            if(this.currentRotation < 0)this.currentRotation+=360;
 
             // forward the transformed rotation to the other blocks
             for (Direction i : connectedParts.keySet()) {
                 IMechanicalBlock b = connectedParts.get(i);
-                if(!b.propagateRotation(rotation * getRotationMultiplierToOutside(i), i.getOpposite(), workedPositions)){
-                    return false;
-                }
+                b.propagateRotation(rotationReceivedDuringLastPropagation * getRotationMultiplierToOutside(i), i.getOpposite(), workedPositions);
             }
         }
-        return true;
     }
 
-
     @Override
-    public boolean gatherWeightedMomentums(List<Pair<Double, Double>> momentums, @Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions) {
+    public void propagateVelocityUpdate(double velocity, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
+            if(connectedParts == null)return;
         if (!workedPositions.contains(getBlockPos())) {
             workedPositions.add(getBlockPos());
 
-            connectedParts = getConnectedParts(this, null);
-            if (connectedParts == null) return false;
 
-            List<Pair<Double, Double>> momentums2 = new ArrayList<>();
+            System.out.println(getBlockPos()+":"+velocity);
+
+            internalVelocity = velocity * getRotationMultiplierToInside(receivingFace);
 
             // forward the transformed rotation to the other blocks
             for (Direction i : connectedParts.keySet()) {
                 IMechanicalBlock b = connectedParts.get(i);
-                double rotationMultiplierToInside = getRotationMultiplierToOutside(i);
-                List<Pair<Double, Double>> momentums3 = new ArrayList<>();
-                if (!b.gatherWeightedMomentums(momentums3, i.getOpposite(), workedPositions)) {
-                    return false;
-                }
-                for (Pair<Double, Double> o : momentums3) {
-                    momentums2.add(Pair.of(o.first / rotationMultiplierToInside, o.second / rotationMultiplierToInside));
-                }
+                b.propagateVelocityUpdate(internalVelocity * getRotationMultiplierToOutside(i), i.getOpposite(), workedPositions);
             }
-
-            double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
-
-            for (Pair<Double, Double> o : momentums2) {
-                momentums.add(Pair.of(o.first / rotationMultiplierToOutside, o.second / rotationMultiplierToOutside));
-            }
-
-            double myMomentum = internalVelocity * myMass / rotationMultiplierToOutside;
-            Pair<Double, Double> scaledMomentumWithWeight = Pair.of(myMomentum, 1 / rotationMultiplierToOutside);
-            momentums.add(scaledMomentumWithWeight);
-
         }
-        return true;
     }
 
     @Override

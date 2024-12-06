@@ -85,7 +85,7 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
             }
 
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.currentRotation+tile.internalVelocity*partialTick)));
+            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.getMechanicalData().currentRotation+tile.getMechanicalData().internalVelocity*partialTick)));
             //System.out.println(tile.currentRotation);
 
             shader.setDefaultUniforms(VertexFormat.Mode.QUADS, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());

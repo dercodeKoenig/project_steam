@@ -1,6 +1,6 @@
 package ProjectSteam.api;
 
-public class MechanicalData{
+public class MechanicalFlowData {
 
 
     double combinedTransformedMass;

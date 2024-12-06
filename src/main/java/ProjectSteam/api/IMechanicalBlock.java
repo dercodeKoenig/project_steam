@@ -1,72 +1,33 @@
 package ProjectSteam.api;
 
-import com.ibm.icu.impl.Pair;
+import ARLib.network.PacketBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.level.ChunkPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
 public interface IMechanicalBlock {
 
+    double getMass();
 
-    /**
-     *
-     *
-     * The sequence is as follows:
-     * - propagateTick: used to tick every BlockEntity in the network, can be used to reset flags from other stages
-     * - getPropagatedData: used to get the force, friction and mass for every BlockEntity in the network, can be used to reset flags from other stages
-     * - propagateRotation: used to update the rotation for every BlockEntity in the network, can be used to reset flags from other stages
-     *
-     * for it to work correctly every part of the network has to be chunk-loaded / every part should make sure their connected parts are loaded
-     *
-     *
-     */
+    double getTorqueResistance();
 
+    double getTorqueProduced();
 
-    /**
-     * Forward a tick through the entire network to update all parts that need to be updated before calculations can begin
-     * Every MechanicalPart that can add force to the network can call this method.
-     * Whatever BlockEntity that adds force to the network receives the tick() first will be the master during this tick
-     * The master will propagate the tick through all connected parts and ask all tick-able parts to tick
-     * The tick-able part needs to keep track of if it already ticked during this server tick or not to not double tick
-     * This can be done by setting a boolean to true in propagateTick and set it to false in the following getPropagatedData() call
-     *
-     * retuns false if not all the network is loaded
-     **/
-    boolean propagateTick();
-
-    /**
-     * The master will request the MechanicalData for its connected parts and it will be propagated through the network
-     * Every part can add its own data to it and has to transform the data to the match the side it came from
-     * for example, an axle connected to an axle can simply add its own data to it.
-     * a gearbox may need to invert the combinedForce element. This is what the direction is for.
-     * It is required to check for if you already answered the call once during this tick to avoid endless
-     * recursion in case of a loop in the connections. use a simple boolean for it and reset it in any other stage of the tick sequence, for example in propagateTick()
-     */
-    void getPropagatedData(MechanicalData data, @Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions);
-
-
-    /**
-     * The master will after the collection of MechanicalData calculate the rotation it will output
-     * to is connected parts. Every part will receive the rotation and has to propagate the rotation
-     * to its connected blocks. The Parts have to transform the rotation for example in case of gear-reduction.
-     * <p>
-     * If a block receives during one tick 2 different rotations, the gearing is broken/invalid
-     * you need to return false if this happens. you can check if the last propagatedRotation is more than 1% different
-     * from the previous received one to avoid numerical problems because you can not compare double for equality.
-     * <p>
-     * You can reset the last received rotation in any other tick stage
-     */
-    void propagateRotation(double rotation, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions);
-
-    void propagateVelocityUpdate(double velocity, @Nullable Direction receivingFace, HashSet<BlockPos> workedPositions);
-
+    MechanicalBlockData getMechanicalData();
 
     /**
      * to check if the block south to me (z+1) is connected to me i will ask him connectsAtFace(NORTH)
@@ -74,24 +35,126 @@ public interface IMechanicalBlock {
     boolean connectsAtFace(Direction face, @Nullable BlockState myState);
 
 
-    default double getRotationMultiplierToInside(@Nullable Direction receivingFace){
-        return 1;
-    }
-    default     double getRotationMultiplierToOutside(@Nullable Direction outputFace){
+    default double getRotationMultiplierToInside(@Nullable Direction receivingFace) {
         return 1;
     }
 
+    default double getRotationMultiplierToOutside(@Nullable Direction outputFace) {
+        return 1;
+    }
 
 
-
-
+    default void onPropagatedTickEnd() {
+        // whatever you need to do
+    }
 
     /**
-     will return null if any block nex to it is not loaded to avoid false updates
-     to make the network work, every part of it has to be loaded. if only one part is not loaded,
-     no more updates will happen
+     * called at the start of the tick update
      */
-    @Nullable
+    default void propagateTickBeforeUpdate() {
+        MechanicalBlockData myData = getMechanicalData();
+        if (!myData.hasReceivedUpdate) {
+            myData.hasReceivedUpdate = true;
+            myData.connectedParts = getConnectedParts(myData.me, null);
+
+            for (IMechanicalBlock i : myData.connectedParts.values()) {
+                i.propagateTickBeforeUpdate();
+            }
+
+            onPropagatedTickEnd();
+        }
+    }
+
+
+    default void getPropagatedData(MechanicalFlowData data, @org.jetbrains.annotations.Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions) {
+        MechanicalBlockData myData = getMechanicalData();
+        BlockEntity myTile = myData.me;
+        if (!workedPositions.contains(myTile.getBlockPos())) {
+            workedPositions.add(myTile.getBlockPos());
+
+            // update the connected parts
+            for (Direction i : myData.connectedParts.keySet()) {
+                MechanicalFlowData d = new MechanicalFlowData();
+                IMechanicalBlock b = myData.connectedParts.get(i);
+                b.getPropagatedData(d, i.getOpposite(), workedPositions);
+
+                double rotationMultiplierToInside = getRotationMultiplierToInside(i);
+
+                data.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
+                data.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
+                data.combinedTransformedMomentum += d.combinedTransformedMomentum * Math.signum(rotationMultiplierToInside);
+                data.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
+            }
+
+            double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
+
+
+            data.combinedTransformedForce += getTorqueProduced() / rotationMultiplierToOutside;
+
+            data.combinedTransformedResistanceForce += Math.abs(getTorqueResistance() / rotationMultiplierToOutside);
+
+            double scaledMass = getMass() / (rotationMultiplierToOutside);
+            data.combinedTransformedMass += Math.abs(scaledMass);
+
+            double myMomentum = myData.internalVelocity * getMass();
+            data.combinedTransformedMomentum += myMomentum * Math.signum(rotationMultiplierToOutside);
+
+        }
+    }
+
+    default void applyRotations(HashSet<BlockPos> workedPositions) {
+        MechanicalBlockData myData = getMechanicalData();
+        BlockEntity myTile = myData.me;
+        Level level = myTile.getLevel();
+        if (myData.connectedParts == null) return;
+
+        if (!workedPositions.contains(myTile.getBlockPos())) {
+            workedPositions.add(myTile.getBlockPos());
+
+            myData.currentRotation += myData.internalVelocity;
+            if (myData.currentRotation > 360) myData.currentRotation -= 360;
+            if (myData.currentRotation < 0) myData.currentRotation += 360;
+
+            // forward the transformed rotation to the other blocks
+            for (Direction i : myData.connectedParts.keySet()) {
+                IMechanicalBlock b = myData.connectedParts.get(i);
+                b.applyRotations(workedPositions);
+            }
+        }
+    }
+
+    default void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
+        MechanicalBlockData myData = getMechanicalData();
+        BlockEntity myTile = myData.me;
+        Level level = myTile.getLevel();
+        if (!level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace) - myData.internalVelocity) > 0.00001) {
+            // break this block because something is wrong with the network
+            System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos());
+
+            BlockPos pos = myTile.getBlockPos();
+            ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
+            // TODO spawn the entity
+
+            level.setBlock(myTile.getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
+
+        }
+
+        if (!workedPositions.contains(myTile.getBlockPos())) {
+            workedPositions.add(myTile.getBlockPos());
+
+            myData.internalVelocity = velocity;
+            if (receivingFace != null)
+                myData.internalVelocity *= getRotationMultiplierToInside(receivingFace);
+
+            // forward the transformed rotation to the other blocks
+            for (Direction i : myData.connectedParts.keySet()) {
+                IMechanicalBlock b = myData.connectedParts.get(i);
+                b.propagateVelocityUpdate(myData.internalVelocity * getRotationMultiplierToOutside(i), i.getOpposite(), workedPositions);
+            }
+        }
+    }
+
+
     default Map<Direction, IMechanicalBlock> getConnectedParts(BlockEntity mechanicalBlockBE, @Nullable BlockState myBlockState) {
 
         Map<Direction, IMechanicalBlock> connectedBlocks = new HashMap<>();
@@ -101,10 +164,6 @@ public interface IMechanicalBlock {
 
         for (Direction i : Direction.values()) {
             if (((IMechanicalBlock) mechanicalBlockBE).connectsAtFace(i, myBlockState)) {
-                // make sure the chunk is loaded for correct calculations or return null
-                if(!mechanicalBlockBE.getLevel().isLoaded(mechanicalBlockBE.getBlockPos().relative(i)))
-                    return null;
-
 
                 BlockEntity other = mechanicalBlockBE.getLevel().getBlockEntity(mechanicalBlockBE.getBlockPos().relative(i));
                 if (other instanceof IMechanicalBlock othermechBlock && othermechBlock.connectsAtFace(i.getOpposite(), null)) {
@@ -114,4 +173,120 @@ public interface IMechanicalBlock {
         }
         return connectedBlocks;
     }
+
+
+    default void mechanicalOnload() {
+        if (getMechanicalData().me.getLevel().isClientSide()) {
+
+        }
+        if (!getMechanicalData().me.getLevel().isClientSide()) {
+            MechanicalFlowData data = new MechanicalFlowData();
+            HashSet<BlockPos> w = new HashSet<>();
+            getMechanicalData().connectedParts = getConnectedParts(getMechanicalData().me, null);
+
+            getPropagatedData(data, null, w);
+
+            HashSet<BlockPos> worked = new HashSet<>();
+            propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass, null, worked);
+
+            System.out.println("target velocity:" + getMechanicalData().internalVelocity);
+            System.out.println("");
+        }
+    }
+
+
+    default void mechanicalTick() {
+        MechanicalBlockData myData = getMechanicalData();
+        BlockEntity myTile = myData.me;
+        if (myTile.getLevel().isClientSide()) {
+            if (!myData.hasReceivedUpdate) {
+                propagateTickBeforeUpdate();
+                HashSet<BlockPos> workedPositions = new HashSet<>();
+                propagateVelocityUpdate(myData.internalVelocity, null, workedPositions);
+                workedPositions.clear();
+                applyRotations(workedPositions);
+
+                myData.lastPing++;
+                if (myData.lastPing > myData.cttam_timeout / 2) {
+                    myData.lastPing = 0;
+                    CompoundTag tag = new CompoundTag();
+                    tag.putUUID("ping_is_master", Minecraft.getInstance().player.getUUID());
+                    PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(myTile, tag));
+                }
+            }
+        }
+
+        if (!myData.hasReceivedUpdate) {
+            if (!myTile.getLevel().isClientSide()) {
+
+                propagateTickBeforeUpdate();
+
+                HashSet<BlockPos> workedPositions = new HashSet<>();
+                MechanicalFlowData data = new MechanicalFlowData();
+                getPropagatedData(data, null, workedPositions);
+                workedPositions.clear();
+
+                data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
+                myData.internalVelocity += data.combinedTransformedForce / data.combinedTransformedMass;
+                myData.internalVelocity -= (data.combinedTransformedResistanceForce * Math.signum(myData.internalVelocity) / data.combinedTransformedMass);
+                System.out.println(myData.internalVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
+                if (Math.abs(myData.internalVelocity) < 0.0001) myData.internalVelocity = 0;
+
+                propagateVelocityUpdate(myData.internalVelocity, null, workedPositions);
+                workedPositions.clear();
+                applyRotations(workedPositions);
+
+            }
+        }
+        myData.hasReceivedUpdate = false;
+
+        if (!myTile.getLevel().isClientSide()) {
+            for (UUID i : myData.clientsTrackingThisAsMaster.keySet()) {
+                // increment timeout counter
+                myData.clientsTrackingThisAsMaster.put(i, myData.clientsTrackingThisAsMaster.get(i) + 1);
+                if (myData.clientsTrackingThisAsMaster.get(i) > myData.cttam_timeout) {
+                    myData.clientsTrackingThisAsMaster.remove(i);
+                    break; // break to prevent concurrent modification bs
+                }
+            }
+            if (myData.last_internalVelocity != myData.internalVelocity) {
+                myData.last_internalVelocity = myData.internalVelocity;
+                CompoundTag updateTag = new CompoundTag();
+                updateTag.putDouble("velocity", myData.internalVelocity);
+                for (UUID i : myData.clientsTrackingThisAsMaster.keySet()) {
+                    ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
+                    PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                }
+            }
+        }
+    }
+
+    default void mechanicalReadServer(CompoundTag tag) {
+        if (tag.contains("ping_is_master")) {
+            UUID from = tag.getUUID("ping_is_master");
+            getMechanicalData().clientsTrackingThisAsMaster.put(from, 0);
+
+            CompoundTag updateTag = new CompoundTag();
+            updateTag.putDouble("velocity", getMechanicalData().internalVelocity);
+            ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(getMechanicalData().me, updateTag));
+        }
+    }
+
+    default void mechanicalReadClient(CompoundTag tag) {
+        if (tag.contains("velocity"))
+            getMechanicalData().internalVelocity = tag.getDouble("velocity");
+    }
+
+
+    default void mechanicalLoadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        getMechanicalData().internalVelocity = tag.getDouble("internalVelocity");
+    }
+
+
+    default void mechanicalSaveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+         tag.putDouble("internalVelocity", getMechanicalData().internalVelocity);
+    }
 }
+
+

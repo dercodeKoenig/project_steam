@@ -1,31 +1,23 @@
 package ProjectSteam.Blocks.Axle;
 
-import ARLib.network.PacketBlockEntity;
-import ProjectSteam.api.MechanicalPartBlockEntityBase;
-import ProjectSteam.api.MechanicalData;
+import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.*;
 
 import static ProjectSteam.Blocks.Axle.BlockAxle.ROTATION_AXIS;
 import static ProjectSteam.Registry.ENTITY_AXLE;
 
-public class EntityAxle extends MechanicalPartBlockEntityBase {
+public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;

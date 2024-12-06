@@ -48,6 +48,7 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
 
     @Override
     public void onLoad() {
+        super.onLoad();
             mechanicalOnload();
     }
 

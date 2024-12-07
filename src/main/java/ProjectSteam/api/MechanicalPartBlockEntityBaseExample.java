@@ -38,6 +38,7 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
     }
 
     public double getTorqueProduced() {
+        if(myForce == 0)return 0;
         double maxSpeed = Math.abs(myWorkPerTick / myForce);
         double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));
 

@@ -51,11 +51,9 @@ public class BlockAxle extends Block implements EntityBlock {
         if (placer != null) {
             Vec3 lookVec = placer.getLookAngle();
             Direction.Axis newAxis;;
-            float ymult = 0.6f;
-            if (Math.abs(lookVec.x) > Math.abs(lookVec.y*ymult) && Math.abs(lookVec.x) > Math.abs(lookVec.z)) {
-                newAxis = Direction.Axis.Z; // Dominant X-axis
-            } else if (Math.abs(lookVec.z) > Math.abs(lookVec.x) && Math.abs(lookVec.z) > Math.abs(lookVec.y*ymult)) {
-                newAxis = Direction.Axis.X; // Dominant Z-axis
+
+            if (Math.abs(lookVec.y)< 0.7) {
+                newAxis = placer.getDirection().getClockWise().getAxis();
             } else {
                 newAxis = Direction.Axis.Y; // Dominant Y-axis
             }

@@ -40,21 +40,10 @@ public class BlockGearbox extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
-            Vec3 lookVec = placer.getLookAngle();
-            Direction out = Direction.SOUTH;
-
-            float ymult = 0.6f;
-            if (Math.abs(lookVec.x) < Math.abs(lookVec.y * ymult) && Math.abs(lookVec.z) < Math.abs(lookVec.y * ymult)) {
-                if(lookVec.y > 0)
-                    out = Direction.DOWN;
-                if(lookVec.y < 0)
-                    out = Direction.UP;
-            }else{
-                out = placer.getDirection().getClockWise();
-            }
-
-            // Set the block state with the correct axis
-            level.setBlock(pos, state.setValue(FACING, out), 3);
+            if(placer.isShiftKeyDown())
+                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getClockWise()), 3);
+            else
+                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getCounterClockWise()), 3);
         }
 
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior

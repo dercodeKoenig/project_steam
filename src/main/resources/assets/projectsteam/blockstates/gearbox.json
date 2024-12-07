@@ -6,23 +6,15 @@
         },
         "facing=north": {
             "model": "projectsteam:block/gearbox",
-            "y": 0
+            "y": 180
         },
         "facing=east": {
             "model": "projectsteam:block/gearbox",
-            "y": 0
+            "y": 270
         },
         "facing=west": {
             "model": "projectsteam:block/gearbox",
-            "y": 0
-        },
-        "facing=up": {
-            "model": "projectsteam:block/gearbox",
-            "y": 0
-        },
-        "facing=down": {
-            "model": "projectsteam:block/gearbox",
-            "y": 0
+            "y": 90
         }
     }
 }

@@ -153,6 +153,21 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             tile.vertexBuffer_mid.draw();
             shader.clear();
 
+            tile.vertexBuffer_mid.bind();
+            m2 = new Matrix4f(m1);
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
+            m2 = m2.translate(-0.3f,0,0);
+
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
+                    (float) ((tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
+
+            shader.apply();
+            tile.vertexBuffer_mid.draw();
+            shader.clear();
+
 
             VertexBuffer.unbind();
 

@@ -2,6 +2,8 @@ package ProjectSteam;
 
 import ProjectSteam.Blocks.Axle.BlockAxle;
 import ProjectSteam.Blocks.Axle.EntityAxle;
+import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
+import ProjectSteam.Blocks.DistributorGearbox.EntityDistributorGearbox;
 import ProjectSteam.Blocks.Gearbox.BlockGearbox;
 import ProjectSteam.Blocks.Gearbox.EntityGearbox;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -9,7 +11,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
@@ -31,6 +32,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityAxle::new, AXLE.get()).build(null)
     );
 
+    public static final DeferredHolder<Block, Block> DISTRIBUTOR_GEARBOX = BLOCKS.register(
+            "distributor_gearbox",
+            () -> new BlockDistributorGearbox()
+    );
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityDistributorGearbox>> ENTITY_DISTRIBUTOR_GEARBOX = BLOCK_ENTITIES.register(
+            "entity_distributor_gearbox",
+            () -> BlockEntityType.Builder.of(EntityDistributorGearbox::new, DISTRIBUTOR_GEARBOX.get()).build(null)
+    );
+
     public static final DeferredHolder<Block, Block> GEARBOX = BLOCKS.register(
             "gearbox",
             () -> new BlockGearbox()
@@ -42,8 +52,11 @@ public class Registry {
 
 
 
+
+
     public static void register(IEventBus modBus) {
         registerBlockItem("axle", AXLE);
+        registerBlockItem("distributor_gearbox", DISTRIBUTOR_GEARBOX);
         registerBlockItem("gearbox", GEARBOX);
 
         BLOCKS.register(modBus);

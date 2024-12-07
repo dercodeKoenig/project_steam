@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.Gearbox;
+package ProjectSteam.Blocks.DistributorGearbox;
 
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -17,13 +17,13 @@ import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
 
-public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
+public class EntityDistributorGearbox extends MechanicalPartBlockEntityBaseExample {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
     int lastLight = 0;
 
-    public EntityGearbox(BlockPos pos, BlockState blockState) {
+    public EntityDistributorGearbox(BlockPos pos, BlockState blockState) {
         super(ENTITY_DISTRIBUTOR_GEARBOX.get(), pos, blockState);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -76,21 +76,38 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
         if (myState == null)
             myState = level.getBlockState(getBlockPos());
-       return face.getAxis() != myState.getValue(BlockGearbox.ROTATION_AXIS);
+       return face.getAxis() != myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
     }
 
 
     public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
         if(receivingFace == null) return 1;
+Direction.Axis myNormalAxis = level.getBlockState(getBlockPos()).getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
-        Direction.Axis myNormalAxis = level.getBlockState(getBlockPos()).getValue(BlockGearbox.ROTATION_AXIS);
-
+        if(myNormalAxis == Direction.Axis.Y) {
+            if(receivingFace == Direction.NORTH)return 1;
+            if(receivingFace == Direction.EAST)return 1;
+            if(receivingFace == Direction.SOUTH)return -1;
+            if(receivingFace == Direction.WEST)return -1;
+        }
+        if(myNormalAxis == Direction.Axis.X) {
+            if(receivingFace == Direction.NORTH)return 1;
+            if(receivingFace == Direction.UP)return 1;
+            if(receivingFace == Direction.SOUTH)return -1;
+            if(receivingFace == Direction.DOWN)return -1;
+        }
+        if(myNormalAxis == Direction.Axis.Z) {
+            if(receivingFace == Direction.WEST)return 1;
+            if(receivingFace == Direction.UP)return 1;
+            if(receivingFace == Direction.EAST)return -1;
+            if(receivingFace == Direction.DOWN)return -1;
+        }
 
         return 1;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityGearbox)t).tick();
+        ((EntityDistributorGearbox)t).tick();
     }
 }

@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.Gearbox;
+package ProjectSteam.Blocks.DistributorGearbox;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
@@ -21,7 +21,7 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
+public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistributorGearbox> {
 
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
@@ -35,12 +35,12 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
     }
 
 
-    public RenderGearbox(BlockEntityRendererProvider.Context c) {
+    public RenderDistributorGearbox(BlockEntityRendererProvider.Context c) {
         super();
     }
 
 
-    void renderModelWithLight(EntityGearbox tile, int light) {
+    void renderModelWithLight(EntityDistributorGearbox tile, int light) {
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_gearbox_connection.obj"));
         } catch (ModelFormatException e) {
@@ -58,10 +58,10 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
     }
 
     @Override
-    public void render(EntityGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(EntityDistributorGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
-        if (axleState.getBlock() instanceof BlockGearbox) {
-            Direction.Axis normalAxis = axleState.getValue(BlockGearbox.ROTATION_AXIS);
+        if (axleState.getBlock() instanceof BlockDistributorGearbox) {
+            Direction.Axis normalAxis = axleState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
             tile.vertexBuffer.bind();
 

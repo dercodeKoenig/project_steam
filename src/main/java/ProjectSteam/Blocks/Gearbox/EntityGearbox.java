@@ -16,19 +16,26 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
+import static ProjectSteam.Registry.ENTITY_GEARBOX;
 
 public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
+    VertexBuffer vertexBuffer_in;
+    VertexBuffer vertexBuffer_out;
+    VertexBuffer vertexBuffer_mid;
+    MeshData mesh_in;
+    MeshData mesh_out;
+    MeshData mesh_mid;
     int lastLight = 0;
 
     public EntityGearbox(BlockPos pos, BlockState blockState) {
-        super(ENTITY_DISTRIBUTOR_GEARBOX.get(), pos, blockState);
+        super(ENTITY_GEARBOX.get(), pos, blockState);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_in = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_out = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer_mid = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
@@ -42,7 +49,9 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     public void setRemoved() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
+                vertexBuffer_in.close();
+                vertexBuffer_out.close();
+                vertexBuffer_mid.close();
             });
 
         }
@@ -76,15 +85,19 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
         if (myState == null)
             myState = level.getBlockState(getBlockPos());
-       return face.getAxis() != myState.getValue(BlockGearbox.ROTATION_AXIS);
+       return face.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis();
     }
 
 
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
-        if(receivingFace == null) return 1;
+    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace) {
+        if (receivingFace == null) return 1;
 
-        Direction.Axis myNormalAxis = level.getBlockState(getBlockPos()).getValue(BlockGearbox.ROTATION_AXIS);
+        Direction facing = level.getBlockState(getBlockPos()).getValue(BlockGearbox.FACING);
 
+        if (receivingFace == facing.getOpposite())
+            return (double) -3 / 2;
+        if (receivingFace == facing)
+            return (double) -2 / 3;
 
         return 1;
     }

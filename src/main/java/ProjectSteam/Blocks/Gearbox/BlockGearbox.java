@@ -17,6 +17,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
+import static ProjectSteam.Registry.ENTITY_GEARBOX;
 
 public class BlockGearbox extends Block implements EntityBlock {
 
@@ -26,7 +27,7 @@ public class BlockGearbox extends Block implements EntityBlock {
     public BlockGearbox() {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
-        state = state.setValue(FACING, Direction.Axis.Y);
+        state = state.setValue(FACING, Direction.SOUTH);
         this.registerDefaultState(state);
     }
 
@@ -40,7 +41,7 @@ public class BlockGearbox extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
             Vec3 lookVec = placer.getLookAngle();
-            Direction out = Direction.UP;
+            Direction out = Direction.SOUTH;
 
             float ymult = 0.6f;
             if (Math.abs(lookVec.x) < Math.abs(lookVec.y * ymult) && Math.abs(lookVec.z) < Math.abs(lookVec.y * ymult)) {
@@ -65,6 +66,6 @@ public class BlockGearbox extends Block implements EntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityDistributorGearbox::tick;
+        return EntityGearbox::tick;
     }
 }

@@ -27,8 +27,6 @@ public interface IMechanicalBlock {
 
     double getTorqueProduced();
 
-    double getMaxWorkBeforeBreak();
-
     MechanicalBlockData getMechanicalData();
 
     /**
@@ -115,8 +113,9 @@ public interface IMechanicalBlock {
             workedPositions.add(myTile.getBlockPos());
 
             myData.currentRotation += myData.internalVelocity;
-            if (myData.currentRotation > 360) myData.currentRotation -= 360;
-            if (myData.currentRotation < 0) myData.currentRotation += 360;
+            double eqs = 2*2*3*4*5*6*7*8*9;
+            if (myData.currentRotation > 360*eqs) myData.currentRotation -= 360*eqs;
+            if (myData.currentRotation < -360*eqs) myData.currentRotation += 360*eqs;
 
             // forward the transformed rotation to the other blocks
             for (Direction i : myData.connectedParts.keySet()) {
@@ -126,7 +125,7 @@ public interface IMechanicalBlock {
         }
     }
 
-    default void propagateVelocityUpdate(double velocity, double force, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
+    default void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
         MechanicalBlockData myData = getMechanicalData();
         BlockEntity myTile = myData.me;
         Level level = myTile.getLevel();
@@ -146,24 +145,6 @@ public interface IMechanicalBlock {
         if (!workedPositions.contains(myTile.getBlockPos())) {
             workedPositions.add(myTile.getBlockPos());
 
-            if (receivingFace != null) {
-                force /= getRotationMultiplierToInside(receivingFace);
-            }
-
-            if(!level.isClientSide()){
-                myData.netWork=Math.abs(force)*Math.abs(myData.internalVelocity);
-                //System.out.println(myData.netWork+":"+force+":"+myData.internalVelocity+":"+velocity+":"+myData.me.getBlockPos());
-                if(myData.netWork > getMaxWorkBeforeBreak()){
-
-                    System.out.println("network work exceeds the maximum work this part can handle: "+myData.me.getBlockPos());
-
-                    BlockPos pos = myTile.getBlockPos();
-                    ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
-                    // TODO spawn the entity
-
-                    level.setBlock(myTile.getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
-                }
-            }
 
             myData.internalVelocity = velocity;
             if (receivingFace != null) {
@@ -174,8 +155,7 @@ public interface IMechanicalBlock {
             for (Direction i : myData.connectedParts.keySet()) {
                 IMechanicalBlock b = myData.connectedParts.get(i);
                 double outputVelocity = myData.internalVelocity * getRotationMultiplierToOutside(i);
-                double outputForce = force / getRotationMultiplierToOutside(i);
-                b.propagateVelocityUpdate(outputVelocity, outputForce, i.getOpposite(), workedPositions);
+                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions);
             }
         }
     }
@@ -213,7 +193,7 @@ public interface IMechanicalBlock {
             getPropagatedData(data, null, w);
 
             HashSet<BlockPos> worked = new HashSet<>();
-            propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass, 0, null, worked);
+            propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass,  null, worked);
 
             System.out.println("target velocity:" + getMechanicalData().internalVelocity);
         }
@@ -227,7 +207,7 @@ public interface IMechanicalBlock {
             if (!myData.hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
                 HashSet<BlockPos> workedPositions = new HashSet<>();
-                propagateVelocityUpdate(myData.internalVelocity, 0, null, workedPositions);
+                propagateVelocityUpdate(myData.internalVelocity,  null, workedPositions);
                 workedPositions.clear();
                 applyRotations(workedPositions);
 
@@ -262,7 +242,7 @@ public interface IMechanicalBlock {
                 //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
                 if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
-                propagateVelocityUpdate(newVelocity, data.combinedTransformedForce, null, workedPositions);
+                propagateVelocityUpdate(newVelocity, null, workedPositions);
                 workedPositions.clear();
                 applyRotations(workedPositions);
 

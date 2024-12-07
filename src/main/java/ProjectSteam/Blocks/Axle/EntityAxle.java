@@ -95,8 +95,10 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         if(!level.isClientSide)
-            if(blockPos.getZ() <0)
-                ((EntityAxle)t).myForce = 5;
+            if(blockPos.getZ() <0) {
+                ((EntityAxle) t).myForce = 5;
+                ((EntityAxle) t).myWorkPerTick = 30;
+            }
         ((EntityAxle)t).myMass = 10;
         ((EntityAxle)t).myFriction = 0.1;
         ((EntityAxle)t).tick();

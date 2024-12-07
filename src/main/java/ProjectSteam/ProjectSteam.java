@@ -46,6 +46,7 @@ public class ProjectSteam {
 
     public void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(DISTRIBUTOR_GEARBOX.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(GEARBOX.get(), RenderType.cutout());
     }
 
 

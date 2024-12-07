@@ -26,11 +26,9 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
 
     public double myMass = 1;
     public double myForce = 0;
+    public double myWorkPerTick = 0;
     public double myFriction = 0;
 
-    public double getMaxWorkBeforeBreak(){
-        return 12;
-    }
     public double getMass() {
         return myMass;
     }
@@ -40,8 +38,7 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
     }
 
     public double getTorqueProduced() {
-        double degreeForcePerTick = 11;
-        double maxSpeed = Math.abs(degreeForcePerTick / myForce);
+        double maxSpeed = Math.abs(myWorkPerTick / myForce);
         double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));
 
         return actualForce;

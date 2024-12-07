@@ -88,17 +88,17 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
 
     public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
         if(receivingFace != null && receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
-            return -2;
+            return 1;
         return 1;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         if(!level.isClientSide)
-            if(blockPos.getZ() == 2)
-                ((EntityAxle)t).myForce = 0.1;
-        ((EntityAxle)t).myMass = 1;
-        ((EntityAxle)t).myFriction = 0.01;
+            if(blockPos.getZ() <0)
+                ((EntityAxle)t).myForce = 5;
+        ((EntityAxle)t).myMass = 500;
+        ((EntityAxle)t).myFriction = 1;
         ((EntityAxle)t).tick();
     }
 }

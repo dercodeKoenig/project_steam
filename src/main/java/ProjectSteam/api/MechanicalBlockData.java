@@ -9,8 +9,9 @@ import java.util.UUID;
 
 public class MechanicalBlockData {
 
-BlockEntity me;
-    public MechanicalBlockData(BlockEntity me){
+    BlockEntity me;
+
+    public MechanicalBlockData(BlockEntity me) {
         this.me = me;
     }
 
@@ -32,4 +33,5 @@ BlockEntity me;
     public double internalVelocity;
     public double last_internalVelocity;
 
+    public double netWork = 0;
 }

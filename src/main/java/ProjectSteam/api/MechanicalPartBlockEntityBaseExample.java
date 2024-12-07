@@ -28,16 +28,24 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
     public double myForce = 0;
     public double myFriction = 0;
 
+    public double getMaxWorkBeforeBreak(){
+        return 12;
+    }
     public double getMass() {
         return myMass;
     }
 
     public double getTorqueResistance() {
-        return myFriction;
+            return myFriction;
     }
 
     public double getTorqueProduced() {
-        return myForce;
+        double degreeForcePerTick = 11;
+        double maxSpeed = Math.abs(degreeForcePerTick / myForce);
+        double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));
+        if (Math.abs(myForce) > 0.0001)
+            System.out.println(getBlockPos() + ":" + actualForce + ":" + myMechanicalData.internalVelocity);
+        return actualForce;
     }
     /*
     public double getTorqueProduced(){

@@ -1,5 +1,6 @@
 package ProjectSteam.Blocks.DistributorGearbox;
 
+import ProjectSteam.Blocks.Gearbox.BlockGearbox;
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -82,27 +83,30 @@ public class EntityDistributorGearbox extends MechanicalPartBlockEntityBaseExamp
 
     public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
         if(receivingFace == null) return 1;
-Direction.Axis myNormalAxis = level.getBlockState(getBlockPos()).getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
-        if(myNormalAxis == Direction.Axis.Y) {
-            if(receivingFace == Direction.NORTH)return 1;
-            if(receivingFace == Direction.EAST)return 1;
-            if(receivingFace == Direction.SOUTH)return -1;
-            if(receivingFace == Direction.WEST)return -1;
-        }
-        if(myNormalAxis == Direction.Axis.X) {
-            if(receivingFace == Direction.NORTH)return 1;
-            if(receivingFace == Direction.UP)return 1;
-            if(receivingFace == Direction.SOUTH)return -1;
-            if(receivingFace == Direction.DOWN)return -1;
-        }
-        if(myNormalAxis == Direction.Axis.Z) {
-            if(receivingFace == Direction.WEST)return 1;
-            if(receivingFace == Direction.UP)return 1;
-            if(receivingFace == Direction.EAST)return -1;
-            if(receivingFace == Direction.DOWN)return -1;
-        }
+        BlockState myState = level.getBlockState(getBlockPos());
+        if(myState.getBlock() instanceof BlockDistributorGearbox) {
+            Direction.Axis myNormalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
+            if (myNormalAxis == Direction.Axis.Y) {
+                if (receivingFace == Direction.NORTH) return 1;
+                if (receivingFace == Direction.EAST) return 1;
+                if (receivingFace == Direction.SOUTH) return -1;
+                if (receivingFace == Direction.WEST) return -1;
+            }
+            if (myNormalAxis == Direction.Axis.X) {
+                if (receivingFace == Direction.NORTH) return 1;
+                if (receivingFace == Direction.UP) return 1;
+                if (receivingFace == Direction.SOUTH) return -1;
+                if (receivingFace == Direction.DOWN) return -1;
+            }
+            if (myNormalAxis == Direction.Axis.Z) {
+                if (receivingFace == Direction.WEST) return 1;
+                if (receivingFace == Direction.UP) return 1;
+                if (receivingFace == Direction.EAST) return -1;
+                if (receivingFace == Direction.DOWN) return -1;
+            }
+        }
         return 1;
     }
 

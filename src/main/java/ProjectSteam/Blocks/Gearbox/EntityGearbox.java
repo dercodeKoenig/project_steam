@@ -92,13 +92,15 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace) {
         if (receivingFace == null) return 1;
 
-        Direction facing = level.getBlockState(getBlockPos()).getValue(BlockGearbox.FACING);
+        BlockState myState = level.getBlockState(getBlockPos());
+        if(myState.getBlock() instanceof BlockGearbox) {
+            Direction facing = myState.getValue(BlockGearbox.FACING);
 
-        if (receivingFace == facing.getOpposite())
-            return (double) -3 / 2;
-        if (receivingFace == facing)
-            return (double) -2 / 3;
-
+            if (receivingFace == facing.getOpposite())
+                return (double) -3 / 2;
+            if (receivingFace == facing)
+                return (double) -2 / 3;
+        }
         return 1;
     }
 

@@ -1,0 +1,13 @@
+{
+    "variants": {
+        "axis=y": {
+            "model": "projectsteam:block/gearbox"
+        },
+        "axis=x": {
+            "model": "projectsteam:block/gearbox", "x": 90, "y" : 90
+        },
+        "axis=z": {
+            "model": "projectsteam:block/gearbox", "x": 90, "y" : 0
+        }
+    }
+}

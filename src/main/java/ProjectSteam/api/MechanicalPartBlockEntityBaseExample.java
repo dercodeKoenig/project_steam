@@ -43,8 +43,7 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
         double degreeForcePerTick = 11;
         double maxSpeed = Math.abs(degreeForcePerTick / myForce);
         double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));
-        if (Math.abs(myForce) > 0.0001)
-            System.out.println(getBlockPos() + ":" + actualForce + ":" + myMechanicalData.internalVelocity);
+
         return actualForce;
     }
     /*

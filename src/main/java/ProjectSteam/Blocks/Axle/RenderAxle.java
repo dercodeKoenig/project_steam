@@ -24,11 +24,11 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
 
     static WavefrontObject model;
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/metal_texture.png");
+    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
 
     static {
         try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod.obj"));
+            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_new.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
@@ -88,7 +88,7 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
             m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.getMechanicalData().currentRotation+tile.getMechanicalData().internalVelocity*partialTick)));
             //System.out.println(tile.currentRotation);
 
-            shader.setDefaultUniforms(VertexFormat.Mode.QUADS, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m1).invert().transpose());
 
             shader.apply();

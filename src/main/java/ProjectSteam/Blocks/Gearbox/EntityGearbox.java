@@ -1,8 +1,9 @@
-package ProjectSteam.Blocks.Axle;
+package ProjectSteam.Blocks.Gearbox;
 
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -16,15 +17,16 @@ import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteam.Blocks.Axle.BlockAxle.ROTATION_AXIS;
 import static ProjectSteam.Registry.ENTITY_AXLE;
+import static ProjectSteam.Registry.ENTITY_GEARBOX;
 
-public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
+public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
     int lastLight = 0;
 
-    public EntityAxle(BlockPos pos, BlockState blockState) {
-        super(ENTITY_AXLE.get(), pos, blockState);
+    public EntityGearbox(BlockPos pos, BlockState blockState) {
+        super(ENTITY_GEARBOX.get(), pos, blockState);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
@@ -76,29 +78,38 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
     public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
         if (myState == null)
             myState = level.getBlockState(getBlockPos());
-        if (myState.getBlock() instanceof BlockAxle) {
-            Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
-            if (face.getAxis() == blockAxis) {
-                return true;
-            }
-        }
-        return false;
+       return face.getAxis() != myState.getValue(BlockGearbox.ROTATION_AXIS);
     }
 
 
     public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
-        if(receivingFace != null && receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
-            return 1;
+        if(receivingFace == null) return 1;
+Direction.Axis myNormalAxis = level.getBlockState(getBlockPos()).getValue(BlockGearbox.ROTATION_AXIS);
+
+        if(myNormalAxis == Direction.Axis.Y) {
+            if(receivingFace == Direction.NORTH)return 1;
+            if(receivingFace == Direction.EAST)return 1;
+            if(receivingFace == Direction.SOUTH)return -1;
+            if(receivingFace == Direction.WEST)return -1;
+        }
+        if(myNormalAxis == Direction.Axis.X) {
+            if(receivingFace == Direction.NORTH)return 1;
+            if(receivingFace == Direction.UP)return 1;
+            if(receivingFace == Direction.SOUTH)return -1;
+            if(receivingFace == Direction.DOWN)return -1;
+        }
+        if(myNormalAxis == Direction.Axis.Z) {
+            if(receivingFace == Direction.WEST)return 1;
+            if(receivingFace == Direction.UP)return 1;
+            if(receivingFace == Direction.EAST)return -1;
+            if(receivingFace == Direction.DOWN)return -1;
+        }
+
         return 1;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        if(!level.isClientSide)
-            if(blockPos.getZ() <0)
-                ((EntityAxle)t).myForce = 5;
-        ((EntityAxle)t).myMass = 10;
-        ((EntityAxle)t).myFriction = 0.1;
-        ((EntityAxle)t).tick();
+        ((EntityGearbox)t).tick();
     }
 }

@@ -1,6 +1,9 @@
 package ProjectSteam;
 
 import ProjectSteam.Blocks.Axle.RenderAxle;
+import ProjectSteam.Blocks.Gearbox.RenderGearbox;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.CreativeModeTabs;
@@ -41,10 +44,14 @@ public class ProjectSteam {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
+        ItemBlockRenderTypes.setRenderLayer(GEARBOX.get(), RenderType.cutout());
     }
+
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderAxle::new);
+        event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
+
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -54,6 +61,7 @@ public class ProjectSteam {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
             e.accept(AXLE.get());
+            e.accept(GEARBOX.get());
         }
     }
 

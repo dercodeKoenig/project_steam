@@ -82,9 +82,9 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
 
     @Override
     public void render(EntityGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
-        if (axleState.getBlock() instanceof BlockGearbox) {
-            Direction facing = axleState.getValue(BlockGearbox.FACING);
+        BlockState myState = tile.getLevel().getBlockState(tile.getBlockPos());
+        if (myState.getBlock() instanceof BlockGearbox) {
+            Direction facing = myState.getValue(BlockGearbox.FACING);
 
             RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
             LIGHTMAP.setupRenderState();
@@ -126,7 +126,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.getRotationMultiplierToOutside(facing) * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * tile.getRotationMultiplierToOutside(facing, myState) * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -141,7 +141,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.getRotationMultiplierToOutside(facing.getOpposite()) * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * tile.getRotationMultiplierToOutside(facing.getOpposite(), myState) * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

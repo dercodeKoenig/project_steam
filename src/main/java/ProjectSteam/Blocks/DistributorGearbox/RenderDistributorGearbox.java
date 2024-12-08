@@ -59,9 +59,9 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
 
     @Override
     public void render(EntityDistributorGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
-        if (axleState.getBlock() instanceof BlockDistributorGearbox) {
-            Direction.Axis normalAxis = axleState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
+        BlockState myState = tile.getLevel().getBlockState(tile.getBlockPos());
+        if (myState.getBlock() instanceof BlockDistributorGearbox) {
+            Direction.Axis normalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
             tile.vertexBuffer.bind();
 

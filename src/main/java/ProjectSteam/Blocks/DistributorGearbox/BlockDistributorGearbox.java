@@ -43,7 +43,7 @@ public class BlockDistributorGearbox extends Block implements EntityBlock {
             Vec3 lookVec = placer.getLookAngle();
             Direction.Axis newAxis = Direction.Axis.Y;
             
-            if (Math.abs(lookVec.y) > 0.7) {
+            if (Math.abs(lookVec.y) > 0.8) {
                 if(Math.abs(lookVec.x) > Math.abs(lookVec.z))
                     newAxis = Direction.Axis.X; // Dominant X-axis
                 if(Math.abs(lookVec.x) < Math.abs(lookVec.z))

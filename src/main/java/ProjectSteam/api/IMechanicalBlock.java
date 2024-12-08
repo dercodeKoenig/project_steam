@@ -115,12 +115,12 @@ public interface IMechanicalBlock {
         if (myData.currentRotation < -360 * eqs) myData.currentRotation += 360 * eqs;
     }
 
-    default void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
+    default void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions, boolean ignorePreviousUpdates) {
         MechanicalBlockData myData = getMechanicalData();
         BlockEntity myTile = myData.me;
         Level level = myTile.getLevel();
         BlockState myState = level.getBlockState(myTile.getBlockPos());
-        if (!level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace, myState) - myData.internalVelocity) > 0.00001) {
+        if (!ignorePreviousUpdates && !level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace, myState) - myData.internalVelocity) > 0.00001) {
             // break this block because something is wrong with the network
             System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos());
             System.out.println("current reveiced rotation from face "+receivingFace+":"+velocity * getRotationMultiplierToInside(receivingFace, myState)+". Last received velocity: "+myData.internalVelocity);
@@ -137,7 +137,6 @@ public interface IMechanicalBlock {
         if (!workedPositions.contains(myTile.getBlockPos())) {
             workedPositions.add(myTile.getBlockPos());
 
-
             myData.internalVelocity = velocity;
             if (receivingFace != null) {
                 myData.internalVelocity *= getRotationMultiplierToInside(receivingFace, myState);
@@ -147,7 +146,7 @@ public interface IMechanicalBlock {
             for (Direction i : myData.connectedParts.keySet()) {
                 IMechanicalBlock b = myData.connectedParts.get(i);
                 double outputVelocity = myData.internalVelocity * getRotationMultiplierToOutside(i, myState);
-                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions);
+                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions,ignorePreviousUpdates);
             }
         }
     }
@@ -185,9 +184,10 @@ public interface IMechanicalBlock {
             getPropagatedData(data, null, w);
 
             HashSet<BlockPos> worked = new HashSet<>();
-            propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass,  null, worked);
 
-            System.out.println("target velocity:" + getMechanicalData().internalVelocity);
+            System.out.println("target velocity:" +data.combinedTransformedMomentum / data.combinedTransformedMass);
+            propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass,  null, worked, true);
+
         }
     }
 
@@ -199,7 +199,7 @@ public interface IMechanicalBlock {
             if (!myData.hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
                 HashSet<BlockPos> workedPositions = new HashSet<>();
-                propagateVelocityUpdate(myData.internalVelocity,  null, workedPositions);
+                propagateVelocityUpdate(myData.internalVelocity,  null, workedPositions, false);
 
                 myData.lastPing++;
                 if (myData.lastPing > myData.cttam_timeout / 2) {
@@ -234,7 +234,7 @@ public interface IMechanicalBlock {
                 //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
                 if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
-                propagateVelocityUpdate(newVelocity, null, workedPositions);
+                propagateVelocityUpdate(newVelocity, null, workedPositions, false);
 
 
             }

@@ -32,6 +32,9 @@ public class EntityDistributorGearbox extends MechanicalPartBlockEntityBaseExamp
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+
+        myMass = 0.5;
+        myFriction = 1;
     }
 
     @Override

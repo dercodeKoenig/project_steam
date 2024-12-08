@@ -52,7 +52,7 @@ public class BlockAxle extends Block implements EntityBlock {
             Vec3 lookVec = placer.getLookAngle();
             Direction.Axis newAxis;;
 
-            if (Math.abs(lookVec.y)< 0.7) {
+            if (Math.abs(lookVec.y)< 0.8) {
                 newAxis = placer.getDirection().getClockWise().getAxis();
             } else {
                 newAxis = Direction.Axis.Y; // Dominant Y-axis

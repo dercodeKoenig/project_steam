@@ -34,22 +34,7 @@ public class Static {
 
 
     public void breakBlockWithDrops(ServerLevel world, BlockPos pos) {
-        // Get the BlockState at the position
-        BlockState blockState = world.getBlockState(pos);
 
-        // Build the LootParams for this block
-        LootParams.Builder lootParams = new LootParams.Builder(world);
-
-        // Get the drops using the block's loot table
-        List<ItemStack> drops = blockState.getBlock().getDrops(blockState, lootParams);
-
-        // Drop each item in the world
-        for (ItemStack drop : drops) {
-            Block.popResource(world, pos, drop);
-        }
-
-        // Remove the block from the world
-        world.removeBlock(pos, false);
     }
 
 }

@@ -38,6 +38,9 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
                 vertexBuffer_mid = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+
+        myMass = 0.5;
+        myFriction = 1;
     }
 
     @Override

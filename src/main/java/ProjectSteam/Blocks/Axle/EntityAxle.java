@@ -31,6 +31,9 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+
+        myMass = 0.2;
+        myFriction = 0.01;
     }
 
     @Override

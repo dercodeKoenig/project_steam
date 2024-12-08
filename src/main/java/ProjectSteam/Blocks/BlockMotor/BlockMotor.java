@@ -50,9 +50,9 @@ public class BlockMotor extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
             if(placer.isShiftKeyDown())
-                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getClockWise()), 3);
+                level.setBlock(pos, state.setValue(FACING, placer.getDirection()), 3);
             else
-                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getCounterClockWise()), 3);
+                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getOpposite()), 3);
         }
 
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior

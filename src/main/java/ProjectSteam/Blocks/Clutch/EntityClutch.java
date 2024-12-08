@@ -28,7 +28,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.UUID;
 
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
@@ -54,7 +56,7 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
     double rotationB;
 
     double massPerSide = 2;
-    double baseFrictionPerSide = 1;
+    double baseFrictionPerSide = 0.5;
 
     public boolean last_wasPowered = false;
 
@@ -78,6 +80,12 @@ public double lastRotationDiff;
 
         myMass = 0.5;
         myFriction = 1;
+
+
+        for (Direction i : Direction.values()){
+            current_force.put(i,0.0);
+            current_resistance.put(i,0.0);
+        }
     }
 
     public double getMass(Direction face, BlockState state) {
@@ -85,27 +93,51 @@ public double lastRotationDiff;
         else return massPerSide;
     }
 
+    Map<Direction, Double> current_resistance = new HashMap<>();
+    Map<Direction, Double> current_force = new HashMap<>();
+
+    void updateResistance(BlockState state){
+        if (state == null) state = level.getBlockState(getBlockPos());
+        if (state.getBlock() instanceof BlockClutch) {
+            Direction myFacing = state.getValue(BlockClutch.FACING);
+            double rotationDiff = velocityA - velocityB;
+
+            if(rotationDiff > 0) {
+                double forceConstant = 1;
+                double workingForce = forceConstant * timeSinceConnectStart;
+                current_resistance.put(myFacing,0.0);
+            }
+            if(rotationDiff < 0) {
+                double forceConstant = 1;
+                double workingForce = forceConstant * timeSinceConnectStart;
+                current_resistance.put(myFacing.getOpposite(),0.0);
+            }
+        }
+    }
+    void updateForce(BlockState state){
+        if (state == null) state = level.getBlockState(getBlockPos());
+        if (state.getBlock() instanceof BlockClutch) {
+            Direction myFacing = state.getValue(BlockClutch.FACING);
+            double rotationDiff = 0;
+
+                rotationDiff = velocityB - velocityA;
+
+
+                double forceConstant = 1;
+
+                current_force.put(myFacing, Math.signum(rotationDiff)* forceConstant * timeSinceConnectStart);
+
+                current_force.put(myFacing.getOpposite(), - Math.signum(rotationDiff) * forceConstant * timeSinceConnectStart);
+
+        }
+    }
+
     public double getTorqueResistance(Direction face, BlockState state) {
         if (isFullyConnected) return baseFrictionPerSide * 2;
         double resistance =baseFrictionPerSide;
 
         if(shouldConnect) {
-            if (state == null) state = level.getBlockState(getBlockPos());
-            if (state.getBlock() instanceof BlockClutch) {
-                Direction myFacing = state.getValue(BlockClutch.FACING);
-                double rotationDiff = 0;
-                if (face == myFacing) {
-                    rotationDiff = velocityA - velocityB;
-                } else if (face == myFacing.getOpposite()) {
-                    rotationDiff = velocityB - velocityA;
-                }
-                if(rotationDiff > 0) {
-                    double forceConstant = 0.01;
-                    double workingForce = rotationDiff*forceConstant * timeSinceConnectStart * timeSinceConnectStart;
-                    resistance+=workingForce;
-                    System.out.println(workingForce + ":" + timeSinceConnectStart);
-                }
-            }
+            resistance+=current_resistance.get(face);
         }
         return resistance;
     }
@@ -114,22 +146,7 @@ public double lastRotationDiff;
 
         if (isFullyConnected) return 0;
         if(shouldConnect) {
-            if (state == null) state = level.getBlockState(getBlockPos());
-            if (state.getBlock() instanceof BlockClutch) {
-                Direction myFacing = state.getValue(BlockClutch.FACING);
-                double rotationDiff = 0;
-                if (face == myFacing) {
-                    rotationDiff = velocityB - velocityA;
-                } else if (face == myFacing.getOpposite()) {
-                    rotationDiff = velocityA - velocityB;
-                }
-                if(rotationDiff > 0) {
-                    double forceConstant = 0.1;
-                    double workingForce = forceConstant * timeSinceConnectStart * timeSinceConnectStart;
-                    System.out.println(workingForce + ":" + timeSinceConnectStart);
-                    return workingForce;
-                }
-            }
+            return current_force.get(face);
         }
         return 0;
     }
@@ -183,11 +200,11 @@ public double lastRotationDiff;
         if (level.isClientSide()) {
 
 
-            if(!updatedFromSideA && !velUpdatedFromSideA) {
+            if (!updatedFromSideA && !velUpdatedFromSideA) {
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(velocityA, myState.getValue(BlockClutch.FACING), workedPositions, false);
             }
-            if(!updatedFromSideB && !velUpdatedFromSideB) {
+            if (!updatedFromSideB && !velUpdatedFromSideB) {
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(velocityB, myState.getValue(BlockClutch.FACING).getOpposite(), workedPositions, false);
             }
@@ -202,7 +219,7 @@ public double lastRotationDiff;
 
         if (!level.isClientSide()) {
             double t = 0.05;
-            if(!updatedFromSideA && !velUpdatedFromSideA) {
+            if (!updatedFromSideA && !velUpdatedFromSideA) {
                 //System.out.println("A");
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 MechanicalFlowData dataA = new MechanicalFlowData();
@@ -216,14 +233,14 @@ public double lastRotationDiff;
                 float signAfterA = (float) Math.signum(newVelocityA);
                 if ((signAfterA < 0 && signBeforeA > 0) || (signAfterA > 0 && signBeforeA < 0))
                     newVelocityA = 0;
-                if(newVelocityA > velocityA+90)
-                    newVelocityA = velocityA+90;
-                if(newVelocityA < velocityA-90)
-                    newVelocityA = velocityA-90;
                 if (Math.abs(newVelocityA) < 0.0001) newVelocityA = 0;
+                if (newVelocityA > velocityA + 90)
+                    newVelocityA = velocityA + 90;
+                if (newVelocityA < velocityA - 90)
+                    newVelocityA = velocityA - 90;
                 propagateVelocityUpdate(newVelocityA, myState.getValue(BlockClutch.FACING), workedPositions, false);
             }
-            if(!updatedFromSideB && !velUpdatedFromSideB) {
+            if (!updatedFromSideB && !velUpdatedFromSideB) {
                 //System.out.println("B");
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 MechanicalFlowData dataB = new MechanicalFlowData();
@@ -237,11 +254,11 @@ public double lastRotationDiff;
                 float signAfterB = (float) Math.signum(newVelocityB);
                 if ((signAfterB < 0 && signBeforeB > 0) || (signAfterB > 0 && signBeforeB < 0))
                     newVelocityB = 0;
-                if(newVelocityB > velocityB+90)
-                    newVelocityB = velocityB+90;
-                if(newVelocityB < velocityB-90)
-                    newVelocityB = velocityB-90;
                 if (Math.abs(newVelocityB) < 0.0001) newVelocityB = 0;
+                if (newVelocityB > velocityB + 90)
+                    newVelocityB = velocityB + 90;
+                if (newVelocityB < velocityB - 90)
+                    newVelocityB = velocityB - 90;
                 propagateVelocityUpdate(newVelocityB, myState.getValue(BlockClutch.FACING).getOpposite(), workedPositions, false);
             }
         }
@@ -271,35 +288,40 @@ public double lastRotationDiff;
                 }
             }
 
-            if(Math.abs(velocityA) > 100000||Math.abs(velocityB) > 100000 || Double.isNaN(velocityA) || Double.isNaN(velocityB)){
-                System.out.println("set block to air because velocity is way too high!  "+getMechanicalData().me.getBlockPos());
-                getMechanicalData().me.getLevel().setBlock(getMechanicalData().me.getBlockPos(),Blocks.AIR.defaultBlockState(),3);
+            if (Math.abs(velocityA) > 100000 || Math.abs(velocityB) > 100000 || Double.isNaN(velocityA) || Double.isNaN(velocityB)) {
+                System.out.println("set block to air because velocity is way too high!  " + getMechanicalData().me.getBlockPos());
+                getMechanicalData().me.getLevel().setBlock(getMechanicalData().me.getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
             }
         }
-getMechanicalData().hasReceivedUpdate = false;
+        getMechanicalData().hasReceivedUpdate = false;
         updatedFromSideA = false;
         updatedFromSideB = false;
-         velUpdatedFromSideA = false;
-         velUpdatedFromSideB = false;
-
-        if(level.hasNeighborSignal(getBlockPos())){
-            if(!last_wasPowered){
-                last_wasPowered = true;
-                timeSinceConnectStart = 0;
-                lastRotationDiff = Math.abs(velocityB-velocityA);
-            }
-            shouldConnect = true;
-            if(timeSinceConnectStart < 100) {
-
-                    timeSinceConnectStart += 1;
-            }
-            if(Math.abs(velocityB-velocityA) <0.01)
-                isFullyConnected = true;
-        }else{
-            last_wasPowered = false;
-            isFullyConnected = false;
-            shouldConnect = false;
+        velUpdatedFromSideA = false;
+        velUpdatedFromSideB = false;
+if(!level.isClientSide()) {
+    if (level.hasNeighborSignal(getBlockPos())) {
+        if (!last_wasPowered) {
+            last_wasPowered = true;
+            timeSinceConnectStart = 0;
+            lastRotationDiff = Math.abs(velocityB - velocityA);
         }
+        shouldConnect = true;
+        if (timeSinceConnectStart < 1000) {
+            timeSinceConnectStart += 1;
+        }
+        if (Math.abs(velocityB - velocityA) < 0.5)
+            isFullyConnected = true;
+        else {
+            updateResistance(myState);
+            updateForce(myState);
+            System.out.println(timeSinceConnectStart);
+        }
+    } else {
+        last_wasPowered = false;
+        isFullyConnected = false;
+        shouldConnect = false;
+    }
+}
 //System.out.println(level.isClientSide+":"+shouldConnect+":"+isFullyConnected+":"+velocityA+":"+velocityB);
 
     }

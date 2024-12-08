@@ -233,6 +233,8 @@ public interface IMechanicalBlock {
                 float signBefore = (float) Math.signum(newVelocity);
                 newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedMass * t;
                 float signAfter = (float) Math.signum(newVelocity);
+                if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
+
                 if ((signAfter < 0 && signBefore > 0) || (signAfter > 0 && signBefore < 0))
                     newVelocity = 0;
                 if(newVelocity > myData.internalVelocity+90)
@@ -241,7 +243,7 @@ public interface IMechanicalBlock {
                     newVelocity = myData.internalVelocity-90;
 
                 //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
-                if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
+
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions, false);
 

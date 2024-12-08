@@ -34,10 +34,10 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
             });
         }
 
-        //myForce = 25;
+        myForce = 25;
+        myWorkPerTick = 1000;
+        //myForce = 200;
         //myWorkPerTick = 1000;
-        myForce = 250;
-        myWorkPerTick = 10000;
         myFriction = 0.5;
         myMass = 2;
     }

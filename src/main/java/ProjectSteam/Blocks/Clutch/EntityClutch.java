@@ -314,7 +314,7 @@ if(!level.isClientSide()) {
         else {
             updateResistance(myState);
             updateForce(myState);
-            System.out.println(timeSinceConnectStart);
+            //System.out.println(timeSinceConnectStart);
         }
     } else {
         last_wasPowered = false;

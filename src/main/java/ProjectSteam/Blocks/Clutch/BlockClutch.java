@@ -1,13 +1,12 @@
-package ProjectSteam.Blocks.BlockMotor;
+package ProjectSteam.Blocks.Clutch;
 
-import ProjectSteam.api.IMechanicalBlock;
+import ProjectSteam.Blocks.BlockMotor.EntityMotor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -16,19 +15,19 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
+import static ProjectSteam.Registry.ENTITY_CLUTCH;
 import static ProjectSteam.Registry.ENTITY_MOTOR;
 
-public class BlockMotor extends Block implements EntityBlock {
+public class BlockClutch extends Block implements EntityBlock {
 
     public static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
 
-    public BlockMotor() {
+    public BlockClutch() {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(FACING, Direction.SOUTH);
@@ -43,7 +42,7 @@ public class BlockMotor extends Block implements EntityBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ENTITY_MOTOR.get().create(pos, state);
+        return ENTITY_CLUTCH.get().create(pos, state);
     }
 
     @Override
@@ -58,9 +57,10 @@ public class BlockMotor extends Block implements EntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
     }
 
+
     
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityMotor::tick;
+        return EntityClutch::tick;
     }
 }

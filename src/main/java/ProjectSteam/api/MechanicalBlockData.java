@@ -9,7 +9,7 @@ import java.util.UUID;
 
 public class MechanicalBlockData {
 
-    BlockEntity me;
+    public BlockEntity me;
 
     public MechanicalBlockData(BlockEntity me) {
         this.me = me;
@@ -26,7 +26,7 @@ public class MechanicalBlockData {
 
     public Map<Direction, IMechanicalBlock> connectedParts = new HashMap<>();
 
-    boolean hasReceivedUpdate;
+    public boolean hasReceivedUpdate;
 
     public double currentRotation;
 

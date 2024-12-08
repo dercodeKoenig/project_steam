@@ -66,7 +66,7 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-    super.readClient(compoundTag);
+        super.readClient(compoundTag);
     }
 
     @Override
@@ -85,15 +85,15 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
         if (myState == null)
             myState = level.getBlockState(getBlockPos());
-       return face.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis();
+        return face.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis();
     }
 
 
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace) {
+    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace, @Nullable BlockState myState) {
         if (receivingFace == null) return 1;
+        if (myState == null) myState = level.getBlockState(getBlockPos());
 
-        BlockState myState = level.getBlockState(getBlockPos());
-        if(myState.getBlock() instanceof BlockGearbox) {
+        if (myState.getBlock() instanceof BlockGearbox) {
             Direction facing = myState.getValue(BlockGearbox.FACING);
 
             if (receivingFace == facing.getOpposite())
@@ -106,6 +106,6 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityGearbox)t).tick();
+        ((EntityGearbox) t).tick();
     }
 }

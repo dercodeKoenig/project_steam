@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity implements IMechanicalBlock, INetworkTagReceiver {
@@ -30,15 +31,15 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
     public double myWorkPerTick = 0;
     public double myFriction = 0.1;
 
-    public double getMass(Direction face) {
+    public double getMass(Direction face, @Nullable BlockState myBlockState) {
         return myMass;
     }
 
-    public double getTorqueResistance(Direction face) {
+    public double getTorqueResistance(Direction face, @Nullable BlockState myBlockState) {
             return myFriction;
     }
 
-    public double getTorqueProduced(Direction face) {
+    public double getTorqueProduced(Direction face, @Nullable BlockState myBlockState) {
         if(myForce == 0)return 0;
         double maxSpeed = Math.abs(myWorkPerTick / myForce);
         double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));

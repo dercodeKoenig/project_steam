@@ -69,6 +69,7 @@ public class ProjectSteam {
             e.accept(DISTRIBUTOR_GEARBOX.get());
             e.accept(GEARBOX.get());
             e.accept(MOTOR.get());
+            e.accept(CLUTCH.get());
         }
     }
 

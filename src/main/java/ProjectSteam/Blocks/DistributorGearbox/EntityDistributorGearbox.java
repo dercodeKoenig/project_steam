@@ -81,10 +81,10 @@ public class EntityDistributorGearbox extends MechanicalPartBlockEntityBaseExamp
     }
 
 
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
+    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace, @javax.annotation.Nullable BlockState myState){
         if(receivingFace == null) return 1;
+        if(myState == null) myState = level.getBlockState(getBlockPos());
 
-        BlockState myState = level.getBlockState(getBlockPos());
         if(myState.getBlock() instanceof BlockDistributorGearbox) {
             Direction.Axis myNormalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
 

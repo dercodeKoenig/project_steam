@@ -4,6 +4,8 @@ import ProjectSteam.Blocks.Axle.BlockAxle;
 import ProjectSteam.Blocks.Axle.EntityAxle;
 import ProjectSteam.Blocks.BlockMotor.BlockMotor;
 import ProjectSteam.Blocks.BlockMotor.EntityMotor;
+import ProjectSteam.Blocks.Clutch.BlockClutch;
+import ProjectSteam.Blocks.Clutch.EntityClutch;
 import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
 import ProjectSteam.Blocks.DistributorGearbox.EntityDistributorGearbox;
 import ProjectSteam.Blocks.Gearbox.BlockGearbox;
@@ -61,6 +63,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityMotor::new, MOTOR.get()).build(null)
     );
 
+    public static final DeferredHolder<Block, Block> CLUTCH = BLOCKS.register(
+            "clutch",
+            () -> new BlockClutch()
+    );
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityClutch>> ENTITY_CLUTCH = BLOCK_ENTITIES.register(
+            "entity_clutch",
+            () -> BlockEntityType.Builder.of(EntityClutch::new, CLUTCH.get()).build(null)
+    );
+
 
 
 
@@ -72,6 +83,7 @@ public class Registry {
         registerBlockItem("distributor_gearbox", DISTRIBUTOR_GEARBOX);
         registerBlockItem("gearbox", GEARBOX);
         registerBlockItem("motor", MOTOR);
+        registerBlockItem("clutch", CLUTCH);
 
         BLOCKS.register(modBus);
         ITEMS.register(modBus);

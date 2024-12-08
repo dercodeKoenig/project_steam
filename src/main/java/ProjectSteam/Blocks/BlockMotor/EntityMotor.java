@@ -90,9 +90,7 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
     }
 
 
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace){
-        if(receivingFace != null && receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
-            return 1;
+    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace, @javax.annotation.Nullable BlockState myBlockState){
         return 1;
     }
 

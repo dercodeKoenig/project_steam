@@ -22,11 +22,11 @@ import java.util.*;
 
 public interface IMechanicalBlock {
 
-    double getMass(Direction face);
+    double getMass(Direction face, @Nullable BlockState myState);
 
-    double getTorqueResistance(Direction face);
+    double getTorqueResistance(Direction face, @Nullable BlockState myState);
 
-    double getTorqueProduced(Direction face);
+    double getTorqueProduced(Direction face, @Nullable BlockState myState);
 
     MechanicalBlockData getMechanicalData();
 
@@ -36,12 +36,12 @@ public interface IMechanicalBlock {
     boolean connectsAtFace(Direction face, @Nullable BlockState myState);
 
 
-    default double getRotationMultiplierToInside(@Nullable Direction receivingFace) {
+    default double getRotationMultiplierToInside(@Nullable Direction receivingFace, @Nullable BlockState myState) {
         return 1;
     }
 
-    default double getRotationMultiplierToOutside(@Nullable Direction outputFace) {
-        return 1/getRotationMultiplierToInside(outputFace);
+    default double getRotationMultiplierToOutside(@Nullable Direction outputFace, @Nullable BlockState myState) {
+        return 1/getRotationMultiplierToInside(outputFace, myState);
     }
 
 
@@ -73,6 +73,8 @@ public interface IMechanicalBlock {
         if (!workedPositions.contains(myTile.getBlockPos())) {
             workedPositions.add(myTile.getBlockPos());
 
+            BlockState myState = myTile.getLevel().getBlockState(myTile.getBlockPos());
+
             MechanicalFlowData myInputFlowData = new MechanicalFlowData();
             // update the connected parts
             for (Direction i : myData.connectedParts.keySet()) {
@@ -80,7 +82,7 @@ public interface IMechanicalBlock {
                 IMechanicalBlock b = myData.connectedParts.get(i);
                 b.getPropagatedData(d, i.getOpposite(), workedPositions);
 
-                double rotationMultiplierToInside = getRotationMultiplierToInside(i);
+                double rotationMultiplierToInside = getRotationMultiplierToInside(i, myState);
 
                 myInputFlowData.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
                 myInputFlowData.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
@@ -88,12 +90,12 @@ public interface IMechanicalBlock {
                 myInputFlowData.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
             }
 
-            double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
+            double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom, myState);
 
-            myInputFlowData.combinedTransformedForce +=getTorqueProduced(requestedFrom);
-            myInputFlowData.combinedTransformedMass += getMass(requestedFrom);
-            myInputFlowData.combinedTransformedMomentum += myData.internalVelocity * getMass(requestedFrom);
-            myInputFlowData.combinedTransformedResistanceForce +=getTorqueResistance(requestedFrom);
+            myInputFlowData.combinedTransformedForce +=getTorqueProduced(requestedFrom, myState);
+            myInputFlowData.combinedTransformedMass += getMass(requestedFrom, myState);
+            myInputFlowData.combinedTransformedMomentum += myData.internalVelocity * getMass(requestedFrom, myState);
+            myInputFlowData.combinedTransformedResistanceForce +=getTorqueResistance(requestedFrom, myState);
 
 
             data.combinedTransformedForce += myInputFlowData.combinedTransformedForce / rotationMultiplierToOutside;
@@ -104,36 +106,24 @@ public interface IMechanicalBlock {
         }
     }
 
-    default void applyRotations(HashSet<BlockPos> workedPositions) {
+    default void applyRotations() {
         MechanicalBlockData myData = getMechanicalData();
         BlockEntity myTile = myData.me;
-        Level level = myTile.getLevel();
-        if (myData.connectedParts == null) return;
-
-        if (!workedPositions.contains(myTile.getBlockPos())) {
-            workedPositions.add(myTile.getBlockPos());
-
-            myData.currentRotation += myData.internalVelocity;
-            double eqs = 2*2*3*4*5*6*7*8*9;
-            if (myData.currentRotation > 360*eqs) myData.currentRotation -= 360*eqs;
-            if (myData.currentRotation < -360*eqs) myData.currentRotation += 360*eqs;
-
-            // forward the transformed rotation to the other blocks
-            for (Direction i : myData.connectedParts.keySet()) {
-                IMechanicalBlock b = myData.connectedParts.get(i);
-                b.applyRotations(workedPositions);
-            }
-        }
+        myData.currentRotation += myData.internalVelocity;
+        double eqs = 2 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
+        if (myData.currentRotation > 360 * eqs) myData.currentRotation -= 360 * eqs;
+        if (myData.currentRotation < -360 * eqs) myData.currentRotation += 360 * eqs;
     }
 
     default void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions) {
         MechanicalBlockData myData = getMechanicalData();
         BlockEntity myTile = myData.me;
         Level level = myTile.getLevel();
-        if (!level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace) - myData.internalVelocity) > 0.00001) {
+        BlockState myState = level.getBlockState(myTile.getBlockPos());
+        if (!level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace, myState) - myData.internalVelocity) > 0.00001) {
             // break this block because something is wrong with the network
             System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos());
-            System.out.println("current reveiced rotation from face "+receivingFace+":"+velocity * getRotationMultiplierToInside(receivingFace)+". Last received velocity: "+myData.internalVelocity);
+            System.out.println("current reveiced rotation from face "+receivingFace+":"+velocity * getRotationMultiplierToInside(receivingFace, myState)+". Last received velocity: "+myData.internalVelocity);
 
             BlockPos pos = myTile.getBlockPos();
             ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
@@ -150,13 +140,13 @@ public interface IMechanicalBlock {
 
             myData.internalVelocity = velocity;
             if (receivingFace != null) {
-                myData.internalVelocity *= getRotationMultiplierToInside(receivingFace);
+                myData.internalVelocity *= getRotationMultiplierToInside(receivingFace, myState);
             }
 
             // forward the transformed rotation to the other blocks
             for (Direction i : myData.connectedParts.keySet()) {
                 IMechanicalBlock b = myData.connectedParts.get(i);
-                double outputVelocity = myData.internalVelocity * getRotationMultiplierToOutside(i);
+                double outputVelocity = myData.internalVelocity * getRotationMultiplierToOutside(i, myState);
                 b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions);
             }
         }
@@ -210,8 +200,6 @@ public interface IMechanicalBlock {
                 propagateTickBeforeUpdate();
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(myData.internalVelocity,  null, workedPositions);
-                workedPositions.clear();
-                applyRotations(workedPositions);
 
                 myData.lastPing++;
                 if (myData.lastPing > myData.cttam_timeout / 2) {
@@ -247,12 +235,12 @@ public interface IMechanicalBlock {
                 if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions);
-                workedPositions.clear();
-                applyRotations(workedPositions);
+
 
             }
         }
         myData.hasReceivedUpdate = false;
+        applyRotations();
 
         if (!myTile.getLevel().isClientSide()) {
             for (UUID i : myData.clientsTrackingThisAsMaster.keySet()) {

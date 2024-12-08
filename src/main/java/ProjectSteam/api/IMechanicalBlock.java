@@ -131,7 +131,7 @@ public interface IMechanicalBlock {
 
 
             level.setBlock(myTile.getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
-
+            return;
         }
 
         if (!workedPositions.contains(myTile.getBlockPos())) {
@@ -185,8 +185,12 @@ public interface IMechanicalBlock {
 
             HashSet<BlockPos> worked = new HashSet<>();
 
-            System.out.println("target velocity:" +data.combinedTransformedMomentum / data.combinedTransformedMass);
-            propagateVelocityUpdate(data.combinedTransformedMomentum / data.combinedTransformedMass,  null, worked, true);
+            double target_velocity = 0;
+            if(data.combinedTransformedMass != 0){
+                target_velocity = data.combinedTransformedMomentum / data.combinedTransformedMass;
+            }
+            System.out.println("target velocity:" +target_velocity);
+            propagateVelocityUpdate(target_velocity,  null, worked, true);
 
         }
     }
@@ -231,6 +235,11 @@ public interface IMechanicalBlock {
                 float signAfter = (float) Math.signum(newVelocity);
                 if ((signAfter < 0 && signBefore > 0) || (signAfter > 0 && signBefore < 0))
                     newVelocity = 0;
+                if(newVelocity > myData.internalVelocity+90)
+                    newVelocity = myData.internalVelocity+90;
+                if(newVelocity < myData.internalVelocity-90)
+                    newVelocity = myData.internalVelocity-90;
+
                 //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
                 if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
@@ -260,6 +269,10 @@ public interface IMechanicalBlock {
                     ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
                     PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
                 }
+            }
+            if(Math.abs(myData.internalVelocity) > 100000 ||Double.isNaN(myData.internalVelocity)){
+                System.out.println("set block to air because velocity is way too high!  "+getMechanicalData().me.getBlockPos());
+                getMechanicalData().me.getLevel().setBlock(getMechanicalData().me.getBlockPos(),Blocks.AIR.defaultBlockState(),3);
             }
         }
     }

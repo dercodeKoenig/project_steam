@@ -56,11 +56,15 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
     double massPerSide = 2;
     double baseFrictionPerSide = 1;
 
+    public boolean last_wasPowered = false;
 
     boolean updatedFromSideA = false;
     boolean updatedFromSideB = false;
 
+    boolean velUpdatedFromSideA = false;
+    boolean velUpdatedFromSideB = false;
 
+public double lastRotationDiff;
 
 
     public EntityClutch(BlockPos pos, BlockState blockState) {
@@ -83,7 +87,27 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
 
     public double getTorqueResistance(Direction face, BlockState state) {
         if (isFullyConnected) return baseFrictionPerSide * 2;
-        else return baseFrictionPerSide;
+        double resistance =baseFrictionPerSide;
+
+        if(shouldConnect) {
+            if (state == null) state = level.getBlockState(getBlockPos());
+            if (state.getBlock() instanceof BlockClutch) {
+                Direction myFacing = state.getValue(BlockClutch.FACING);
+                double rotationDiff = 0;
+                if (face == myFacing) {
+                    rotationDiff = velocityA - velocityB;
+                } else if (face == myFacing.getOpposite()) {
+                    rotationDiff = velocityB - velocityA;
+                }
+                if(rotationDiff > 0) {
+                    double forceConstant = 0.01;
+                    double workingForce = rotationDiff*forceConstant * timeSinceConnectStart * timeSinceConnectStart;
+                    resistance+=workingForce;
+                    System.out.println(workingForce + ":" + timeSinceConnectStart);
+                }
+            }
+        }
+        return resistance;
     }
 
     public double getTorqueProduced(Direction face, BlockState state) {
@@ -99,10 +123,12 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
                 } else if (face == myFacing.getOpposite()) {
                     rotationDiff = velocityA - velocityB;
                 }
-                double forceConstant = 0.01;
-                double workingForce = rotationDiff * forceConstant * timeSinceConnectStart;
-                System.out.println(workingForce+":"+timeSinceConnectStart);
-                return workingForce;
+                if(rotationDiff > 0) {
+                    double forceConstant = 0.1;
+                    double workingForce = forceConstant * timeSinceConnectStart * timeSinceConnectStart;
+                    System.out.println(workingForce + ":" + timeSinceConnectStart);
+                    return workingForce;
+                }
             }
         }
         return 0;
@@ -149,16 +175,6 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
         MechanicalBlockData myData = getMechanicalData();
         BlockState myState = level.getBlockState(getBlockPos());
 
-        if(level.hasNeighborSignal(getBlockPos())){
-            shouldConnect = true;
-            if(timeSinceConnectStart < 10000)
-                timeSinceConnectStart+=1;
-            if(Math.abs(velocityB-velocityA) <0.01)
-                isFullyConnected = true;
-        }else{
-            isFullyConnected = false;
-            shouldConnect = false;
-        }
 
         if (!myData.hasReceivedUpdate) {
             propagateTickBeforeUpdate();
@@ -167,11 +183,11 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
         if (level.isClientSide()) {
 
 
-            if(!updatedFromSideA) {
+            if(!updatedFromSideA && !velUpdatedFromSideA) {
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(velocityA, myState.getValue(BlockClutch.FACING), workedPositions, false);
             }
-            if(!updatedFromSideB) {
+            if(!updatedFromSideB && !velUpdatedFromSideB) {
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(velocityB, myState.getValue(BlockClutch.FACING).getOpposite(), workedPositions, false);
             }
@@ -186,12 +202,12 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
 
         if (!level.isClientSide()) {
             double t = 0.05;
-            if(!updatedFromSideA) {
-                System.out.println("clutch is master on side A");
-
+            if(!updatedFromSideA && !velUpdatedFromSideA) {
+                //System.out.println("A");
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 MechanicalFlowData dataA = new MechanicalFlowData();
                 getPropagatedData(dataA, myState.getValue(BlockClutch.FACING), workedPositions);
+                workedPositions.clear();
                 dataA.combinedTransformedMass = Math.max(dataA.combinedTransformedMass, 0.01);
                 double newVelocityA = velocityA;
                 newVelocityA += dataA.combinedTransformedForce / dataA.combinedTransformedMass * t;
@@ -200,17 +216,19 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
                 float signAfterA = (float) Math.signum(newVelocityA);
                 if ((signAfterA < 0 && signBeforeA > 0) || (signAfterA > 0 && signBeforeA < 0))
                     newVelocityA = 0;
+                if(newVelocityA > velocityA+90)
+                    newVelocityA = velocityA+90;
+                if(newVelocityA < velocityA-90)
+                    newVelocityA = velocityA-90;
                 if (Math.abs(newVelocityA) < 0.0001) newVelocityA = 0;
-                System.out.println("A:"+dataA.combinedTransformedForce+":"+dataA.combinedTransformedMass+":"+dataA.combinedTransformedResistanceForce);
                 propagateVelocityUpdate(newVelocityA, myState.getValue(BlockClutch.FACING), workedPositions, false);
-
             }
-            if(!updatedFromSideB) {
-                System.out.println("clutch is master on side B");
-
+            if(!updatedFromSideB && !velUpdatedFromSideB) {
+                //System.out.println("B");
                 HashSet<BlockPos> workedPositions = new HashSet<>();
                 MechanicalFlowData dataB = new MechanicalFlowData();
                 getPropagatedData(dataB, myState.getValue(BlockClutch.FACING).getOpposite(), workedPositions);
+                workedPositions.clear();
                 dataB.combinedTransformedMass = Math.max(dataB.combinedTransformedMass, 0.01);
                 double newVelocityB = velocityB;
                 newVelocityB += dataB.combinedTransformedForce / dataB.combinedTransformedMass * t;
@@ -219,11 +237,13 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
                 float signAfterB = (float) Math.signum(newVelocityB);
                 if ((signAfterB < 0 && signBeforeB > 0) || (signAfterB > 0 && signBeforeB < 0))
                     newVelocityB = 0;
+                if(newVelocityB > velocityB+90)
+                    newVelocityB = velocityB+90;
+                if(newVelocityB < velocityB-90)
+                    newVelocityB = velocityB-90;
                 if (Math.abs(newVelocityB) < 0.0001) newVelocityB = 0;
-                System.out.println("B:"+dataB.combinedTransformedForce+":"+dataB.combinedTransformedMass+":"+dataB.combinedTransformedResistanceForce);
                 propagateVelocityUpdate(newVelocityB, myState.getValue(BlockClutch.FACING).getOpposite(), workedPositions, false);
             }
-
         }
 
 
@@ -250,10 +270,38 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
                     PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, updateTag));
                 }
             }
-        }
 
+            if(Math.abs(velocityA) > 100000||Math.abs(velocityB) > 100000 || Double.isNaN(velocityA) || Double.isNaN(velocityB)){
+                System.out.println("set block to air because velocity is way too high!  "+getMechanicalData().me.getBlockPos());
+                getMechanicalData().me.getLevel().setBlock(getMechanicalData().me.getBlockPos(),Blocks.AIR.defaultBlockState(),3);
+            }
+        }
+getMechanicalData().hasReceivedUpdate = false;
         updatedFromSideA = false;
         updatedFromSideB = false;
+         velUpdatedFromSideA = false;
+         velUpdatedFromSideB = false;
+
+        if(level.hasNeighborSignal(getBlockPos())){
+            if(!last_wasPowered){
+                last_wasPowered = true;
+                timeSinceConnectStart = 0;
+                lastRotationDiff = Math.abs(velocityB-velocityA);
+            }
+            shouldConnect = true;
+            if(timeSinceConnectStart < 100) {
+
+                    timeSinceConnectStart += 1;
+            }
+            if(Math.abs(velocityB-velocityA) <0.01)
+                isFullyConnected = true;
+        }else{
+            last_wasPowered = false;
+            isFullyConnected = false;
+            shouldConnect = false;
+        }
+//System.out.println(level.isClientSide+":"+shouldConnect+":"+isFullyConnected+":"+velocityA+":"+velocityB);
+
     }
 
 
@@ -275,6 +323,7 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
                 data.combinedTransformedResistanceForce += getTorqueResistance(requestedFrom, myState);
                 data.combinedTransformedMass += getMass(requestedFrom, myState);
                 data.combinedTransformedMomentum += velocityA * getMass(requestedFrom, myState);
+
             }
             if (requestedFrom == myState.getValue(BlockClutch.FACING).getOpposite() && !updatedFromSideB) {
                 updatedFromSideB = true;
@@ -345,11 +394,12 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
     public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions, boolean ignorePreviousUpdate) {
         MechanicalBlockData myData = getMechanicalData();
         BlockState myState = level.getBlockState(getBlockPos());
-
         if(!isFullyConnected){
-            if(receivingFace == myState.getValue(BlockClutch.FACING)){
+            if(receivingFace == myState.getValue(BlockClutch.FACING) && !velUpdatedFromSideA){
                 velocityA = velocity;
-                updatedFromSideA = true;
+                velUpdatedFromSideA = true;
+
+                //System.out.println(level.isClientSide+":"+velocity+"-"+ receivingFace);
 
                 // the following is in case this is the master.
                 IMechanicalBlock b = myData.connectedParts.get(receivingFace);
@@ -358,9 +408,11 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
                 }
 
             }
-            if(receivingFace == myState.getValue(BlockClutch.FACING).getOpposite()){
+            if(receivingFace == myState.getValue(BlockClutch.FACING).getOpposite() &&!velUpdatedFromSideB){
                 velocityB = velocity;
-                updatedFromSideB = true;
+                velUpdatedFromSideB = true;
+
+                //System.out.println(level.isClientSide+":"+velocity+"-"+ receivingFace);
 
                 // the following is in case this is the master.
                 IMechanicalBlock b = myData.connectedParts.get(receivingFace);
@@ -371,8 +423,8 @@ public class EntityClutch extends MechanicalPartBlockEntityBaseExample implement
         }
 
         if (isFullyConnected) {
-            updatedFromSideA = true;
-            updatedFromSideB = true;
+            velUpdatedFromSideA = true;
+            velUpdatedFromSideB = true;
 
             if (!ignorePreviousUpdate && !level.isClientSide && workedPositions.contains(getBlockPos()) && Math.abs(velocity - velocityA) > 0.00001) {
                 // break this block because something is wrong with the network

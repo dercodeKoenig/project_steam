@@ -4,6 +4,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
@@ -27,17 +28,17 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
     public double myMass = 1;
     public double myForce = 0;
     public double myWorkPerTick = 0;
-    public double myFriction = 0;
+    public double myFriction = 0.1;
 
-    public double getMass() {
+    public double getMass(Direction face) {
         return myMass;
     }
 
-    public double getTorqueResistance() {
+    public double getTorqueResistance(Direction face) {
             return myFriction;
     }
 
-    public double getTorqueProduced() {
+    public double getTorqueProduced(Direction face) {
         if(myForce == 0)return 0;
         double maxSpeed = Math.abs(myWorkPerTick / myForce);
         double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));

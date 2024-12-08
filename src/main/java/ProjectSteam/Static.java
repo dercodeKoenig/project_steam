@@ -3,6 +3,14 @@ package ProjectSteam;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
+
+import java.util.List;
 
 public class Static {
 
@@ -21,5 +29,27 @@ public class Static {
 
     public static ShaderInstance ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;
     public static ShaderInstance getEntitySolidDynamicNormalShader(){return ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;}
+
+
+
+
+    public void breakBlockWithDrops(ServerLevel world, BlockPos pos) {
+        // Get the BlockState at the position
+        BlockState blockState = world.getBlockState(pos);
+
+        // Build the LootParams for this block
+        LootParams.Builder lootParams = new LootParams.Builder(world);
+
+        // Get the drops using the block's loot table
+        List<ItemStack> drops = blockState.getBlock().getDrops(blockState, lootParams);
+
+        // Drop each item in the world
+        for (ItemStack drop : drops) {
+            Block.popResource(world, pos, drop);
+        }
+
+        // Remove the block from the world
+        world.removeBlock(pos, false);
+    }
 
 }

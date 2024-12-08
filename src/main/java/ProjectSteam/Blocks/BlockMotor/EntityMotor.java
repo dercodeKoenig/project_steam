@@ -1,8 +1,9 @@
-package ProjectSteam.Blocks.Axle;
+package ProjectSteam.Blocks.BlockMotor;
 
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.*;
+import com.mojang.blaze3d.vertex.MeshData;
+import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -16,21 +17,25 @@ import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteam.Blocks.Axle.BlockAxle.ROTATION_AXIS;
 import static ProjectSteam.Registry.ENTITY_AXLE;
+import static ProjectSteam.Registry.ENTITY_MOTOR;
 
-public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
+public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
     int lastLight = 0;
 
-    public EntityAxle(BlockPos pos, BlockState blockState) {
-        super(ENTITY_AXLE.get(), pos, blockState);
+    public EntityMotor(BlockPos pos, BlockState blockState) {
+        super(ENTITY_MOTOR.get(), pos, blockState);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+
+        myForce = 5;
+        myWorkPerTick = 20;
     }
 
     @Override
@@ -76,9 +81,8 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
     public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
         if (myState == null)
             myState = level.getBlockState(getBlockPos());
-        if (myState.getBlock() instanceof BlockAxle) {
-            Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
-            if (face.getAxis() == blockAxis) {
+        if (myState.getBlock() instanceof BlockMotor) {
+            if (face == myState.getValue(BlockMotor.FACING)) {
                 return true;
             }
         }
@@ -94,6 +98,6 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityAxle)t).tick();
+        ((EntityMotor)t).tick();
     }
 }

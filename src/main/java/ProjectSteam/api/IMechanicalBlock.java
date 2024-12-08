@@ -13,6 +13,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -21,11 +22,11 @@ import java.util.*;
 
 public interface IMechanicalBlock {
 
-    double getMass();
+    double getMass(Direction face);
 
-    double getTorqueResistance();
+    double getTorqueResistance(Direction face);
 
-    double getTorqueProduced();
+    double getTorqueProduced(Direction face);
 
     MechanicalBlockData getMechanicalData();
 
@@ -89,10 +90,10 @@ public interface IMechanicalBlock {
 
             double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
-            myInputFlowData.combinedTransformedForce +=getTorqueProduced();
-            myInputFlowData.combinedTransformedMass += getMass();
-            myInputFlowData.combinedTransformedMomentum += myData.internalVelocity * getMass();
-            myInputFlowData.combinedTransformedResistanceForce +=getTorqueResistance();
+            myInputFlowData.combinedTransformedForce +=getTorqueProduced(requestedFrom);
+            myInputFlowData.combinedTransformedMass += getMass(requestedFrom);
+            myInputFlowData.combinedTransformedMomentum += myData.internalVelocity * getMass(requestedFrom);
+            myInputFlowData.combinedTransformedResistanceForce +=getTorqueResistance(requestedFrom);
 
 
             data.combinedTransformedForce += myInputFlowData.combinedTransformedForce / rotationMultiplierToOutside;
@@ -137,6 +138,7 @@ public interface IMechanicalBlock {
             BlockPos pos = myTile.getBlockPos();
             ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
             // TODO spawn the entity
+
 
             level.setBlock(myTile.getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
 
@@ -231,13 +233,15 @@ public interface IMechanicalBlock {
                 getPropagatedData(data, null, workedPositions);
                 workedPositions.clear();
 
+                double t = 0.05;
+
                 data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
                 double newVelocity = myData.internalVelocity;
-                newVelocity += data.combinedTransformedForce / data.combinedTransformedMass;
+                newVelocity += data.combinedTransformedForce / data.combinedTransformedMass * t;
                 float signBefore = (float) Math.signum(newVelocity);
-                newVelocity -= (data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedMass);
+                newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedMass * t;
                 float signAfter = (float) Math.signum(newVelocity);
-                if((signAfter < 0 && signBefore > 0) || (signAfter > 0 && signBefore < 0))
+                if ((signAfter < 0 && signBefore > 0) || (signAfter > 0 && signBefore < 0))
                     newVelocity = 0;
                 //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
                 if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;

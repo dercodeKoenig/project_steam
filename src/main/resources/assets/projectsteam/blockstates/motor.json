@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "": {
+            "model": "minecaft:block/stone",
+            "y": 0
+        }
+    }
+}

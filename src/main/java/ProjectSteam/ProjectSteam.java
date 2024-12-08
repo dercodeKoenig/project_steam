@@ -1,6 +1,7 @@
 package ProjectSteam;
 
 import ProjectSteam.Blocks.Axle.RenderAxle;
+import ProjectSteam.Blocks.BlockMotor.RenderMotor;
 import ProjectSteam.Blocks.DistributorGearbox.RenderDistributorGearbox;
 import ProjectSteam.Blocks.Gearbox.RenderGearbox;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -54,6 +55,7 @@ public class ProjectSteam {
         event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderAxle::new);
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
+        //event.registerBlockEntityRenderer(MOTOR.get(), RenderMotor::new);
 
     }
 
@@ -66,6 +68,7 @@ public class ProjectSteam {
             e.accept(AXLE.get());
             e.accept(DISTRIBUTOR_GEARBOX.get());
             e.accept(GEARBOX.get());
+            e.accept(MOTOR.get());
         }
     }
 

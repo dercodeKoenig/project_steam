@@ -1,7 +1,19 @@
 {
     "variants": {
-        "": {
-            "model": "minecaft:block/stone",
+        "facing=south": {
+            "model": "minecraft:block/air",
+            "y": 0
+        },
+        "facing=north": {
+            "model": "minecraft:block/air",
+            "y": 0
+        },
+        "facing=east": {
+            "model": "minecraft:block/air",
+            "y": 0
+        },
+        "facing=west": {
+            "model": "minecraft:block/air",
             "y": 0
         }
     }

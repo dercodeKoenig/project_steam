@@ -24,11 +24,11 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
 
     static WavefrontObject model;
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
+    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/motor.png");
 
     static {
         try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_new.obj"));
+            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/motor.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
@@ -41,13 +41,24 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
 
 
     void renderModelWithLight(EntityMotor tile, int light) {
+        tile.vertexBuffer.bind();
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("Cube").faces) {
+        for (Face i : model.groupObjects.get("stator").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
         tile.mesh = b.build();
         tile.vertexBuffer.upload(tile.mesh);
+        byteBuffer.close();
+
+        tile.vertexBuffer2.bind();
+        byteBuffer = new ByteBufferBuilder(1024);
+        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("rotor").faces) {
+            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+        }
+        tile.mesh2 = b.build();
+        tile.vertexBuffer2.upload(tile.mesh2);
         byteBuffer.close();
     }
 
@@ -56,9 +67,7 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
 
         BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
         if (axleState.getBlock() instanceof BlockMotor) {
-            Direction facingAxis = axleState.getValue(BlockMotor.FACING);
-
-            tile.vertexBuffer.bind();
+            Direction facing = axleState.getValue(BlockMotor.FACING);
 
             RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
             LIGHTMAP.setupRenderState();
@@ -74,19 +83,40 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
             ShaderInstance shader = RenderSystem.getShader();
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
-
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
-
-
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.getMechanicalData().currentRotation+tile.getMechanicalData().internalVelocity*partialTick)));
-            //System.out.println(tile.currentRotation);
+            double rotorRotationMultiplier = 1;
+            if(facing == Direction.WEST){
+                // all good
+            }
+            if(facing == Direction.EAST){
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f,1.0f, 0, 180f));
+                rotorRotationMultiplier = -1;
+            }
+            if(facing == Direction.SOUTH){
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f,1.0f, 0, 90f));
+                rotorRotationMultiplier = -1;
+            }
+            if(facing == Direction.NORTH){
+                m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f,1.0f, 0, 270f));
+                //rotorRotationMultiplier = -1;
+            }
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m1).invert().transpose());
 
             shader.apply();
-            //tile.vertexBuffer.draw();
+            tile.vertexBuffer.bind();
+            tile.vertexBuffer.draw();
+
+            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 1.0f, (float) 0, 0, (float) (rotorRotationMultiplier*( tile.getMechanicalData().currentRotation+tile.getMechanicalData().internalVelocity*partialTick))));
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.getUniform("NormalMatrix").set(new Matrix3f(m1).invert().transpose());
+
+            shader.apply();
+            tile.vertexBuffer2.bind();
+            tile.vertexBuffer2.draw();
+
             shader.clear();
             VertexBuffer.unbind();
 

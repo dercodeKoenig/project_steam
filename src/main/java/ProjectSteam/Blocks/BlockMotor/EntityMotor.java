@@ -23,6 +23,9 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
+    VertexBuffer vertexBuffer2;
+    MeshData mesh2;
+
     int lastLight = 0;
 
     public EntityMotor(BlockPos pos, BlockState blockState) {
@@ -31,6 +34,7 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
 
@@ -52,6 +56,7 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer.close();
+                vertexBuffer2.close();
             });
 
         }

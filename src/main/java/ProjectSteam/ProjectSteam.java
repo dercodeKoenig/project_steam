@@ -55,7 +55,7 @@ public class ProjectSteam {
         event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderAxle::new);
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
-        //event.registerBlockEntityRenderer(MOTOR.get(), RenderMotor::new);
+        event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
 
     }
 

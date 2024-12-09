@@ -31,10 +31,4 @@ public class Static {
     public static ShaderInstance getEntitySolidDynamicNormalShader(){return ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;}
 
 
-
-
-    public void breakBlockWithDrops(ServerLevel world, BlockPos pos) {
-
-    }
-
 }

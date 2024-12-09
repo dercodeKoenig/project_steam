@@ -453,11 +453,7 @@ if(!level.isClientSide()) {
                 System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + getBlockPos());
                 System.out.println("current reveiced rotation from face " + receivingFace + ":" + velocity * getRotationMultiplierToInside(receivingFace, myState) + ". Last received velocity: " + myData.internalVelocity);
 
-                BlockPos pos = getBlockPos();
-                ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
-                // TODO spawn the entity
-
-                level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
+                level.destroyBlock(getBlockPos(),true);
             }
 
             if (!workedPositions.contains(getBlockPos())) {

@@ -125,12 +125,7 @@ public interface IMechanicalBlock {
             System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos());
             System.out.println("current reveiced rotation from face "+receivingFace+":"+velocity * getRotationMultiplierToInside(receivingFace, myState)+". Last received velocity: "+myData.internalVelocity);
 
-            BlockPos pos = myTile.getBlockPos();
-            ItemEntity m = new ItemEntity(level, pos.getX(), pos.getY(), pos.getZ(), new ItemStack(level.getBlockState(pos).getBlock(), 1));
-            // TODO spawn the entity
-
-
-            level.setBlock(myTile.getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
+           level.destroyBlock(myTile.getBlockPos(),true);
             return;
         }
 

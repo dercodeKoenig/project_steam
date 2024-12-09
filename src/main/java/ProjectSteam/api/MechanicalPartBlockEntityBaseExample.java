@@ -22,13 +22,11 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
         super(type, pos, blockState);
     }
 
-    MechanicalBlockData myMechanicalData = new MechanicalBlockData(this);
+    public MechanicalBlockData myMechanicalData = new MechanicalBlockData(this);
     public MechanicalBlockData getMechanicalData(){return myMechanicalData;}
 
 
     public double myMass = 1;
-    public double myForce = 0;
-    public double myWorkPerTick = 0;
     public double myFriction = 0.1;
 
     public double getMass(Direction face, @Nullable BlockState myBlockState) {
@@ -40,17 +38,8 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
     }
 
     public double getTorqueProduced(Direction face, @Nullable BlockState myBlockState) {
-        if(myForce == 0)return 0;
-        double maxSpeed = Math.abs(myWorkPerTick / myForce);
-        double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / maxSpeed));
-
-        return actualForce;
+        return 0;
     }
-    /*
-    public double getTorqueProduced(){
-    return myForce * (1-velocity/maxvelocity);
-    }
-     */
 
 
     @Override

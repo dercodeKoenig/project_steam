@@ -25,6 +25,10 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
     MeshData mesh;
     VertexBuffer vertexBuffer2;
     MeshData mesh2;
+    public double myForce = 0;
+
+    public static double MOTOR_FORCE = 25;
+    public static double MAX_SPEED = 20;
 
     int lastLight = 0;
 
@@ -38,12 +42,13 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
             });
         }
 
-        myForce = 25;
-        myWorkPerTick = 1000;
-        //myForce = 200;
-        //myWorkPerTick = 1000;
         myFriction = 0.5;
         myMass = 2;
+    }
+    @Override
+    public double getTorqueProduced(Direction face, @javax.annotation.Nullable BlockState myBlockState) {
+        double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / MAX_SPEED));
+        return actualForce;
     }
 
     @Override
@@ -62,7 +67,15 @@ public class EntityMotor extends MechanicalPartBlockEntityBaseExample {
         }
         super.setRemoved();
     }
-
+@Override
+public void tick() {
+    super.tick();
+    if (level.hasNeighborSignal(getBlockPos())) {
+        myForce = -MOTOR_FORCE;
+    } else {
+        myForce = MOTOR_FORCE;
+    }
+}
 
     @Override
     public void readServer(CompoundTag compoundTag) {

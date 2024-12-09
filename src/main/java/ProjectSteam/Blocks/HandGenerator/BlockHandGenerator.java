@@ -46,7 +46,7 @@ public class BlockHandGenerator extends Block implements EntityBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockEntity b = level.getBlockEntity(pos);
         if(b instanceof EntityHandGenerator h)
-            if(h.onPlayerClicked()){
+            if(h.onPlayerClicked(player.isShiftKeyDown())){
                 player.causeFoodExhaustion(0.5f);
             }
         return InteractionResult.SUCCESS_NO_ITEM_USED;

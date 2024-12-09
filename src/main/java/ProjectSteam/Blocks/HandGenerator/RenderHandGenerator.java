@@ -41,11 +41,6 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
 
 
     void renderModelWithLight(EntityHandGenerator tile, int light) {
-        try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/handcranked_generator.obj"));
-        } catch (ModelFormatException ex) {
-            throw new RuntimeException(ex);
-        }
 
         tile.vertexBuffer.bind();
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);

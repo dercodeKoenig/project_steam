@@ -73,10 +73,17 @@ public class EntityHandGenerator extends MechanicalPartBlockEntityBaseExample {
         super.setRemoved();
     }
 
-    public boolean onPlayerClicked(){
-        if(ticksRemainingForForce < 5) {
-            ticksRemainingForForce += 5;
-            return true;
+    public boolean onPlayerClicked(boolean isShift){
+        if(!isShift) {
+            if (ticksRemainingForForce < 5) {
+                ticksRemainingForForce += 5;
+                return true;
+            }
+        }else{
+            if (ticksRemainingForForce > -5) {
+                ticksRemainingForForce -= 5;
+                return true;
+            }
         }
         return false;
     }
@@ -87,8 +94,13 @@ public void tick() {
     if(ticksRemainingForForce > 0){
         ticksRemainingForForce--;
         myForce = MOTOR_FORCE;
-    } else {
-        myForce = 0;
+    } else if(ticksRemainingForForce < 0) {
+        ticksRemainingForForce++;
+        myForce = -MOTOR_FORCE;
+    }
+        else{
+            myForce = 0;
+
     }
 }
 

@@ -74,8 +74,8 @@ public class EntityHandGenerator extends MechanicalPartBlockEntityBaseExample {
     }
 
     public boolean onPlayerClicked(){
-        if(ticksRemainingForForce < 20) {
-            ticksRemainingForForce += 20;
+        if(ticksRemainingForForce < 5) {
+            ticksRemainingForForce += 5;
             return true;
         }
         return false;

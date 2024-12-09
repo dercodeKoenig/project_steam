@@ -50,7 +50,7 @@ public class BlockAxle extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
             Vec3 lookVec = placer.getLookAngle();
-            Direction.Axis newAxis;;
+            Direction.Axis newAxis;
 
             if (Math.abs(lookVec.y)< 0.8) {
                 newAxis = placer.getDirection().getClockWise().getAxis();

@@ -4,6 +4,7 @@ import ProjectSteam.Blocks.Axle.RenderAxle;
 import ProjectSteam.Blocks.BlockMotor.RenderMotor;
 import ProjectSteam.Blocks.DistributorGearbox.RenderDistributorGearbox;
 import ProjectSteam.Blocks.Gearbox.RenderGearbox;
+import ProjectSteam.Blocks.HandGenerator.RenderHandGenerator;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -56,6 +57,7 @@ public class ProjectSteam {
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
+        event.registerBlockEntityRenderer(ENTITY_HAND_GENERATOR.get(), RenderHandGenerator::new);
 
     }
 
@@ -70,6 +72,7 @@ public class ProjectSteam {
             e.accept(GEARBOX.get());
             e.accept(MOTOR.get());
             e.accept(CLUTCH.get());
+            e.accept(HAND_GENERATOR.get());
         }
     }
 

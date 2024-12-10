@@ -1,6 +1,7 @@
 package ProjectSteam.api;
 
 import ARLib.network.PacketBlockEntity;
+import com.ibm.icu.impl.Pair;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,9 +20,9 @@ import java.util.*;
 
 public abstract class AbstractMechanicalBlock {
 
-    static int tps = 20;
+    public static int tps = 20;
 
-    int id;
+    public int id;
 
     public IMechanicalBlockProvider me;
 
@@ -72,7 +73,7 @@ public abstract class AbstractMechanicalBlock {
         
         if (!hasReceivedUpdate) {
             hasReceivedUpdate = true;
-            connectedParts = getConnectedParts(me);
+            connectedParts = me.getConnectedParts(me, this);
 
             for (AbstractMechanicalBlock i : connectedParts.values()) {
                 i.propagateTickBeforeUpdate();
@@ -83,11 +84,11 @@ public abstract class AbstractMechanicalBlock {
     }
 
 
-    public void getPropagatedData(MechanicalFlowData data, @org.jetbrains.annotations.Nullable Direction requestedFrom, HashSet<BlockPos> workedPositions) {
+    public void getPropagatedData(MechanicalFlowData data, @org.jetbrains.annotations.Nullable Direction requestedFrom, HashSet<Pair<BlockPos, Integer>> workedPositions) {
         
         BlockEntity myTile = me.getBlockEntity();
-        if (!workedPositions.contains(myTile.getBlockPos())) {
-            workedPositions.add(myTile.getBlockPos());
+        if (!workedPositions.contains(Pair.of(myTile.getBlockPos(), id))) {
+            workedPositions.add(Pair.of(myTile.getBlockPos(), id));
 
             BlockState myState = myTile.getLevel().getBlockState(myTile.getBlockPos());
 
@@ -129,21 +130,21 @@ public abstract class AbstractMechanicalBlock {
         if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
     }
 
-    public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<BlockPos> workedPositions, boolean ignorePreviousUpdates) {
+    public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<Pair<BlockPos, Integer>> workedPositions, boolean ignorePreviousUpdates) {
         BlockEntity myTile = me.getBlockEntity();
         Level level = myTile.getLevel();
         BlockState myState = level.getBlockState(myTile.getBlockPos());
-        if (!ignorePreviousUpdates && !level.isClientSide && workedPositions.contains(myTile.getBlockPos()) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace, myState) - internalVelocity) > 0.00001) {
+        if (!ignorePreviousUpdates && !level.isClientSide && workedPositions.contains(Pair.of(myTile.getBlockPos(), id)) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace, myState) - internalVelocity) > 0.00001) {
             // break this block because something is wrong with the network
-            System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos());
+            System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos()+", id: "+id);
             System.out.println("current reveiced rotation from face "+receivingFace+":"+velocity * getRotationMultiplierToInside(receivingFace, myState)+". Last received velocity: "+internalVelocity);
 
            level.destroyBlock(myTile.getBlockPos(),true);
             return;
         }
 
-        if (!workedPositions.contains(myTile.getBlockPos())) {
-            workedPositions.add(myTile.getBlockPos());
+        if (!workedPositions.contains(Pair.of(myTile.getBlockPos(), id))) {
+            workedPositions.add(Pair.of(myTile.getBlockPos(), id));
 
             double lastVelocity =internalVelocity;
 
@@ -190,23 +191,6 @@ public abstract class AbstractMechanicalBlock {
     }
 
 
-    public static Map<Direction, AbstractMechanicalBlock> getConnectedParts(IMechanicalBlockProvider mechanicalBlockProvider) {
-
-        Map<Direction, AbstractMechanicalBlock> connectedBlocks = new HashMap<>();
-
-        for (Direction i : Direction.values()) {
-            AbstractMechanicalBlock mechanicalBlock = mechanicalBlockProvider.getMechanicalBlock(i);
-            BlockEntity otherBE = mechanicalBlock.me.getBlockEntity().getLevel().getBlockEntity(mechanicalBlock.me.getBlockEntity().getBlockPos().relative(i));
-            if (otherBE instanceof IMechanicalBlockProvider p) {
-                AbstractMechanicalBlock other = p.getMechanicalBlock(i.getOpposite());
-                if (other instanceof AbstractMechanicalBlock otherMechBlock) {
-                    connectedBlocks.put(i, otherMechBlock);
-                }
-            }
-        }
-        return connectedBlocks;
-    }
-
 
     public void mechanicalOnload() {
         if (me.getBlockEntity().getLevel().isClientSide()) {
@@ -214,12 +198,10 @@ public abstract class AbstractMechanicalBlock {
         }
         if (!me.getBlockEntity().getLevel().isClientSide()) {
             MechanicalFlowData data = new MechanicalFlowData();
-            HashSet<BlockPos> w = new HashSet<>();
-            connectedParts = getConnectedParts(me);
-
-            getPropagatedData(data, null, w);
-
-            HashSet<BlockPos> worked = new HashSet<>();
+            connectedParts =me. getConnectedParts(me, this);
+            HashSet<Pair<BlockPos, Integer>> worked = new HashSet<>();
+            getPropagatedData(data, null, worked);
+            worked.clear();
 
             double target_velocity = 0;
             if(data.combinedTransformedMass != 0){
@@ -238,7 +220,7 @@ public abstract class AbstractMechanicalBlock {
         if (myTile.getLevel().isClientSide()) {
             if (!hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
-                HashSet<BlockPos> workedPositions = new HashSet<>();
+                HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
 
                 lastPing++;
@@ -257,7 +239,7 @@ public abstract class AbstractMechanicalBlock {
 
                 propagateTickBeforeUpdate();
 
-                HashSet<BlockPos> workedPositions = new HashSet<>();
+                HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
                 MechanicalFlowData data = new MechanicalFlowData();
                 getPropagatedData(data, null, workedPositions);
                 workedPositions.clear();

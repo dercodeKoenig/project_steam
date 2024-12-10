@@ -1,5 +1,9 @@
 package ProjectSteam.Blocks.Gearbox;
 
+import ARLib.network.INetworkTagReceiver;
+import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
+import ProjectSteam.api.AbstractMechanicalBlock;
+import ProjectSteam.api.IMechanicalBlockProvider;
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -18,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
 import static ProjectSteam.Registry.ENTITY_GEARBOX;
 
-public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
+public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     VertexBuffer vertexBuffer_in;
     VertexBuffer vertexBuffer_out;
@@ -27,6 +31,85 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     MeshData mesh_out;
     MeshData mesh_mid;
     int lastLight = 0;
+
+
+    double myMass = 0.5;
+    double myFriction = 5;
+
+
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+        @Override
+        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return myMass;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return myFriction;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+                if (receivingFace == null) return 1;
+                if (myState == null) myState = level.getBlockState(getBlockPos());
+
+                if (myState.getBlock() instanceof BlockGearbox) {
+                    Direction facing = myState.getValue(BlockGearbox.FACING);
+
+                    if (receivingFace == facing.getOpposite())
+                        return (double) -3 / 2;
+                    if (receivingFace == facing)
+                        return (double) -2 / 3;
+                }
+                return 1;
+        }
+
+        @Override
+        public void onPropagatedTickEnd() {
+
+        }
+    };
+    @Override
+    public BlockEntity getBlockEntity(){return this;}
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        myMechanicalBlock.mechanicalOnload();
+    }
+
+
+    public void tick() {
+        myMechanicalBlock.mechanicalTick();
+    }
+
+
+    @Override
+    public void readClient(CompoundTag tag) {
+        myMechanicalBlock.mechanicalReadClient(tag);
+    }
+
+    @Override
+    public void readServer(CompoundTag tag) {
+        myMechanicalBlock.mechanicalReadServer(tag);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+    }
 
     public EntityGearbox(BlockPos pos, BlockState blockState) {
         super(ENTITY_GEARBOX.get(), pos, blockState);
@@ -38,14 +121,6 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
                 vertexBuffer_mid = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
-
-        myMass = 0.5;
-        myFriction = 1;
-    }
-
-    @Override
-    public void onLoad() {
-        super.onLoad();
     }
 
     @Override
@@ -62,49 +137,13 @@ public class EntityGearbox extends MechanicalPartBlockEntityBaseExample {
     }
 
 
-    @Override
-    public void readServer(CompoundTag compoundTag) {
-        super.readServer(compoundTag);
-    }
 
     @Override
-    public void readClient(CompoundTag compoundTag) {
-        super.readClient(compoundTag);
-    }
-
-    @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
-    }
-
-    @Override
-    public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
-        if (myState == null)
-            myState = level.getBlockState(getBlockPos());
-        return face.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis();
-    }
-
-
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace, @Nullable BlockState myState) {
-        if (receivingFace == null) return 1;
-        if (myState == null) myState = level.getBlockState(getBlockPos());
-
-        if (myState.getBlock() instanceof BlockGearbox) {
-            Direction facing = myState.getValue(BlockGearbox.FACING);
-
-            if (receivingFace == facing.getOpposite())
-                return (double) -3 / 2;
-            if (receivingFace == facing)
-                return (double) -2 / 3;
-        }
-        return 1;
+    public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
+        BlockState myState = getBlockState();
+        if(side.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis())
+            return myMechanicalBlock;
+        return null;
     }
 
 

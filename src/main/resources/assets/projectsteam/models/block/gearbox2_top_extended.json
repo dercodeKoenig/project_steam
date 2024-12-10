@@ -1,0 +1,54 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "0": "projectsteam:block/casing_frame",
+    "particle": "projectsteam:block/andesite_casing"
+  },
+  "elements": [
+    {
+      "name": "Top",
+      "from": [0, 14, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "east": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "south": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "west": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#0"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#0"}
+      }
+    },
+    {
+      "name": "Topf1",
+      "from": [2, 13.99, 2],
+      "to": [2, 16, 14],
+      "faces": {
+        "east": {"uv": [0, 0, 16, 2], "texture": "#0"}
+      }
+    },
+    {
+      "name": "Topf2",
+      "from": [14, 13.99, 2],
+      "to": [14, 16, 14],
+      "faces": {
+        "west": {"uv": [0, 0, 16, 2], "texture": "#0"}
+      }
+    },
+    {
+      "name": "Topf3",
+      "from": [2, 13.99, 2.01],
+      "to": [14, 16, 2.01],
+      "faces": {
+        "south": {"uv": [0, 0, 16, 2], "texture": "#0"}
+      }
+    },
+    {
+      "name": "Topf4",
+      "from": [2, 13.99, 13.99],
+      "to": [14, 16, 13.99],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 2], "texture": "#0"}
+      }
+    }
+  ]
+}

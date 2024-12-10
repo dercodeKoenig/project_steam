@@ -1,5 +1,9 @@
 package ProjectSteam.Blocks.HandGenerator;
 
+import ARLib.network.INetworkTagReceiver;
+import ProjectSteam.Blocks.BlockMotor.BlockMotor;
+import ProjectSteam.api.AbstractMechanicalBlock;
+import ProjectSteam.api.IMechanicalBlockProvider;
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
@@ -18,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import static ProjectSteam.Registry.ENTITY_HAND_GENERATOR;
 import static ProjectSteam.Registry.ENTITY_MOTOR;
 
-public class EntityHandGenerator extends MechanicalPartBlockEntityBaseExample {
+public class EntityHandGenerator extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
@@ -35,29 +39,46 @@ public class EntityHandGenerator extends MechanicalPartBlockEntityBaseExample {
 
     int ticksRemainingForForce = 0;
 
-    public EntityHandGenerator(BlockPos pos, BlockState blockState) {
-        super(ENTITY_HAND_GENERATOR.get(), pos, blockState);
+    double myFriction = 2;
+    double myMass = 1;
 
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return myMass;
         }
 
-        myFriction = 0.5;
-        myMass = 2;
-    }
+        @Override
+        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return myFriction;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            double actualForce = myForce * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
+            return actualForce;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+            return 1;
+        }
+
+        @Override
+        public void onPropagatedTickEnd() {
+
+        }
+    };
+
     @Override
-    public double getTorqueProduced(Direction face, @javax.annotation.Nullable BlockState myBlockState) {
-        double actualForce = myForce * Math.max(0, (1 - Math.abs(myMechanicalData.internalVelocity) / MAX_SPEED));
-        return actualForce;
+    public BlockEntity getBlockEntity() {
+        return this;
     }
 
     @Override
     public void onLoad() {
         super.onLoad();
+        myMechanicalBlock.mechanicalOnload();
     }
 
     @Override
@@ -73,13 +94,59 @@ public class EntityHandGenerator extends MechanicalPartBlockEntityBaseExample {
         super.setRemoved();
     }
 
-    public boolean onPlayerClicked(boolean isShift){
-        if(!isShift) {
+    @Override
+    public void readClient(CompoundTag tag) {
+        myMechanicalBlock.mechanicalReadClient(tag);
+    }
+
+    @Override
+    public void readServer(CompoundTag tag) {
+        myMechanicalBlock.mechanicalReadServer(tag);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+    }
+
+    @Override
+    public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
+        BlockState myState = getBlockState();
+        if (myState.getBlock() instanceof BlockHandGenerator) {
+            if (side == myState.getValue(BlockHandGenerator.FACING))
+                return myMechanicalBlock;
+        }
+        return null;
+    }
+
+    public EntityHandGenerator(BlockPos pos, BlockState blockState) {
+        super(ENTITY_HAND_GENERATOR.get(), pos, blockState);
+
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
+
+    }
+
+
+    public boolean onPlayerClicked(boolean isShift) {
+        if (!isShift) {
             if (ticksRemainingForForce < 5) {
                 ticksRemainingForForce += 5;
                 return true;
             }
-        }else{
+        } else {
             if (ticksRemainingForForce > -5) {
                 ticksRemainingForForce -= 5;
                 return true;
@@ -88,63 +155,23 @@ public class EntityHandGenerator extends MechanicalPartBlockEntityBaseExample {
         return false;
     }
 
-@Override
-public void tick() {
-    super.tick();
-    if(ticksRemainingForForce > 0){
-        ticksRemainingForForce--;
-        myForce = MOTOR_FORCE;
-    } else if(ticksRemainingForForce < 0) {
-        ticksRemainingForForce++;
-        myForce = -MOTOR_FORCE;
-    }
-        else{
+    public void tick() {
+        myMechanicalBlock.mechanicalTick();
+
+        if (ticksRemainingForForce > 0) {
+            ticksRemainingForForce--;
+            myForce = MOTOR_FORCE;
+        } else if (ticksRemainingForForce < 0) {
+            ticksRemainingForForce++;
+            myForce = -MOTOR_FORCE;
+        } else {
             myForce = 0;
 
-    }
-}
-
-    @Override
-    public void readServer(CompoundTag compoundTag) {
-        super.readServer(compoundTag);
-    }
-
-    @Override
-    public void readClient(CompoundTag compoundTag) {
-    super.readClient(compoundTag);
-    }
-
-    @Override
-    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.loadAdditional(tag, registries);
-
-    }
-
-    @Override
-    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-        super.saveAdditional(tag, registries);
-
-    }
-
-    @Override
-    public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
-        if (myState == null)
-            myState = level.getBlockState(getBlockPos());
-        if (myState.getBlock() instanceof BlockHandGenerator) {
-            if (face == myState.getValue(BlockHandGenerator.FACING)) {
-                return true;
-            }
         }
-        return false;
-    }
-
-
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace, @javax.annotation.Nullable BlockState myBlockState){
-        return 1;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityHandGenerator)t).tick();
+        ((EntityHandGenerator) t).tick();
     }
 }

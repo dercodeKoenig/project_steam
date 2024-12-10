@@ -1,20 +1,37 @@
 {
-    "variants": {
-        "facing=south": {
-            "model": "projectsteam:block/gearbox",
-            "y": 0
+    "multipart": [
+        {
+            "when": { "facing": "north" },
+            "apply": { "model": "projectsteam:block/gearbox", "y": 180 }
         },
-        "facing=north": {
-            "model": "projectsteam:block/gearbox",
-            "y": 180
+        {
+            "when": { "facing": "south" },
+            "apply": { "model": "projectsteam:block/gearbox", "y": 0 }
         },
-        "facing=east": {
-            "model": "projectsteam:block/gearbox",
-            "y": 270
+        {
+            "when": { "facing": "east" },
+            "apply": { "model": "projectsteam:block/gearbox", "y": 270 }
         },
-        "facing=west": {
-            "model": "projectsteam:block/gearbox",
-            "y": 90
+        {
+            "when": { "facing": "west" },
+            "apply": { "model": "projectsteam:block/gearbox", "y": 90 }
+        },
+
+        {
+            "when": { "solid_conn_up": "false" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_small" }
+        },
+        {
+            "when": { "solid_conn_down": "false" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 180 }
+        },
+        {
+            "when": { "solid_conn_up": "true" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_extended" }
+        },
+        {
+            "when": { "solid_conn_down": "true" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 180 }
         }
-    }
+    ]
 }

@@ -59,9 +59,9 @@ public class BlockGearbox extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
             if(!placer.isShiftKeyDown())
-                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getClockWise()), 3);
+                state =  state.setValue(FACING, placer.getDirection().getClockWise());
             else
-                level.setBlock(pos, state.setValue(FACING, placer.getDirection().getCounterClockWise()), 3);
+                state =  state.setValue(FACING, placer.getDirection().getCounterClockWise());
         }
 
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3) ;

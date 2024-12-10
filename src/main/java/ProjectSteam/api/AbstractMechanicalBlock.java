@@ -45,7 +45,7 @@ public abstract class AbstractMechanicalBlock {
     public double lastConsumedForce_filled1 = 0; // for positive and negative force.
     public double lastConsumedForce_filled2 = 0; // is probably not 100% physically correct but i need to keep it simple and can not do full simulation for performance reasons
     public double lastAddedForce = 0;
-    public Deque<Pair<AbstractMechanicalBlock, forceDistributionNode>> forceDistributionDeq = new ArrayDeque<>();
+    public Deque<nodeInfo> forceDistributionDeq = new ArrayDeque<>();
 
 
     public AbstractMechanicalBlock(int id, IMechanicalBlockProvider me) {
@@ -229,55 +229,82 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
+    class nodeInfo{
+        Direction nextInputFace;
+        AbstractMechanicalBlock nextTarget;
+        forceDistributionNode node;
+    }
+
     class forceDistributionNode{
         public AbstractMechanicalBlock daddy;
-        public Set<AbstractMechanicalBlock> path = new HashSet<>();
+        public Set<AbstractMechanicalBlock> path = new LinkedHashSet<>();
+        public List<Pair<AbstractMechanicalBlock, Double>> pathWithForceTransformations = new ArrayList<>();
+        public double lastOutputForceMultiplier = 1;
+        public double currentEffectiveForceMultiplier = 1;
         public forceDistributionNode(AbstractMechanicalBlock me){
             daddy = me;
         }
         public forceDistributionNode copy(){
             forceDistributionNode n = new forceDistributionNode(daddy);
             n.path.addAll(path);
+            n.lastOutputForceMultiplier = lastOutputForceMultiplier;
+            n.currentEffectiveForceMultiplier = currentEffectiveForceMultiplier;
+            n.pathWithForceTransformations.addAll(pathWithForceTransformations);
             return n;
         }
     }
 
-
-    void walkDistributeForce(forceDistributionNode n){
-        if(!n.path.contains(this)){
+    void addStressBackwards(forceDistributionNode n, double stress){
+        for (int i = n.pathWithForceTransformations.size()-1; i >=0 ; i--) {
+            n.pathWithForceTransformations.get(i).first.stress += Math.abs(stress);
+            stress /= Math.abs(n.pathWithForceTransformations.get(i).second);
+        }
+    }
+    void walkDistributeForce(Direction receivingFace, forceDistributionNode n) {
+        if (!n.path.contains(this)) {
             forceDistributionNode myNode = n.copy();
             myNode.path.add(this);
-            if(myNode.daddy.lastAddedForce > 0){
+            double forceMultiplierForNode = 1 * myNode.lastOutputForceMultiplier;
+            if (receivingFace != null) {
+                forceMultiplierForNode *= 1 / getRotationMultiplierToInside(receivingFace, null);
+            }
+            myNode.pathWithForceTransformations.add(Pair.of(this, forceMultiplierForNode));
+
+            myNode.currentEffectiveForceMultiplier *= forceMultiplierForNode;
+
+            double currentEffectiveForce = myNode.currentEffectiveForceMultiplier * myNode.daddy.lastAddedForce;
+
+            if (currentEffectiveForce > 0) {
                 double toSubtract = lastConsumedForce - lastConsumedForce_filled1;
-                toSubtract = Math.min(toSubtract, myNode.daddy.lastAddedForce);
-                myNode.daddy.lastAddedForce -= toSubtract;
+                toSubtract = Math.min(toSubtract, currentEffectiveForce);
+                myNode.daddy.lastAddedForce -= toSubtract / myNode.currentEffectiveForceMultiplier;
                 lastConsumedForce_filled1 += toSubtract;
-                for(AbstractMechanicalBlock i : myNode.path){
-                    i.stress += toSubtract;
-                }
+                addStressBackwards(myNode, toSubtract);
             }
-            if(myNode.daddy.lastAddedForce < 0){
+            if (currentEffectiveForce < 0) {
                 double toSubtract = lastConsumedForce - lastConsumedForce_filled2;
-                toSubtract = Math.min(toSubtract, -myNode.daddy.lastAddedForce);
-                myNode.daddy.lastAddedForce += toSubtract;
-                lastConsumedForce_filled1 += toSubtract;
-                for(AbstractMechanicalBlock i : myNode.path){
-                    i.stress += toSubtract;
-                }
+                toSubtract = Math.min(toSubtract, -currentEffectiveForce);
+                myNode.daddy.lastAddedForce += toSubtract / myNode.currentEffectiveForceMultiplier;
+                lastConsumedForce_filled2 += toSubtract;
+                addStressBackwards(myNode, toSubtract);
             }
-            if(lastAddedForce != 0){
-                if(Math.signum(lastAddedForce) != Math.signum(myNode.daddy.lastAddedForce)){
+            if (lastAddedForce != 0) {
+                if (Math.signum(lastAddedForce) != Math.signum(currentEffectiveForce)) {
                     double toSubtract;
-                    toSubtract = Math.min(Math.abs(lastAddedForce), Math.abs(myNode.daddy.lastAddedForce));
-                    myNode.daddy.lastAddedForce -= toSubtract * Math.signum(myNode.daddy.lastAddedForce);
-                    for(AbstractMechanicalBlock i : myNode.path){
-                        i.stress += toSubtract;
-                    }
+                    toSubtract = Math.min(Math.abs(lastAddedForce), Math.abs(currentEffectiveForce));
+                    myNode.daddy.lastAddedForce -= toSubtract * Math.signum(currentEffectiveForce) / myNode.currentEffectiveForceMultiplier;
+                    addStressBackwards(myNode, toSubtract);
                 }
             }
-            if(Math.abs(myNode.daddy.lastAddedForce) > 0.01) {
+            if (Math.abs(currentEffectiveForce) > 0.1) {
                 for (Direction i : connectedParts.keySet()) {
-                    forceDistributionDeq.addLast(Pair.of(connectedParts.get(i), myNode));
+                    forceDistributionNode newNode = myNode.copy();
+                    newNode.lastOutputForceMultiplier = 1 / getRotationMultiplierToOutside(i, null);
+                    nodeInfo info = new nodeInfo();
+                    info.nextTarget = connectedParts.get(i);
+                    info.node = newNode;
+                    info.nextInputFace = i.getOpposite();
+                    forceDistributionDeq.addLast(info);
                 }
             }
         }
@@ -335,13 +362,18 @@ public abstract class AbstractMechanicalBlock {
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions, false);
 
+                double t1 = System.nanoTime();
 
                 Set <AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
                 aggregateConnectedParts(connectedBlocks);
                 for(AbstractMechanicalBlock i : connectedBlocks){
                     if(i.lastAddedForce != 0){
                         forceDistributionNode n = new forceDistributionNode(i);
-                        i.forceDistributionDeq.addLast(Pair.of(i,n));
+                        nodeInfo info = new nodeInfo();
+                        info.nextInputFace = null;
+                        info.nextTarget = i;
+                        info.node = n;
+                        i.forceDistributionDeq.addLast(info);
                     }
                 }
 
@@ -350,8 +382,8 @@ public abstract class AbstractMechanicalBlock {
                     hasForceToDistribute = false;
                     for (AbstractMechanicalBlock i : connectedBlocks) {
                         if (!i.forceDistributionDeq.isEmpty()) {
-                            Pair<AbstractMechanicalBlock, forceDistributionNode> info = i.forceDistributionDeq.removeFirst();
-                            info.first.walkDistributeForce(info.second);
+                            nodeInfo info = i.forceDistributionDeq.removeFirst();
+                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
                             hasForceToDistribute = true;
                         }
                     }
@@ -359,7 +391,8 @@ public abstract class AbstractMechanicalBlock {
                 for(AbstractMechanicalBlock i : connectedBlocks){
                     //System.out.println(i.stress+":"+i.me.getBlockEntity().getBlockState().getBlock());
                 }
-
+                System.out.println(me.getBlockEntity().getBlockPos());
+                System.out.println((System.nanoTime()-t1) / 1000 / 1000);
             }
         }
         hasReceivedUpdate = false;

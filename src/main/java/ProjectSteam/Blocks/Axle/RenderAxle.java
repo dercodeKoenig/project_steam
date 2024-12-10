@@ -61,7 +61,7 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
             tile.vertexBuffer.bind();
 
             double stress = tile.myMechanicalBlock.stress;
-            double ca = 0.1;
+            double ca = 0.05;
             float c = (float) (stress*ca);
             //System.out.println(c);
             RenderSystem.setShaderColor(c,c,c,1);

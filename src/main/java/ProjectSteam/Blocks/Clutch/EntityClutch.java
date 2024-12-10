@@ -86,7 +86,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             if (myTile.getLevel().isClientSide()) {
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
-                    HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
+                    HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
 
                     lastPing++;
@@ -105,7 +105,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     propagateTickBeforeUpdate();
 
-                    HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
+                    HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     MechanicalFlowData data = new MechanicalFlowData();
                     getPropagatedData(data, null, workedPositions);
                     workedPositions.clear();
@@ -207,7 +207,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             if (myTile.getLevel().isClientSide()) {
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
-                    HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
+                    HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
 
                     lastPing++;
@@ -226,7 +226,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     propagateTickBeforeUpdate();
 
-                    HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
+                    HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     MechanicalFlowData data = new MechanicalFlowData();
                     getPropagatedData(data, null, workedPositions);
                     workedPositions.clear();

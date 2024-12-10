@@ -42,7 +42,11 @@ public abstract class AbstractMechanicalBlock {
 
     public double stress = 0;
     public double lastConsumedForce = 0;
+    public double lastConsumedForce_filled1 = 0; // for positive and negative force.
+    public double lastConsumedForce_filled2 = 0; // is probably not 100% physically correct but i need to keep it simple and can not do full simulation for performance reasons
     public double lastAddedForce = 0;
+    public Deque<Pair<AbstractMechanicalBlock, forceDistributionNode>> forceDistributionDeq = new ArrayDeque<>();
+
 
     public AbstractMechanicalBlock(int id, IMechanicalBlockProvider me) {
         this.id=id;this.me = me;
@@ -84,11 +88,11 @@ public abstract class AbstractMechanicalBlock {
     }
 
 
-    public void getPropagatedData(MechanicalFlowData data, @org.jetbrains.annotations.Nullable Direction requestedFrom, HashSet<Pair<BlockPos, Integer>> workedPositions) {
+    public void getPropagatedData(MechanicalFlowData data, @org.jetbrains.annotations.Nullable Direction requestedFrom, HashSet<AbstractMechanicalBlock> workedPositions) {
         
         BlockEntity myTile = me.getBlockEntity();
-        if (!workedPositions.contains(Pair.of(myTile.getBlockPos(), id))) {
-            workedPositions.add(Pair.of(myTile.getBlockPos(), id));
+        if (!workedPositions.contains(this)) {
+            workedPositions.add(this);
 
             BlockState myState = myTile.getLevel().getBlockState(myTile.getBlockPos());
 
@@ -130,7 +134,7 @@ public abstract class AbstractMechanicalBlock {
         if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
     }
 
-    public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<Pair<BlockPos, Integer>> workedPositions, boolean ignorePreviousUpdates) {
+    public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions, boolean ignorePreviousUpdates) {
         BlockEntity myTile = me.getBlockEntity();
         Level level = myTile.getLevel();
         BlockState myState = level.getBlockState(myTile.getBlockPos());
@@ -143,10 +147,14 @@ public abstract class AbstractMechanicalBlock {
             return;
         }
 
-        if (!workedPositions.contains(Pair.of(myTile.getBlockPos(), id))) {
-            workedPositions.add(Pair.of(myTile.getBlockPos(), id));
+        if (!workedPositions.contains(this)) {
+            workedPositions.add(this);
 
-            double lastVelocity =internalVelocity;
+            double lastVelocity = internalVelocity;
+
+            double currentProducedForceBeforeVelocityChange = getTorqueProduced(receivingFace, myState);
+            double currentResistanceBeforeVelocityChange = getTorqueResistance(receivingFace, myState);
+            double currentMassBeforeVelocityChange = getMass(receivingFace, myState);
 
             internalVelocity = velocity;
             if (receivingFace != null) {
@@ -157,26 +165,34 @@ public abstract class AbstractMechanicalBlock {
             for (Direction i : connectedParts.keySet()) {
                 AbstractMechanicalBlock b = connectedParts.get(i);
                 double outputVelocity = internalVelocity * getRotationMultiplierToOutside(i, myState);
-                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions,ignorePreviousUpdates);
+                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions, ignorePreviousUpdates);
             }
 
 
             // all for stress calculation later
-            stress = 0;
-            double acceleration = (internalVelocity - lastVelocity)*tps ;
-            double requiredForce1 = getMass(receivingFace, myState) *acceleration * Math.signum(lastVelocity);
-            double requiredForce2 = getTorqueResistance(receivingFace,myState)+requiredForce1;
-            double absResistance = Math.max(requiredForce2, 0);
-            double forceAdditive = getTorqueProduced(receivingFace,myState);
-            if(lastVelocity != 0){
-                forceAdditive =forceAdditive * Math.signum(lastVelocity);
+            if (!me.getBlockEntity().getLevel().isClientSide()) {
+                stress = 0;
+                lastConsumedForce_filled1 = 0;
+                lastConsumedForce_filled2 = 0;
+                double acceleration = (internalVelocity - lastVelocity) * tps;
+                double requiredForce1 = currentMassBeforeVelocityChange * acceleration * Math.signum(lastVelocity);
+                double requiredForce2 = currentResistanceBeforeVelocityChange * Math.abs(Math.signum(lastVelocity)) + requiredForce1;
+                double absResistance = Math.max(requiredForce2, 0);
+                double inducedForce = Math.max(-requiredForce2, 0) * Math.signum(lastVelocity);
+
+                double totalForceWorking = inducedForce + currentProducedForceBeforeVelocityChange;
+                if (Math.abs(totalForceWorking) >= absResistance) {
+                    totalForceWorking -= absResistance * Math.signum(totalForceWorking);
+                    absResistance = 0;
+                }
+                if (Math.abs(totalForceWorking) < 0.01)
+                    //ignore
+                    totalForceWorking = 0;
+
+                lastConsumedForce = absResistance;
+                lastAddedForce = totalForceWorking;
+                //System.out.println(me.getBlockEntity().getBlockState().getBlock() + ":" + me.getBlockEntity().getBlockPos() + ":" + lastAddedForce + ":" + lastConsumedForce);
             }
-            forceAdditive = Math.max(forceAdditive, 0);
-            double forceResistance =-forceAdditive;
-            forceResistance = Math.max(forceResistance, 0);
-            absResistance += forceResistance;
-            lastConsumedForce =absResistance;
-            lastAddedForce =forceAdditive;
         }
     }
 
@@ -199,7 +215,7 @@ public abstract class AbstractMechanicalBlock {
         if (!me.getBlockEntity().getLevel().isClientSide()) {
             MechanicalFlowData data = new MechanicalFlowData();
             connectedParts =me. getConnectedParts(me, this);
-            HashSet<Pair<BlockPos, Integer>> worked = new HashSet<>();
+            HashSet<AbstractMechanicalBlock> worked = new HashSet<>();
             getPropagatedData(data, null, worked);
             worked.clear();
 
@@ -213,6 +229,59 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
+    class forceDistributionNode{
+        public AbstractMechanicalBlock daddy;
+        public Set<AbstractMechanicalBlock> path = new HashSet<>();
+        public forceDistributionNode(AbstractMechanicalBlock me){
+            daddy = me;
+        }
+        public forceDistributionNode copy(){
+            forceDistributionNode n = new forceDistributionNode(daddy);
+            n.path.addAll(path);
+            return n;
+        }
+    }
+
+
+    void walkDistributeForce(forceDistributionNode n){
+        if(!n.path.contains(this)){
+            forceDistributionNode myNode = n.copy();
+            myNode.path.add(this);
+            if(myNode.daddy.lastAddedForce > 0){
+                double toSubtract = lastConsumedForce - lastConsumedForce_filled1;
+                toSubtract = Math.min(toSubtract, myNode.daddy.lastAddedForce);
+                myNode.daddy.lastAddedForce -= toSubtract;
+                lastConsumedForce_filled1 += toSubtract;
+                for(AbstractMechanicalBlock i : myNode.path){
+                    i.stress += toSubtract;
+                }
+            }
+            if(myNode.daddy.lastAddedForce < 0){
+                double toSubtract = lastConsumedForce - lastConsumedForce_filled2;
+                toSubtract = Math.min(toSubtract, -myNode.daddy.lastAddedForce);
+                myNode.daddy.lastAddedForce += toSubtract;
+                lastConsumedForce_filled1 += toSubtract;
+                for(AbstractMechanicalBlock i : myNode.path){
+                    i.stress += toSubtract;
+                }
+            }
+            if(lastAddedForce != 0){
+                if(Math.signum(lastAddedForce) != Math.signum(myNode.daddy.lastAddedForce)){
+                    double toSubtract;
+                    toSubtract = Math.min(Math.abs(lastAddedForce), Math.abs(myNode.daddy.lastAddedForce));
+                    myNode.daddy.lastAddedForce -= toSubtract * Math.signum(myNode.daddy.lastAddedForce);
+                    for(AbstractMechanicalBlock i : myNode.path){
+                        i.stress += toSubtract;
+                    }
+                }
+            }
+            if(Math.abs(myNode.daddy.lastAddedForce) > 0.01) {
+                for (Direction i : connectedParts.keySet()) {
+                    forceDistributionDeq.addLast(Pair.of(connectedParts.get(i), myNode));
+                }
+            }
+        }
+    }
 
     public void mechanicalTick() {
         
@@ -220,7 +289,7 @@ public abstract class AbstractMechanicalBlock {
         if (myTile.getLevel().isClientSide()) {
             if (!hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
-                HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
+                HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
 
                 lastPing++;
@@ -239,7 +308,7 @@ public abstract class AbstractMechanicalBlock {
 
                 propagateTickBeforeUpdate();
 
-                HashSet<Pair<BlockPos, Integer>> workedPositions = new HashSet<>();
+                HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                 MechanicalFlowData data = new MechanicalFlowData();
                 getPropagatedData(data, null, workedPositions);
                 workedPositions.clear();
@@ -266,6 +335,30 @@ public abstract class AbstractMechanicalBlock {
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions, false);
 
+
+                Set <AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                aggregateConnectedParts(connectedBlocks);
+                for(AbstractMechanicalBlock i : connectedBlocks){
+                    if(i.lastAddedForce != 0){
+                        forceDistributionNode n = new forceDistributionNode(i);
+                        i.forceDistributionDeq.addLast(Pair.of(i,n));
+                    }
+                }
+
+                boolean hasForceToDistribute = true;
+                while(hasForceToDistribute) {
+                    hasForceToDistribute = false;
+                    for (AbstractMechanicalBlock i : connectedBlocks) {
+                        if (!i.forceDistributionDeq.isEmpty()) {
+                            Pair<AbstractMechanicalBlock, forceDistributionNode> info = i.forceDistributionDeq.removeFirst();
+                            info.first.walkDistributeForce(info.second);
+                            hasForceToDistribute = true;
+                        }
+                    }
+                }
+                for(AbstractMechanicalBlock i : connectedBlocks){
+                    //System.out.println(i.stress+":"+i.me.getBlockEntity().getBlockState().getBlock());
+                }
 
             }
         }
@@ -296,6 +389,13 @@ public abstract class AbstractMechanicalBlock {
                 System.out.println("set block to air because velocity is way too high!  "+me.getBlockEntity().getBlockPos());
                 me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(),true);
             }
+
+
+
+            CompoundTag updateTag = new CompoundTag();
+            updateTag.putDouble("stress", stress);
+            updateTag.putInt("id", id);
+            PacketDistributor.sendToAllPlayers(PacketBlockEntity.getBlockEntityPacket(me.getBlockEntity(),updateTag));
         }
     }
 
@@ -318,6 +418,10 @@ public abstract class AbstractMechanicalBlock {
         if (tag.contains("velocity") && tag.contains("id"))
             if (tag.getInt("id") == this.id)
                 internalVelocity = tag.getDouble("velocity");
+
+        if (tag.contains("stress") && tag.contains("id"))
+            if (tag.getInt("id") == this.id)
+                stress = tag.getDouble("stress");
     }
 
 

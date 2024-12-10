@@ -60,6 +60,12 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
 
             tile.vertexBuffer.bind();
 
+            double stress = tile.myMechanicalBlock.stress;
+            double ca = 0.1;
+            float c = (float) (stress*ca);
+            //System.out.println(c);
+            RenderSystem.setShaderColor(c,c,c,1);
+
             RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
             LIGHTMAP.setupRenderState();
             LEQUAL_DEPTH_TEST.setupRenderState();
@@ -99,6 +105,8 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
             LIGHTMAP.clearRenderState();
             LEQUAL_DEPTH_TEST.clearRenderState();
             NO_TRANSPARENCY.clearRenderState();
+
+            RenderSystem.setShaderColor(1,1,1,1);
         }
     }
 }

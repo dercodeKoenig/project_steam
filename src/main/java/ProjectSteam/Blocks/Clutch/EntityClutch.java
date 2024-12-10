@@ -2,9 +2,8 @@ package ProjectSteam.Blocks.Clutch;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.Blocks.BlockMotor.BlockMotor;
-import ProjectSteam.api.IMechanicalBlock;
-import ProjectSteam.api.MechanicalBlockData;
+import ProjectSteam.api.AbstractMechanicalBlock;
+import ProjectSteam.api.IMechanicalBlockProvider;
 import ProjectSteam.api.MechanicalFlowData;
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -16,8 +15,6 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -34,53 +31,95 @@ import java.util.Map;
 import java.util.UUID;
 
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
-import static ProjectSteam.Registry.ENTITY_MOTOR;
 
-public class EntityClutch extends MechanicalPartBlockEntityBaseExample implements  IMechanicalBlock, INetworkTagReceiver {
+public class EntityClutch extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
-    int lastLight = 0;
 
     boolean shouldConnect;
     int timeSinceConnectStart;
     boolean isFullyConnected;
-
-    double velocityA;
-    double velocityB;
-
-    double last_velocityA;
-    double last_velocityB;
-
-    double rotationA;
-    double rotationB;
+    public boolean last_wasPowered = false;
 
     double massPerSide = 2;
     double baseFrictionPerSide = 0.5;
 
-    public boolean last_wasPowered = false;
+    public AbstractMechanicalBlock myMechanicalBlockA = new AbstractMechanicalBlock(0,this) {
+        @Override
+        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return massPerSide;
+        }
 
-    boolean updatedFromSideA = false;
-    boolean updatedFromSideB = false;
+        @Override
+        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
 
-    boolean velUpdatedFromSideA = false;
-    boolean velUpdatedFromSideB = false;
+            double resistance =baseFrictionPerSide;
+            if(shouldConnect && !isFullyConnected) {
+                resistance+=current_resistance.get(face);
+            }
+            return resistance;
+        }
 
-public double lastRotationDiff;
+        @Override
+        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            if (isFullyConnected) return 0;
+            if(shouldConnect) {
+                return current_force.get(face);
+            }
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+            return 1;
+        }
+
+        @Override
+        public void onPropagatedTickEnd() {
+
+        }
+    };
+
+
+    public AbstractMechanicalBlock myMechanicalBlockB = new AbstractMechanicalBlock(1,this) {
+        @Override
+        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            return massPerSide;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+
+            double resistance =baseFrictionPerSide;
+            if(shouldConnect && !isFullyConnected) {
+                resistance+=current_resistance.get(face);
+            }
+            return resistance;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+            if (isFullyConnected) return 0;
+            if(shouldConnect) {
+                return current_force.get(face);
+            }
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+            return 1;
+        }
+
+        @Override
+        public void onPropagatedTickEnd() {
+
+        }
+    };
+
 
 
     public EntityClutch(BlockPos pos, BlockState blockState) {
         super(ENTITY_CLUTCH.get(), pos, blockState);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
-
-        myMass = 0.5;
-        myFriction = 1;
-
 
         for (Direction i : Direction.values()){
             current_force.put(i,0.0);
@@ -88,10 +127,6 @@ public double lastRotationDiff;
         }
     }
 
-    public double getMass(Direction face, BlockState state) {
-        if (isFullyConnected) return massPerSide * 2;
-        else return massPerSide;
-    }
 
     Map<Direction, Double> current_resistance = new HashMap<>();
     Map<Direction, Double> current_force = new HashMap<>();
@@ -130,25 +165,6 @@ public double lastRotationDiff;
                 current_force.put(myFacing.getOpposite(), - Math.signum(rotationDiff) * forceConstant * timeSinceConnectStart);
 
         }
-    }
-
-    public double getTorqueResistance(Direction face, BlockState state) {
-        if (isFullyConnected) return baseFrictionPerSide * 2;
-        double resistance =baseFrictionPerSide;
-
-        if(shouldConnect) {
-            resistance+=current_resistance.get(face);
-        }
-        return resistance;
-    }
-
-    public double getTorqueProduced(Direction face, BlockState state) {
-
-        if (isFullyConnected) return 0;
-        if(shouldConnect) {
-            return current_force.get(face);
-        }
-        return 0;
     }
 
 
@@ -336,7 +352,7 @@ if(!level.isClientSide()) {
                 updatedFromSideA = true;
                 // the following is in case this is the master.
                 // if it is not the master the other tile should already have been updated and will simply do nothing with the data
-                IMechanicalBlock b = myData.connectedParts.get(requestedFrom);
+                MechanicalBlock b = myData.connectedParts.get(requestedFrom);
                 if (b != null) {
                     b.getPropagatedData(data, requestedFrom.getOpposite(), workedPositions);
                 }
@@ -351,7 +367,7 @@ if(!level.isClientSide()) {
                 updatedFromSideB = true;
                 // the following is in case this is the master.
                 // if it is not the master the other tile should already have been updated and will simply do nothing with the data
-                IMechanicalBlock b = myData.connectedParts.get(requestedFrom);
+                MechanicalBlock b = myData.connectedParts.get(requestedFrom);
                 if (b != null) {
                     b.getPropagatedData(data, requestedFrom.getOpposite(), workedPositions);
                 }
@@ -370,7 +386,7 @@ if(!level.isClientSide()) {
 
                 MechanicalFlowData myInputFlowData = new MechanicalFlowData();
 
-                IMechanicalBlock b = myData.connectedParts.get(requestedFrom.getOpposite());
+                MechanicalBlock b = myData.connectedParts.get(requestedFrom.getOpposite());
                 if (b != null) {
 
                     MechanicalFlowData d = new MechanicalFlowData();
@@ -424,7 +440,7 @@ if(!level.isClientSide()) {
                 //System.out.println(level.isClientSide+":"+velocity+"-"+ receivingFace);
 
                 // the following is in case this is the master.
-                IMechanicalBlock b = myData.connectedParts.get(receivingFace);
+                MechanicalBlock b = myData.connectedParts.get(receivingFace);
                 if(b!=null){
                     b.propagateVelocityUpdate(velocity,receivingFace.getOpposite(), workedPositions, ignorePreviousUpdate);
                 }
@@ -437,7 +453,7 @@ if(!level.isClientSide()) {
                 //System.out.println(level.isClientSide+":"+velocity+"-"+ receivingFace);
 
                 // the following is in case this is the master.
-                IMechanicalBlock b = myData.connectedParts.get(receivingFace);
+                MechanicalBlock b = myData.connectedParts.get(receivingFace);
                 if(b!=null){
                     b.propagateVelocityUpdate(velocity,receivingFace.getOpposite(),workedPositions, ignorePreviousUpdate);
                 }
@@ -464,7 +480,7 @@ if(!level.isClientSide()) {
 
                 // forward the transformed rotation to the other blocks
                 for (Direction i : myData.connectedParts.keySet()) {
-                    IMechanicalBlock b = myData.connectedParts.get(i);
+                    MechanicalBlock b = myData.connectedParts.get(i);
                     b.propagateVelocityUpdate(velocity, i.getOpposite(), workedPositions, ignorePreviousUpdate);
                 }
             }

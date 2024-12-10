@@ -1,9 +1,8 @@
 package ProjectSteam.Blocks.Axle;
 
-import ProjectSteam.api.IMechanicalBlock;
+import ProjectSteam.api.MechanicalBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.*;
@@ -72,10 +71,10 @@ public class BlockAxle extends Block implements EntityBlock {
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockEntity tile = level.getBlockEntity(pos);
-        if (tile instanceof IMechanicalBlock mechBlock) {
+        if (tile instanceof MechanicalBlock mechBlock) {
             if (mechBlock.getConnectedParts(tile, state).isEmpty()) {
                 BlockEntity neighbor = tile.getLevel().getBlockEntity(tile.getBlockPos().relative(direction));
-                if (neighbor instanceof IMechanicalBlock otherMechBlock) {
+                if (neighbor instanceof MechanicalBlock otherMechBlock) {
                     if (otherMechBlock.connectsAtFace(direction.getOpposite(), null)) {
                         state = state.setValue(ROTATION_AXIS, direction.getAxis());
                     }

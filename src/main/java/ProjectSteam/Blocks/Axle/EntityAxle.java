@@ -1,5 +1,6 @@
 package ProjectSteam.Blocks.Axle;
 
+import ProjectSteam.api.AbstractMechanicalBlock;
 import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
@@ -60,42 +61,32 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-    super.readClient(compoundTag);
+        super.readClient(compoundTag);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
+    }
 
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityAxle) t).tick();
     }
 
     @Override
-    public boolean connectsAtFace(Direction face, @Nullable BlockState myState) {
-        if (myState == null)
-            myState = level.getBlockState(getBlockPos());
+    public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
+        BlockState myState = getBlockState();
         if (myState.getBlock() instanceof BlockAxle) {
             Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
-            if (face.getAxis() == blockAxis) {
-                return true;
+            if (side.getAxis() == blockAxis) {
+                return myMechanicalBlock;
             }
         }
-        return false;
-    }
-
-
-    public double getRotationMultiplierToInside(@javax.annotation.Nullable Direction receivingFace, @javax.annotation.Nullable BlockState myBlockState){
-
-        return 1;
-    }
-
-
-    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityAxle)t).tick();
+        return null;
     }
 }

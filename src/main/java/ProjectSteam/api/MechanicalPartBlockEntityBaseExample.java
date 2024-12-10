@@ -18,8 +18,13 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
 
     public double myMass = 1;
     public double myFriction = 0.1;
+    public double maxStress = 500;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+        @Override
+        public double getMaxStress() {
+            return maxStress;
+        }
         @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return myMass;

@@ -52,6 +52,8 @@ public abstract class AbstractMechanicalBlock {
         this.id=id;this.me = me;
     }
 
+    public abstract double getMaxStress();
+
     public abstract double getMass(Direction face, @Nullable BlockState myBlockState);
 
     public abstract double getTorqueResistance(Direction face, @Nullable BlockState myBlockState);
@@ -134,7 +136,7 @@ public abstract class AbstractMechanicalBlock {
         if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
     }
 
-    public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions, boolean ignorePreviousUpdates) {
+    public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions, boolean ignorePreviousUpdates, boolean resetStress) {
         BlockEntity myTile = me.getBlockEntity();
         Level level = myTile.getLevel();
         BlockState myState = level.getBlockState(myTile.getBlockPos());
@@ -165,12 +167,13 @@ public abstract class AbstractMechanicalBlock {
             for (Direction i : connectedParts.keySet()) {
                 AbstractMechanicalBlock b = connectedParts.get(i);
                 double outputVelocity = internalVelocity * getRotationMultiplierToOutside(i, myState);
-                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions, ignorePreviousUpdates);
+                b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions, ignorePreviousUpdates, resetStress);
             }
 
 
             // all for stress calculation later
-            if (!me.getBlockEntity().getLevel().isClientSide()) {
+            if ( resetStress && !me.getBlockEntity().getLevel().isClientSide()) {
+                forceDistributionDeq.clear();
                 stress = 0;
                 lastConsumedForce_filled1 = 0;
                 lastConsumedForce_filled2 = 0;
@@ -224,18 +227,18 @@ public abstract class AbstractMechanicalBlock {
                 target_velocity = data.combinedTransformedMomentum / data.combinedTransformedMass;
             }
             System.out.println("target velocity:" +target_velocity);
-            propagateVelocityUpdate(target_velocity,  null, worked, true);
+            propagateVelocityUpdate(target_velocity,  null, worked, true, false);
 
         }
     }
 
-    class nodeInfo{
-        Direction nextInputFace;
-        AbstractMechanicalBlock nextTarget;
-        forceDistributionNode node;
+    public class nodeInfo{
+        public Direction nextInputFace;
+        public AbstractMechanicalBlock nextTarget;
+        public forceDistributionNode node;
     }
 
-    class forceDistributionNode{
+    public class forceDistributionNode{
         public AbstractMechanicalBlock daddy;
         public Set<AbstractMechanicalBlock> path = new LinkedHashSet<>();
         public List<Pair<AbstractMechanicalBlock, Double>> pathWithForceTransformations = new ArrayList<>();
@@ -258,9 +261,12 @@ public abstract class AbstractMechanicalBlock {
         for (int i = n.pathWithForceTransformations.size()-1; i >=0 ; i--) {
             n.pathWithForceTransformations.get(i).first.stress += Math.abs(stress);
             stress /= Math.abs(n.pathWithForceTransformations.get(i).second);
+            if(n.pathWithForceTransformations.get(i).first.stress > n.pathWithForceTransformations.get(i).first.getMaxStress()){
+                n.pathWithForceTransformations.get(i).first.me.getBlockEntity().getLevel().destroyBlock(n.pathWithForceTransformations.get(i).first.me.getBlockEntity().getBlockPos(),true);
+            }
         }
     }
-    void walkDistributeForce(Direction receivingFace, forceDistributionNode n) {
+    public void walkDistributeForce(Direction receivingFace, forceDistributionNode n) {
         if (!n.path.contains(this)) {
             forceDistributionNode myNode = n.copy();
             myNode.path.add(this);
@@ -296,7 +302,7 @@ public abstract class AbstractMechanicalBlock {
                     addStressBackwards(myNode, toSubtract);
                 }
             }
-            if (Math.abs(currentEffectiveForce) > 0.1) {
+            if (Math.abs(currentEffectiveForce) > 0.01) {
                 for (Direction i : connectedParts.keySet()) {
                     forceDistributionNode newNode = myNode.copy();
                     newNode.lastOutputForceMultiplier = 1 / getRotationMultiplierToOutside(i, null);
@@ -306,6 +312,8 @@ public abstract class AbstractMechanicalBlock {
                     info.nextInputFace = i.getOpposite();
                     forceDistributionDeq.addLast(info);
                 }
+            }else{
+                myNode.daddy.lastAddedForce = 0;
             }
         }
     }
@@ -317,7 +325,7 @@ public abstract class AbstractMechanicalBlock {
             if (!hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
                 HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
+                propagateVelocityUpdate(internalVelocity,  null, workedPositions, false, false);
 
                 lastPing++;
                 if (lastPing > cttam_timeout / 2) {
@@ -360,39 +368,46 @@ public abstract class AbstractMechanicalBlock {
                 //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
 
-                propagateVelocityUpdate(newVelocity, null, workedPositions, false);
+                boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20*120) == 0;
+
+                propagateVelocityUpdate(newVelocity, null, workedPositions, false, resetStress);
 
                 double t1 = System.nanoTime();
 
                 Set <AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
                 aggregateConnectedParts(connectedBlocks);
-                for(AbstractMechanicalBlock i : connectedBlocks){
-                    if(i.lastAddedForce != 0){
-                        forceDistributionNode n = new forceDistributionNode(i);
-                        nodeInfo info = new nodeInfo();
-                        info.nextInputFace = null;
-                        info.nextTarget = i;
-                        info.node = n;
-                        i.forceDistributionDeq.addLast(info);
-                    }
-                }
 
-                boolean hasForceToDistribute = true;
-                while(hasForceToDistribute) {
-                    hasForceToDistribute = false;
+                if(resetStress) {
                     for (AbstractMechanicalBlock i : connectedBlocks) {
-                        if (!i.forceDistributionDeq.isEmpty()) {
-                            nodeInfo info = i.forceDistributionDeq.removeFirst();
-                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
-                            hasForceToDistribute = true;
+                        if (i.lastAddedForce != 0) {
+                            forceDistributionNode n = new forceDistributionNode(i);
+                            nodeInfo info = new nodeInfo();
+                            info.nextInputFace = null;
+                            info.nextTarget = i;
+                            info.node = n;
+                            i.forceDistributionDeq.addLast(info);
                         }
                     }
                 }
+
+boolean tickedANode = false;
+                    for (AbstractMechanicalBlock i : connectedBlocks) {
+                        if (!i.forceDistributionDeq.isEmpty()) {
+                            System.out.println("tick a node");
+                            tickedANode = true;
+                            nodeInfo info = i.forceDistributionDeq.removeFirst();
+                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                        }
+                    }
+
                 for(AbstractMechanicalBlock i : connectedBlocks){
                     //System.out.println(i.stress+":"+i.me.getBlockEntity().getBlockState().getBlock());
                 }
                 //System.out.println(me.getBlockEntity().getBlockPos());
-                //System.out.println((System.nanoTime()-t1) / 1000 / 1000);
+                if(tickedANode) {
+                    System.out.println((System.nanoTime() - t1) / 1000 / 1000);
+                    System.out.println("");
+                }
             }
         }
         hasReceivedUpdate = false;

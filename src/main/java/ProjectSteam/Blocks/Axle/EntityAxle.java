@@ -35,6 +35,7 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
 
         myMass = 0.2;
         myFriction = 0.01;
+        maxStress = 500;
     }
 
     @Override

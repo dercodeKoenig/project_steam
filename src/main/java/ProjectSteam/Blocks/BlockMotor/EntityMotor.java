@@ -51,6 +51,10 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
         @Override
+        public double getMaxStress() {
+            return MOTOR_FORCE*10;
+        }
+        @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return myMass;
         }

@@ -35,9 +35,13 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
 
     double myMass = 0.5;
     double myFriction = 5;
-
+double maxStress = 500;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+        @Override
+        public double getMaxStress() {
+            return maxStress;
+        }
         @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return myMass;

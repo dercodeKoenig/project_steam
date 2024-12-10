@@ -26,10 +26,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
 
@@ -48,6 +45,10 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
     public AbstractMechanicalBlock myMechanicalBlockA = new AbstractMechanicalBlock(0, this) {
         @Override
+        public double getMaxStress() {
+            return 100000;
+        }
+        @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return massPerSide;
         }
@@ -87,7 +88,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                    propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
+                    propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
 
                     lastPing++;
                     if (lastPing > cttam_timeout / 2) {
@@ -110,7 +111,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     getPropagatedData(data, null, workedPositions);
                     workedPositions.clear();
 
-                    double t = (double) 1 /tps;
+                    double t = (double) 1 / tps;
 
                     data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
                     double newVelocity = internalVelocity;
@@ -122,17 +123,41 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     if ((signAfter < 0 && signBefore > 0) || (signAfter > 0 && signBefore < 0))
                         newVelocity = 0;
-                    if(newVelocity > internalVelocity+90)
-                        newVelocity = internalVelocity+90;
-                    if(newVelocity < internalVelocity-90)
-                        newVelocity = internalVelocity-90;
+                    if (newVelocity > internalVelocity + 90)
+                        newVelocity = internalVelocity + 90;
+                    if (newVelocity < internalVelocity - 90)
+                        newVelocity = internalVelocity - 90;
 
                     //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
 
-                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false);
+                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20*120) == 0;
+
+                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, resetStress);
+
+                    Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                    aggregateConnectedParts(connectedBlocks);
+
+                    if (resetStress) {
+                        for (AbstractMechanicalBlock i : connectedBlocks) {
+                            if (i.lastAddedForce != 0) {
+                                forceDistributionNode n = new forceDistributionNode(i);
+                                nodeInfo info = new nodeInfo();
+                                info.nextInputFace = null;
+                                info.nextTarget = i;
+                                info.node = n;
+                                i.forceDistributionDeq.addLast(info);
+                            }
+                        }
+                    }
 
 
+                    for (AbstractMechanicalBlock i : connectedBlocks) {
+                        if (!i.forceDistributionDeq.isEmpty()) {
+                            nodeInfo info = i.forceDistributionDeq.removeFirst();
+                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                        }
+                    }
                 }
             }
             hasReceivedUpdate = false;
@@ -158,9 +183,9 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                         PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
                     }
                 }
-                if(Math.abs(internalVelocity) > 100000 ||Double.isNaN(internalVelocity)){
-                    System.out.println("set block to air because velocity is way too high!  "+me.getBlockEntity().getBlockPos());
-                    me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(),true);
+                if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
+                    System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
+                    me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
                 }
             }
         }
@@ -169,6 +194,10 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
     public AbstractMechanicalBlock myMechanicalBlockB = new AbstractMechanicalBlock(1, this) {
         @Override
+        public double getMaxStress() {
+            return 100000;
+        }
+        @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return massPerSide;
         }
@@ -208,7 +237,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                    propagateVelocityUpdate(internalVelocity,  null, workedPositions, false);
+                    propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
 
                     lastPing++;
                     if (lastPing > cttam_timeout / 2) {
@@ -231,7 +260,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     getPropagatedData(data, null, workedPositions);
                     workedPositions.clear();
 
-                    double t = (double) 1 /tps;
+                    double t = (double) 1 / tps;
 
                     data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
                     double newVelocity = internalVelocity;
@@ -243,17 +272,41 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     if ((signAfter < 0 && signBefore > 0) || (signAfter > 0 && signBefore < 0))
                         newVelocity = 0;
-                    if(newVelocity > internalVelocity+90)
-                        newVelocity = internalVelocity+90;
-                    if(newVelocity < internalVelocity-90)
-                        newVelocity = internalVelocity-90;
+                    if (newVelocity > internalVelocity + 90)
+                        newVelocity = internalVelocity + 90;
+                    if (newVelocity < internalVelocity - 90)
+                        newVelocity = internalVelocity - 90;
 
                     //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
 
-                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false);
+                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20*120) == 0;
+
+                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, resetStress);
+
+                    Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                    aggregateConnectedParts(connectedBlocks);
+
+                    if (resetStress) {
+                        for (AbstractMechanicalBlock i : connectedBlocks) {
+                            if (i.lastAddedForce != 0) {
+                                forceDistributionNode n = new forceDistributionNode(i);
+                                nodeInfo info = new nodeInfo();
+                                info.nextInputFace = null;
+                                info.nextTarget = i;
+                                info.node = n;
+                                i.forceDistributionDeq.addLast(info);
+                            }
+                        }
+                    }
 
 
+                    for (AbstractMechanicalBlock i : connectedBlocks) {
+                        if (!i.forceDistributionDeq.isEmpty()) {
+                            nodeInfo info = i.forceDistributionDeq.removeFirst();
+                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                        }
+                    }
                 }
             }
             hasReceivedUpdate = false;
@@ -279,9 +332,9 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                         PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
                     }
                 }
-                if(Math.abs(internalVelocity) > 100000 ||Double.isNaN(internalVelocity)){
-                    System.out.println("set block to air because velocity is way too high!  "+me.getBlockEntity().getBlockPos());
-                    me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(),true);
+                if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
+                    System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
+                    me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
                 }
             }
         }

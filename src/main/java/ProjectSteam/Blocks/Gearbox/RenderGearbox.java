@@ -41,11 +41,6 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
 
 
     void renderModelWithLight(EntityGearbox tile, int light) {
-        try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/gearbox_2_inside.obj"));
-        } catch (ModelFormatException e) {
-            throw new RuntimeException(e);
-        }
 
         tile.vertexBuffer_in.bind();
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
@@ -126,7 +121,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.getRotationMultiplierToOutside(facing, myState) * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing, myState) * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -141,7 +136,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.getRotationMultiplierToOutside(facing.getOpposite(), myState) * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing.getOpposite(), myState) * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -157,7 +152,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.translate(0.3f,0,0);
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) ( facingBasedRotationMultiplier * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+                    (float) ( facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -172,7 +167,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.translate(-0.3f,0,0);
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * (tile.getMechanicalData().currentRotation + tile.getMechanicalData().internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

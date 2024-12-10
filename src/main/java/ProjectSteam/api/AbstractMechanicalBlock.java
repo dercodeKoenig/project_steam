@@ -391,8 +391,8 @@ public abstract class AbstractMechanicalBlock {
                 for(AbstractMechanicalBlock i : connectedBlocks){
                     //System.out.println(i.stress+":"+i.me.getBlockEntity().getBlockState().getBlock());
                 }
-                System.out.println(me.getBlockEntity().getBlockPos());
-                System.out.println((System.nanoTime()-t1) / 1000 / 1000);
+                //System.out.println(me.getBlockEntity().getBlockPos());
+                //System.out.println((System.nanoTime()-t1) / 1000 / 1000);
             }
         }
         hasReceivedUpdate = false;

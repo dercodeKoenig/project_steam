@@ -30,8 +30,8 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     VertexBuffer vertexBuffer2;
     MeshData mesh2;
     public double myForce = 0;
-    public double myFriction = 10;
-    public double myMass = 1;
+    public double myFriction = 50;
+    public double myMass = 10;
 
     public static double MOTOR_FORCE = 500;
     public static double MAX_SPEED = 20;

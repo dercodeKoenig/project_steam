@@ -54,7 +54,7 @@ public class RenderAxle implements BlockEntityRenderer<EntityAxle> {
     @Override
     public void render(EntityAxle tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
+        BlockState axleState = tile.getBlockState();
         if (axleState.getBlock() instanceof BlockAxle) {
             Direction.Axis facingAxis = axleState.getValue(BlockAxle.ROTATION_AXIS);
 

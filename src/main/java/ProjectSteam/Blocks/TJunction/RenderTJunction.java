@@ -66,7 +66,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
     @Override
     public void render(EntityTJunction tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        BlockState myState = tile.getLevel().getBlockState(tile.getBlockPos());
+        BlockState myState = tile.getBlockState();
         if (myState.getBlock() instanceof BlockTJunction) {
             Direction.Axis axis = myState.getValue(BlockTJunction.AXIS);
             Direction facing = myState.getValue(BlockTJunction.FACING);
@@ -123,15 +123,22 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
 
 
+            boolean isInverted = myState.getValue(BlockTJunction.INVERTED);
+            float inversionMultiplier = isInverted ? -1f:1f;
+
             m2 = new Matrix4f(m1);
             if (axis == Direction.Axis.Z) {
                 //m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
             }
             if (axis == Direction.Axis.X) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 90));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 90f));
+            }
+            if(axis != Direction.Axis.Y){
+                if(isInverted)
+                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 180f));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, inversionMultiplier*(float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

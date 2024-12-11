@@ -65,7 +65,7 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
     @Override
     public void render(EntityMotor tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
+        BlockState axleState = tile.getBlockState();
         if (axleState.getBlock() instanceof BlockMotor) {
             Direction facing = axleState.getValue(BlockMotor.FACING);
 

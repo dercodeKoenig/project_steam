@@ -34,6 +34,8 @@ public class BlockTJunction extends Block implements EntityBlock {
 
     public static Map<Direction, BooleanProperty> solidBlockConnections = new HashMap<>();
 
+    public static BooleanProperty INVERTED = BooleanProperty.create("inverted");
+
     static {
         for (Direction i : Direction.values()) {
             solidBlockConnections.put(i, BooleanProperty.create("solid_conn_"+i.getName()));
@@ -44,6 +46,7 @@ public class BlockTJunction extends Block implements EntityBlock {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(AXIS, Direction.Axis.X);
+        state = state.setValue(INVERTED, false);
         state = state.setValue(FACING, Direction.SOUTH);
         for (Direction i : Direction.values()) {
             state = state.setValue(solidBlockConnections.get(i), false);
@@ -55,6 +58,7 @@ public class BlockTJunction extends Block implements EntityBlock {
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(AXIS);
         builder.add(FACING);
+        builder.add(INVERTED);
         for (Direction i : Direction.values()) {
             builder.add(solidBlockConnections.get(i));
         }
@@ -62,16 +66,17 @@ public class BlockTJunction extends Block implements EntityBlock {
     }
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(player.isShiftKeyDown() && player.getMainHandItem() == ItemStack.EMPTY){
+        if(player.isShiftKeyDown() && player.getMainHandItem().isEmpty()){
             Direction cf = state.getValue(FACING);
             Direction nf = cf;
             Direction.Axis ca = state.getValue(AXIS);
+            boolean isInverted = state.getValue(INVERTED);
 
             if(ca == Direction.Axis.X){
                 if(cf == Direction.UP)nf = Direction.NORTH;
                 if(cf == Direction.NORTH)nf = Direction.DOWN;
                 if(cf == Direction.DOWN)nf = Direction.SOUTH;
-                if(cf == Direction.SOUTH)nf = Direction.UP;
+                if(cf == Direction.SOUTH && isInverted)nf = Direction.UP;
             }
             if(ca == Direction.Axis.Z){
                 if(cf == Direction.UP)nf = Direction.EAST;
@@ -93,16 +98,16 @@ public class BlockTJunction extends Block implements EntityBlock {
             Direction.Axis newAxis = Direction.Axis.X;
             Direction newFacing = placer.getDirection().getOpposite();
 
-            if (Math.abs(lookVec.y) < 0.8) {
+            //if (Math.abs(lookVec.y) < 0.8) { // maybe later....
                 if(Math.abs(lookVec.x) > Math.abs(lookVec.z)) {
                     newAxis = Direction.Axis.Z; // Dominant X-axis
                 }
                 if(Math.abs(lookVec.x) < Math.abs(lookVec.z)) {
                     newAxis = Direction.Axis.X; // Dominant Z-axis
                 }
-            }else{
-                newAxis = Direction.Axis.Y;
-            }
+            //}else{
+                //newAxis = Direction.Axis.Y;
+            //}
 
             state = state.setValue(AXIS, newAxis);
             state = state.setValue(FACING, newFacing);

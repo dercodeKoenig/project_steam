@@ -64,11 +64,13 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
                     return 1;
                 }
             }
+
+            double inversionMultiplier =myState.getValue(BlockTJunction.INVERTED) ? -1:1;
             if(receivingFace == myState.getValue(BlockTJunction.FACING)){
                 if(receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
-                    return -1;
+                    return -1*inversionMultiplier;
                 else
-                    return 1;
+                    return 1*inversionMultiplier;
             }
             return 1;
         }

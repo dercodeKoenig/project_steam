@@ -77,7 +77,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
 
     @Override
     public void render(EntityGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-        BlockState myState = tile.getLevel().getBlockState(tile.getBlockPos());
+        BlockState myState = tile.getBlockState();
         if (myState.getBlock() instanceof BlockGearbox) {
             Direction facing = myState.getValue(BlockGearbox.FACING);
 

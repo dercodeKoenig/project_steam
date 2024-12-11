@@ -76,7 +76,7 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
     @Override
     public void render(EntityHandGenerator tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        BlockState axleState = tile.getLevel().getBlockState(tile.getBlockPos());
+        BlockState axleState = tile.getBlockState();
         if (axleState.getBlock() instanceof BlockHandGenerator) {
             Direction facing = axleState.getValue(BlockHandGenerator.FACING);
 

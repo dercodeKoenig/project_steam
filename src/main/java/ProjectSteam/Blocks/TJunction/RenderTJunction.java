@@ -82,37 +82,65 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                 renderModelWithLight(tile, packedLight);
             }
 
-            ShaderInstance shader = RenderSystem.getShader();
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
-            tile.vertexBuffer.bind();
+            Matrix4f m2 = new Matrix4f(m1);
+            double rotationMultiplier = tile.myMechanicalBlock.getRotationMultiplierToOutside(facing, null);
 
-                Matrix4f m2 = new Matrix4f(m1);
-                double rotationMultiplier = tile.myMechanicalBlock.getRotationMultiplierToOutside(facing, null);
-
-            if(facing==Direction.EAST) {
+            if (facing == Direction.EAST) {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 270));
-                rotationMultiplier*=-1;
+                rotationMultiplier *= -1;
             }
-            if(facing==Direction.WEST) {
+            if (facing == Direction.WEST) {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 90));
             }
-            if(facing==Direction.NORTH) {
+            if (facing == Direction.NORTH) {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
             }
-            if(facing==Direction.SOUTH) {
+            if (facing == Direction.SOUTH) {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 180));
-                rotationMultiplier*=-1;
+                rotationMultiplier *= -1;
+            }
+            if (facing == Direction.UP) {
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 1f, (float) 0f, 0f, (float) 90));
+                rotationMultiplier *= -1;
+            }
+            if (facing == Direction.DOWN) {
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 1f, (float) 0f, 0f, (float) 270));
             }
 
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 0f, 1f, (float) (tile.myMechanicalBlock.currentRotation*rotationMultiplier)));
-                shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-                shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 0f, 1f, 14.7f+ (float) (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier)));
 
-                shader.apply();
-                tile.vertexBuffer.draw();
+            ShaderInstance shader = RenderSystem.getShader();
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
+
+            shader.apply();
+            tile.vertexBuffer.bind();
+            tile.vertexBuffer.draw();
+
+
+
+            m2 = new Matrix4f(m1);
+            if (axis == Direction.Axis.Z) {
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
+            }
+            if (axis == Direction.Axis.X) {
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 90));
+            }
+
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 0f, 1f, (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));
+
+            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
+            shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
+
+            shader.apply();
+            tile.vertexBuffer2.bind();
+            tile.vertexBuffer2.draw();
+
+
 
             VertexBuffer.unbind();
             shader.clear();

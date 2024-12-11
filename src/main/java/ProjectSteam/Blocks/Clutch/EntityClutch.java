@@ -144,10 +144,10 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, resetStress);
 
-                    Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                    aggregateConnectedParts(connectedBlocks);
-
                     if (resetStress) {
+                        lastTickHadForceToDistribute = true;
+                        Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                        aggregateConnectedParts(null, connectedBlocks);
                         for (AbstractMechanicalBlock i : connectedBlocks) {
                             if (i.lastAddedForce != 0) {
                                 forceDistributionNode n = new forceDistributionNode(i);
@@ -159,12 +159,16 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                             }
                         }
                     }
-
-
-                    for (AbstractMechanicalBlock i : connectedBlocks) {
-                        if (!i.forceDistributionDeq.isEmpty()) {
-                            nodeInfo info = i.forceDistributionDeq.removeFirst();
-                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                    if (lastTickHadForceToDistribute) {
+                        lastTickHadForceToDistribute = false;
+                        Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                        aggregateConnectedParts(null, connectedBlocks);
+                        for (AbstractMechanicalBlock i : connectedBlocks) {
+                            if (!i.forceDistributionDeq.isEmpty()) {
+                                nodeInfo info = i.forceDistributionDeq.removeFirst();
+                                info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                                lastTickHadForceToDistribute = true;
+                            }
                         }
                     }
                 }
@@ -303,10 +307,11 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, resetStress);
 
-                    Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                    aggregateConnectedParts(connectedBlocks);
 
                     if (resetStress) {
+                        lastTickHadForceToDistribute = true;
+                        Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                        aggregateConnectedParts(null, connectedBlocks);
                         for (AbstractMechanicalBlock i : connectedBlocks) {
                             if (i.lastAddedForce != 0) {
                                 forceDistributionNode n = new forceDistributionNode(i);
@@ -318,12 +323,16 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                             }
                         }
                     }
-
-
-                    for (AbstractMechanicalBlock i : connectedBlocks) {
-                        if (!i.forceDistributionDeq.isEmpty()) {
-                            nodeInfo info = i.forceDistributionDeq.removeFirst();
-                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                    if (lastTickHadForceToDistribute) {
+                        lastTickHadForceToDistribute = false;
+                        Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                        aggregateConnectedParts(null, connectedBlocks);
+                        for (AbstractMechanicalBlock i : connectedBlocks) {
+                            if (!i.forceDistributionDeq.isEmpty()) {
+                                nodeInfo info = i.forceDistributionDeq.removeFirst();
+                                info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                                lastTickHadForceToDistribute = true;
+                            }
                         }
                     }
                 }

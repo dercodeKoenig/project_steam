@@ -48,6 +48,8 @@ public abstract class AbstractMechanicalBlock {
 
     public double serverRotation;
 
+    public boolean lastTickHadForceToDistribute = false;
+
 
     public AbstractMechanicalBlock(int id, IMechanicalBlockProvider me) {
         this.id = id;
@@ -255,19 +257,20 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
-    public void aggregateConnectedParts(Set<AbstractMechanicalBlock> parts) {
+    public void aggregateConnectedParts(Direction receivingFace, Set<AbstractMechanicalBlock> parts) {
         if (!parts.contains(this)) {
             parts.add(this);
             for (Direction i : connectedParts.keySet()) {
+                if (receivingFace != null && receivingFace == i) continue;
                 AbstractMechanicalBlock b = connectedParts.get(i);
-                b.aggregateConnectedParts(parts);
+                b.aggregateConnectedParts(i.getOpposite(), parts);
             }
         }
     }
 
     public class forceDistributionNode {
         public AbstractMechanicalBlock daddy;
-        public Set<AbstractMechanicalBlock> path = new LinkedHashSet<>();
+        public Set<AbstractMechanicalBlock> path = new HashSet<>();
         public List<MechanicalBlockWithForceTransformation> pathWithForceTransformations = new ArrayList<>();
         public double lastOutputForceMultiplier = 1;
         public double currentEffectiveForceMultiplier = 1;
@@ -334,6 +337,7 @@ public abstract class AbstractMechanicalBlock {
             }
             if (Math.abs(currentEffectiveForce) > 0.01) {
                 for (Direction i : connectedParts.keySet()) {
+                    if (i == receivingFace) continue;
                     forceDistributionNode newNode = myNode.copy();
                     newNode.lastOutputForceMultiplier = 1 / getRotationMultiplierToOutside(i);
                     nodeInfo info = new nodeInfo();
@@ -416,12 +420,10 @@ public abstract class AbstractMechanicalBlock {
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions, false, resetStress);
 
-                double t1 = System.nanoTime();
-
-                Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                aggregateConnectedParts(connectedBlocks);
-
                 if (resetStress) {
+                    lastTickHadForceToDistribute = true;
+                    Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                    aggregateConnectedParts(null, connectedBlocks);
                     for (AbstractMechanicalBlock i : connectedBlocks) {
                         if (i.lastAddedForce != 0) {
                             forceDistributionNode n = new forceDistributionNode(i);
@@ -433,11 +435,16 @@ public abstract class AbstractMechanicalBlock {
                         }
                     }
                 }
-
-                for (AbstractMechanicalBlock i : connectedBlocks) {
-                    if (!i.forceDistributionDeq.isEmpty()) {
-                        nodeInfo info = i.forceDistributionDeq.removeFirst();
-                        info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                if (lastTickHadForceToDistribute) {
+                    lastTickHadForceToDistribute = false;
+                    Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
+                    aggregateConnectedParts(null, connectedBlocks);
+                    for (AbstractMechanicalBlock i : connectedBlocks) {
+                        if (!i.forceDistributionDeq.isEmpty()) {
+                            nodeInfo info = i.forceDistributionDeq.removeFirst();
+                            info.nextTarget.walkDistributeForce(info.nextInputFace, info.node);
+                            lastTickHadForceToDistribute = true;
+                        }
                     }
                 }
             }

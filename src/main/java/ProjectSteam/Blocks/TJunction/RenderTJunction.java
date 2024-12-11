@@ -130,11 +130,11 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                 //m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
             }
             if (axis == Direction.Axis.X) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 90f));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, 90f));
             }
             if(axis != Direction.Axis.Y){
                 if(isInverted)
-                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 180f));
+                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, 180f));
             }
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, inversionMultiplier*(float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));

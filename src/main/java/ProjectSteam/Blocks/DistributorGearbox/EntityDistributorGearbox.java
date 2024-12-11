@@ -120,7 +120,7 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
                 currentRotation = rotation;
 
                 for (Direction i : connections.keySet()) {
-                    double rotationToOutside = (-getRotationOffsetForFace(i)+currentRotation) * getRotationMultiplierToOutside(i);;
+                    double rotationToOutside = (-getRotationOffsetForFace(i)+currentRotation) * getRotationMultiplierToOutside(i);
                     connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }

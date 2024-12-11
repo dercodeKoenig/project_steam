@@ -30,7 +30,7 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
 
     double myMass = 0.5;
     double myFriction = 10;
-    double maxStress = 500;
+    double maxStress = 600;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override

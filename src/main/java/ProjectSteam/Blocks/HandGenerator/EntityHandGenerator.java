@@ -41,11 +41,12 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
     double myFriction = 2;
     double myMass = 1;
+    double maxStress = 10000;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return 100000;
+            return maxStress;
         }
         @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {

@@ -5,6 +5,7 @@ import ProjectSteam.Blocks.BlockMotor.RenderMotor;
 import ProjectSteam.Blocks.DistributorGearbox.RenderDistributorGearbox;
 import ProjectSteam.Blocks.Gearbox.RenderGearbox;
 import ProjectSteam.Blocks.HandGenerator.RenderHandGenerator;
+import ProjectSteam.Blocks.TJunction.RenderTJunction;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -49,6 +50,7 @@ public class ProjectSteam {
     public void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(DISTRIBUTOR_GEARBOX.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(GEARBOX.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(TJUNCTION.get(), RenderType.cutout());
     }
 
 
@@ -58,6 +60,7 @@ public class ProjectSteam {
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
         event.registerBlockEntityRenderer(ENTITY_HAND_GENERATOR.get(), RenderHandGenerator::new);
+        event.registerBlockEntityRenderer(ENTITY_TJUNCTION.get(), RenderTJunction::new);
 
     }
 
@@ -73,6 +76,7 @@ public class ProjectSteam {
             e.accept(MOTOR.get());
             e.accept(CLUTCH.get());
             e.accept(HAND_GENERATOR.get());
+            e.accept(TJUNCTION.get());
         }
     }
 

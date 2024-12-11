@@ -6,7 +6,6 @@
   },
   "elements": [
     {
-      "name": "Bottom",
       "from": [1, 14, 1],
       "to": [15, 16, 15],
       "faces": {

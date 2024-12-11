@@ -28,7 +28,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
 
     static {
         try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/gearbox_2_inside.obj"));
+            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/gearbox.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
@@ -116,7 +116,6 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
 
 
 
-            tile.vertexBuffer_in.bind();
             Matrix4f m2 = new Matrix4f(m1);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
@@ -127,11 +126,12 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
 
             shader.apply();
+            tile.vertexBuffer_in.bind();
             tile.vertexBuffer_in.draw();
             //shader.clear();
 
 
-            tile.vertexBuffer_out.bind();
+
             m2 = new Matrix4f(m1);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
@@ -142,11 +142,12 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
 
             shader.apply();
+            tile.vertexBuffer_out.bind();
             tile.vertexBuffer_out.draw();
             //shader.clear();
 
 
-            tile.vertexBuffer_mid.bind();
+
             m2 = new Matrix4f(m1);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
             m2 = m2.translate(0.3f,0,0);
@@ -158,10 +159,10 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
 
             shader.apply();
-            tile.vertexBuffer_mid.draw();
-            shader.clear();
-
             tile.vertexBuffer_mid.bind();
+            tile.vertexBuffer_mid.draw();
+            //shader.clear();
+
             m2 = new Matrix4f(m1);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
             m2 = m2.translate(-0.3f,0,0);
@@ -173,10 +174,11 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
 
             shader.apply();
+            tile.vertexBuffer_mid.bind();
             tile.vertexBuffer_mid.draw();
+
+
             shader.clear();
-
-
             VertexBuffer.unbind();
 
             LIGHTMAP.clearRenderState();

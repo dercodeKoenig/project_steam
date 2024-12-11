@@ -12,6 +12,8 @@ import ProjectSteam.Blocks.Gearbox.BlockGearbox;
 import ProjectSteam.Blocks.Gearbox.EntityGearbox;
 import ProjectSteam.Blocks.HandGenerator.BlockHandGenerator;
 import ProjectSteam.Blocks.HandGenerator.EntityHandGenerator;
+import ProjectSteam.Blocks.TJunction.EntityTJunction;
+import ProjectSteam.Blocks.TJunction.BlockTJunction;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -83,6 +85,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityHandGenerator::new, HAND_GENERATOR.get()).build(null)
     );
 
+    public static final DeferredHolder<Block, Block> TJUNCTION = BLOCKS.register(
+            "tjunction",
+            () -> new BlockTJunction()
+    );
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityTJunction>> ENTITY_TJUNCTION = BLOCK_ENTITIES.register(
+            "entity_tjunction",
+            () -> BlockEntityType.Builder.of(EntityTJunction::new, TJUNCTION.get()).build(null)
+    );
+
 
 
 
@@ -96,6 +107,7 @@ public class Registry {
         registerBlockItem("motor", MOTOR);
         registerBlockItem("clutch", CLUTCH);
         registerBlockItem("hand_generator", HAND_GENERATOR);
+        registerBlockItem("tjunction", TJUNCTION);
 
         BLOCKS.register(modBus);
         ITEMS.register(modBus);

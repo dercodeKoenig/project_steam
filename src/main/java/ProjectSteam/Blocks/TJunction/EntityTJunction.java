@@ -1,10 +1,8 @@
-package ProjectSteam.Blocks.Gearbox;
+package ProjectSteam.Blocks.TJunction;
 
 import ARLib.network.INetworkTagReceiver;
-import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
 import ProjectSteam.api.AbstractMechanicalBlock;
 import ProjectSteam.api.IMechanicalBlockProvider;
-import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -19,23 +17,20 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 
-import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
-import static ProjectSteam.Registry.ENTITY_GEARBOX;
+import static ProjectSteam.Registry.ENTITY_TJUNCTION;
 
-public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public class EntityTJunction extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    VertexBuffer vertexBuffer_in;
-    VertexBuffer vertexBuffer_out;
-    VertexBuffer vertexBuffer_mid;
-    MeshData mesh_in;
-    MeshData mesh_out;
-    MeshData mesh_mid;
+    VertexBuffer vertexBuffer;
+    MeshData mesh;
+    VertexBuffer vertexBuffer2;
+    MeshData mesh2;
     int lastLight = 0;
 
 
     double myMass = 0.5;
     double myFriction = 10;
-    double maxStress = 900;
+    double maxStress = 600;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -44,32 +39,36 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
         }
 
         @Override
-        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getMass(Direction face, @Nullable BlockState myBlockState) {
             return myMass;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face, @Nullable BlockState myBlockState) {
             return myFriction;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face, @Nullable BlockState myBlockState) {
             return 0;
         }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@Nullable Direction receivingFace, @Nullable BlockState myState) {
             if (receivingFace == null) return 1;
-            if (myState == null) myState = level.getBlockState(getBlockPos());
+            if (myState == null) myState = getBlockState();
 
-            if (myState.getBlock() instanceof BlockGearbox) {
-                Direction facing = myState.getValue(BlockGearbox.FACING);
-
-                if (receivingFace == facing.getOpposite())
-                    return (double) -3 / 2;
-                if (receivingFace == facing)
-                    return (double) -2 / 3;
+            if (myState.getBlock() instanceof BlockTJunction) {
+                Direction.Axis myAxis = myState.getValue(BlockTJunction.AXIS);
+                if(myAxis == receivingFace.getAxis()){
+                    return 1;
+                }
+            }
+            if(receivingFace == myState.getValue(BlockTJunction.FACING)){
+                if(receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
+                    return -1;
+                else
+                    return 1;
             }
             return 1;
         }
@@ -119,14 +118,14 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
     }
 
-    public EntityGearbox(BlockPos pos, BlockState blockState) {
-        super(ENTITY_GEARBOX.get(), pos, blockState);
+
+    public EntityTJunction(BlockPos pos, BlockState blockState) {
+        super(ENTITY_TJUNCTION.get(), pos, blockState);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                vertexBuffer_in = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer_out = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer_mid = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
@@ -135,9 +134,8 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
     public void setRemoved() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                vertexBuffer_in.close();
-                vertexBuffer_out.close();
-                vertexBuffer_mid.close();
+                vertexBuffer.close();
+                vertexBuffer2.close();
             });
 
         }
@@ -148,13 +146,13 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if (side.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis())
+        if (side.getAxis() == myState.getValue(BlockTJunction.AXIS) || side == myState.getValue(BlockTJunction.FACING))
             return myMechanicalBlock;
         return null;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityGearbox) t).tick();
+        ((EntityTJunction) t).tick();
     }
 }

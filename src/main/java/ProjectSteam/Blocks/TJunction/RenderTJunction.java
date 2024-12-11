@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.DistributorGearbox;
+package ProjectSteam.Blocks.TJunction;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
@@ -21,31 +21,41 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistributorGearbox> {
+public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
 
     static {
         try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/distributor_gearbox.obj"));
+            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/t_junction.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
     }
 
 
-    public RenderDistributorGearbox(BlockEntityRendererProvider.Context c) {
+    public RenderTJunction(BlockEntityRendererProvider.Context c) {
         super();
     }
 
 
-    void renderModelWithLight(EntityDistributorGearbox tile, int light) {
+    void renderModelWithLight(EntityTJunction tile, int light) {
+
+        tile.vertexBuffer2.bind();
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(2048);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("gear2").faces) {
+            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+        }
+        tile.mesh2 = b.build();
+        tile.vertexBuffer2.upload(tile.mesh2);
+        byteBuffer.close();
 
         tile.vertexBuffer.bind();
-        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("Cube").faces) {
+         byteBuffer = new ByteBufferBuilder(1024);
+         b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("gear1").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
         tile.mesh = b.build();
@@ -54,10 +64,11 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
     }
 
     @Override
-    public void render(EntityDistributorGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(EntityTJunction tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+        if(true)return;
         BlockState myState = tile.getLevel().getBlockState(tile.getBlockPos());
-        if (myState.getBlock() instanceof BlockDistributorGearbox) {
-            Direction.Axis normalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
+        if (myState.getBlock() instanceof BlockTJunction) {
+            Direction.Axis normalAxis = myState.getValue(BlockTJunction.AXIS);
 
             RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
             LIGHTMAP.setupRenderState();
@@ -105,8 +116,8 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
                 shader.apply();
                 tile.vertexBuffer.draw();
             }
-            shader.clear();
             VertexBuffer.unbind();
+            shader.clear();
 
             LIGHTMAP.clearRenderState();
             LEQUAL_DEPTH_TEST.clearRenderState();

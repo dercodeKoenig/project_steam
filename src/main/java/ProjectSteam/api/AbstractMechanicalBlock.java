@@ -222,7 +222,7 @@ public abstract class AbstractMechanicalBlock {
 
     public void mechanicalOnload() {
         if (me.getBlockEntity().getLevel().isClientSide()) {
-            propagateResetRotation(45,null,new HashSet<AbstractMechanicalBlock>());
+            propagateResetRotation(0,null,new HashSet<AbstractMechanicalBlock>());
         }
         if (!me.getBlockEntity().getLevel().isClientSide()) {
             MechanicalFlowData data = new MechanicalFlowData();

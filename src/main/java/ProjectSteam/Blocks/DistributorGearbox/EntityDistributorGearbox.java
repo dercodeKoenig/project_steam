@@ -28,16 +28,16 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
     int lastLight = 0;
 
 
+    double myMass = 0.5;
+    double myFriction = 10;
+    double maxStress = 500;
 
-double    myMass = 0.5;
-    double myFriction = 5;
-double maxStress = 500;
-
-    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
             return maxStress;
         }
+
         @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return myMass;
@@ -55,10 +55,10 @@ double maxStress = 500;
 
         @Override
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
-            if(receivingFace == null) return 1;
-            if(myState == null) myState = level.getBlockState(getBlockPos());
+            if (receivingFace == null) return 1;
+            if (myState == null) myState = level.getBlockState(getBlockPos());
 
-            if(myState.getBlock() instanceof BlockDistributorGearbox) {
+            if (myState.getBlock() instanceof BlockDistributorGearbox) {
                 Direction.Axis myNormalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
                 if (myNormalAxis == Direction.Axis.Y) {
@@ -88,8 +88,11 @@ double maxStress = 500;
 
         }
     };
+
     @Override
-    public BlockEntity getBlockEntity(){return this;}
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
 
     @Override
     public void onLoad() {
@@ -148,7 +151,6 @@ double maxStress = 500;
     }
 
 
-
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
@@ -158,8 +160,7 @@ double maxStress = 500;
     }
 
 
-
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityDistributorGearbox)t).tick();
+        ((EntityDistributorGearbox) t).tick();
     }
 }

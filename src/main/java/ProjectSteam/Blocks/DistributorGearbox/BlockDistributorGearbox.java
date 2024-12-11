@@ -63,9 +63,9 @@ public class BlockDistributorGearbox extends Block implements EntityBlock {
             
             if (Math.abs(lookVec.y) > 0.8) {
                 if(Math.abs(lookVec.x) > Math.abs(lookVec.z))
-                    newAxis = Direction.Axis.X; // Dominant X-axis
+                    newAxis = Direction.Axis.Z; // Dominant X-axis
                 if(Math.abs(lookVec.x) < Math.abs(lookVec.z))
-                    newAxis = Direction.Axis.Z; // Dominant Z-axis
+                    newAxis = Direction.Axis.X; // Dominant Z-axis
             }
 
             state = state.setValue(ROTATION_AXIS, newAxis);

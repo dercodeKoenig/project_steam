@@ -34,14 +34,15 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
 
 
     double myMass = 0.5;
-    double myFriction = 5;
-double maxStress = 500;
+    double myFriction = 10;
+    double maxStress = 500;
 
-    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
             return maxStress;
         }
+
         @Override
         public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
             return myMass;
@@ -59,18 +60,18 @@ double maxStress = 500;
 
         @Override
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
-                if (receivingFace == null) return 1;
-                if (myState == null) myState = level.getBlockState(getBlockPos());
+            if (receivingFace == null) return 1;
+            if (myState == null) myState = level.getBlockState(getBlockPos());
 
-                if (myState.getBlock() instanceof BlockGearbox) {
-                    Direction facing = myState.getValue(BlockGearbox.FACING);
+            if (myState.getBlock() instanceof BlockGearbox) {
+                Direction facing = myState.getValue(BlockGearbox.FACING);
 
-                    if (receivingFace == facing.getOpposite())
-                        return (double) -3 / 2;
-                    if (receivingFace == facing)
-                        return (double) -2 / 3;
-                }
-                return 1;
+                if (receivingFace == facing.getOpposite())
+                    return (double) -3 / 2;
+                if (receivingFace == facing)
+                    return (double) -2 / 3;
+            }
+            return 1;
         }
 
         @Override
@@ -78,8 +79,11 @@ double maxStress = 500;
 
         }
     };
+
     @Override
-    public BlockEntity getBlockEntity(){return this;}
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
 
     @Override
     public void onLoad() {
@@ -141,11 +145,10 @@ double maxStress = 500;
     }
 
 
-
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if(side.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis())
+        if (side.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis())
             return myMechanicalBlock;
         return null;
     }

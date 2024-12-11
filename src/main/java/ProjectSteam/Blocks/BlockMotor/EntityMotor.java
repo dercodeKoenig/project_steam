@@ -33,7 +33,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     public double myFriction = 10;
     public double myMass = 1;
 
-    public static double MOTOR_FORCE = 250;
+    public static double MOTOR_FORCE = 500;
     public static double MAX_SPEED = 20;
 
     int lastLight = 0;

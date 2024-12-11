@@ -33,7 +33,7 @@ public class EntityAxle extends MechanicalPartBlockEntityBaseExample {
             });
         }
 
-        myMass = 0.2;
+        myMass = 0.02;
         myFriction = 0.01;
         maxStress = 500;
     }

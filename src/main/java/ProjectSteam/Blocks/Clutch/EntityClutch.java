@@ -37,11 +37,10 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
     int timeSinceConnectStart;
     boolean isFullyConnected;
     public boolean last_wasPowered = false;
-    Map<Direction, Double> current_resistance = new HashMap<>();
     Map<Direction, Double> current_force = new HashMap<>();
 
-    double massPerSide = 2;
-    double baseFrictionPerSide = 0.5;
+    double massPerSide = 1;
+    double baseFrictionPerSide = 5;
 
     public AbstractMechanicalBlock myMechanicalBlockA = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -55,11 +54,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
         @Override
         public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
-
             double resistance = baseFrictionPerSide;
-            if (shouldConnect && !isFullyConnected) {
-                resistance += current_resistance.get(face);
-            }
             return resistance;
         }
 
@@ -108,7 +103,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     MechanicalFlowData data = new MechanicalFlowData();
-                    getPropagatedData(data, null, workedPositions);
+                    getPropagatedData(data, getBlockState().getValue(BlockClutch.FACING), workedPositions);
                     workedPositions.clear();
 
                     double t = (double) 1 / tps;
@@ -204,11 +199,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
         @Override
         public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
-
             double resistance = baseFrictionPerSide;
-            if (shouldConnect && !isFullyConnected) {
-                resistance += current_resistance.get(face);
-            }
             return resistance;
         }
 
@@ -257,7 +248,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     MechanicalFlowData data = new MechanicalFlowData();
-                    getPropagatedData(data, null, workedPositions);
+                    getPropagatedData(data, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions);
                     workedPositions.clear();
 
                     double t = (double) 1 / tps;
@@ -346,29 +337,9 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
         for (Direction i : Direction.values()) {
             current_force.put(i, 0.0);
-            current_resistance.put(i, 0.0);
         }
     }
 
-
-    void updateResistance(BlockState state) {
-        if (state == null) state = level.getBlockState(getBlockPos());
-        if (state.getBlock() instanceof BlockClutch) {
-            Direction myFacing = state.getValue(BlockClutch.FACING);
-            double rotationDiff = myMechanicalBlockA.internalVelocity - myMechanicalBlockB.internalVelocity;
-
-            if (rotationDiff > 0) {
-                double forceConstant = 1;
-                double workingForce = forceConstant * timeSinceConnectStart;
-                current_resistance.put(myFacing, 0.0);
-            }
-            if (rotationDiff < 0) {
-                double forceConstant = 1;
-                double workingForce = forceConstant * timeSinceConnectStart;
-                current_resistance.put(myFacing.getOpposite(), 0.0);
-            }
-        }
-    }
 
     void updateForce(BlockState state) {
         if (state == null) state = getBlockState();
@@ -376,7 +347,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             Direction myFacing = state.getValue(BlockClutch.FACING);
 
             double rotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;
-            double forceConstant = 1;
+            double forceConstant = 5;
             current_force.put(myFacing, Math.signum(rotationDiff) * forceConstant * timeSinceConnectStart);
             current_force.put(myFacing.getOpposite(), -Math.signum(rotationDiff) * forceConstant * timeSinceConnectStart);
         }
@@ -437,9 +408,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (Math.abs(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity) < 0.5)
                     isFullyConnected = true;
                 else {
-                    updateResistance(getBlockState());
                     updateForce(getBlockState());
-                    //System.out.println(timeSinceConnectStart);
                 }
             } else {
                 last_wasPowered = false;
@@ -447,8 +416,6 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 shouldConnect = false;
             }
         }
-//System.out.println(level.isClientSide+":"+shouldConnect+":"+isFullyConnected+":"+velocityA+":"+velocityB);
-
     }
 
     @Override

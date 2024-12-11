@@ -85,6 +85,20 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
 
+                    double rotationDiff = serverRotation - currentRotation;
+                    if (Math.abs(rotationDiff) < 3600) {
+                        // to avoid precision errors, the rotation will not always increase.
+                        // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
+                        // in this case, ignore and wait until the client had reset itself and continue with sync
+                        propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
+                    } else {
+                        timeWithImpossibleSmoothSync++;
+                        if (timeWithImpossibleSmoothSync > 200) {
+                            propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
+                        }
+                    }
+                    serverRotation += internalVelocity;
+
                     lastPing++;
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
@@ -229,6 +243,20 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     propagateTickBeforeUpdate();
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
+
+                    double rotationDiff = serverRotation - currentRotation;
+                    if (Math.abs(rotationDiff) < 3600) {
+                        // to avoid precision errors, the rotation will not always increase.
+                        // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
+                        // in this case, ignore and wait until the client had reset itself and continue with sync
+                        propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
+                    } else {
+                        timeWithImpossibleSmoothSync++;
+                        if (timeWithImpossibleSmoothSync > 200) {
+                            propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
+                        }
+                    }
+                    serverRotation += internalVelocity;
 
                     lastPing++;
                     if (lastPing > cttam_timeout / 2) {

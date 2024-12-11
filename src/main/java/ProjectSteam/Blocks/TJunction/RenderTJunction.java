@@ -82,6 +82,9 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                 renderModelWithLight(tile, packedLight);
             }
 
+            boolean isInverted = myState.getValue(BlockTJunction.INVERTED);
+            float inversionMultiplier = isInverted ? -1f:1f;
+
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
@@ -111,7 +114,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, (float) 270));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (14.7f+ (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier))));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (inversionMultiplier*14.7f+ (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier))));
 
             ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -121,10 +124,6 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
             tile.vertexBuffer.bind();
             tile.vertexBuffer.draw();
 
-
-
-            boolean isInverted = myState.getValue(BlockTJunction.INVERTED);
-            float inversionMultiplier = isInverted ? -1f:1f;
 
             m2 = new Matrix4f(m1);
             if (axis == Direction.Axis.Z) {

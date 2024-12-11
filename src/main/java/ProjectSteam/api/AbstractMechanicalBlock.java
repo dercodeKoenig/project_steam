@@ -47,6 +47,10 @@ public abstract class AbstractMechanicalBlock {
     public double lastAddedForce = 0;
     public Deque<nodeInfo> forceDistributionDeq = new ArrayDeque<>();
 
+    public int timeWithImpossibleSmoothSync = 0; // only a safety thing that should never be used if all runs good
+
+    public double serverRotation;
+
 
     public AbstractMechanicalBlock(int id, IMechanicalBlockProvider me) {
         this.id = id;
@@ -201,7 +205,7 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
-    public void propagateResetRotation(double rotation,Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+    public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
         if (!workedPositions.contains(this)) {
             workedPositions.add(this);
             Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
@@ -219,12 +223,12 @@ public abstract class AbstractMechanicalBlock {
     }
 
 
-
     public void mechanicalOnload() {
         if (me.getBlockEntity().getLevel().isClientSide()) {
-            propagateResetRotation(0,null,new HashSet<AbstractMechanicalBlock>());
+            propagateResetRotation(45, null, new HashSet<AbstractMechanicalBlock>());
         }
         if (!me.getBlockEntity().getLevel().isClientSide()) {
+            propagateResetRotation(0, null, new HashSet<AbstractMechanicalBlock>());
             MechanicalFlowData data = new MechanicalFlowData();
             connectedParts = me.getConnectedParts(me, this);
             HashSet<AbstractMechanicalBlock> worked = new HashSet<>();
@@ -236,7 +240,6 @@ public abstract class AbstractMechanicalBlock {
                 target_velocity = data.combinedTransformedMomentum / data.combinedTransformedMass;
             }
             propagateVelocityUpdate(target_velocity, null, worked, true, false);
-
         }
     }
 
@@ -245,12 +248,14 @@ public abstract class AbstractMechanicalBlock {
         public AbstractMechanicalBlock nextTarget;
         public forceDistributionNode node;
     }
-    public class MechanicalBlockWithForceTransformation{
+
+    public class MechanicalBlockWithForceTransformation {
         public AbstractMechanicalBlock block;
         public double forceTransformation;
-        public MechanicalBlockWithForceTransformation(AbstractMechanicalBlock block, double forceTransformation){
+
+        public MechanicalBlockWithForceTransformation(AbstractMechanicalBlock block, double forceTransformation) {
             this.block = block;
-            this. forceTransformation = forceTransformation;
+            this.forceTransformation = forceTransformation;
         }
     }
 
@@ -263,6 +268,7 @@ public abstract class AbstractMechanicalBlock {
             }
         }
     }
+
     public class forceDistributionNode {
         public AbstractMechanicalBlock daddy;
         public Set<AbstractMechanicalBlock> path = new LinkedHashSet<>();
@@ -355,6 +361,20 @@ public abstract class AbstractMechanicalBlock {
                 HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                 propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
 
+                double rotationDiff = serverRotation - currentRotation;
+                if (Math.abs(rotationDiff) < 3600) {
+                    // to avoid precision errors, the rotation will not always increase.
+                    // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
+                    // in this case, ignore and wait until the client had reset itself and continue with sync
+                    propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
+                } else {
+                    timeWithImpossibleSmoothSync++;
+                    if (timeWithImpossibleSmoothSync > 200) {
+                        propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
+                    }
+                }
+                serverRotation += internalVelocity;
+
                 lastPing++;
                 if (lastPing > cttam_timeout / 2) {
                     lastPing = 0;
@@ -443,6 +463,7 @@ public abstract class AbstractMechanicalBlock {
                 me.getBlockEntity().setChanged();
                 CompoundTag updateTag = new CompoundTag();
                 updateTag.putDouble("velocity", internalVelocity);
+                updateTag.putDouble("rotation", currentRotation);
                 updateTag.putInt("id", id);
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
                     ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
@@ -453,7 +474,7 @@ public abstract class AbstractMechanicalBlock {
                 System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
                 me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
             }
-}
+        }
     }
 
     public void mechanicalReadServer(CompoundTag tag) {
@@ -464,6 +485,7 @@ public abstract class AbstractMechanicalBlock {
                 clientsTrackingThisAsMaster.put(from, 0);
                 CompoundTag updateTag = new CompoundTag();
                 updateTag.putDouble("velocity", internalVelocity);
+                updateTag.putDouble("rotation", currentRotation);
                 updateTag.putInt("id", id);
                 ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
                 PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(me.getBlockEntity(), updateTag));
@@ -475,6 +497,9 @@ public abstract class AbstractMechanicalBlock {
         if (tag.contains("velocity") && tag.contains("id"))
             if (tag.getInt("id") == this.id)
                 internalVelocity = tag.getDouble("velocity");
+        if (tag.contains("rotation") && tag.contains("id"))
+            if (tag.getInt("id") == this.id)
+                serverRotation = tag.getDouble("rotation");
     }
 
 

@@ -8,8 +8,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public interface IMechanicalBlockProvider{
-    public AbstractMechanicalBlock getMechanicalBlock(Direction side);
-    public BlockEntity getBlockEntity();
+    AbstractMechanicalBlock getMechanicalBlock(Direction side);
+    BlockEntity getBlockEntity();
 
 
 

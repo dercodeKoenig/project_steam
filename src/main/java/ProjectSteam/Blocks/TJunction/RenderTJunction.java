@@ -90,28 +90,28 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
             double rotationMultiplier = tile.myMechanicalBlock.getRotationMultiplierToOutside(facing, null);
 
             if (facing == Direction.EAST) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 270));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 270));
                 rotationMultiplier *= -1;
             }
             if (facing == Direction.WEST) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 90));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 90));
             }
             if (facing == Direction.NORTH) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 0));
             }
             if (facing == Direction.SOUTH) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 180));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 180));
                 rotationMultiplier *= -1;
             }
             if (facing == Direction.UP) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 1f, (float) 0f, 0f, (float) 90));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, (float) 90));
                 rotationMultiplier *= -1;
             }
             if (facing == Direction.DOWN) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 1f, (float) 0f, 0f, (float) 270));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, (float) 270));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 0f, 1f, 14.7f+ (float) (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier)));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 14.7f+ (float) (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier)));
 
             ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -125,13 +125,13 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
             m2 = new Matrix4f(m1);
             if (axis == Direction.Axis.Z) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
+                //m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 0));
             }
             if (axis == Direction.Axis.X) {
-                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 1f, 0f, (float) 90));
+                m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 90));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0f, (float) 0f, 1f, (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

@@ -87,7 +87,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
 
             Matrix4f m2 = new Matrix4f(m1);
-            double rotationMultiplier = tile.myMechanicalBlock.getRotationMultiplierToOutside(facing, null);
+            double rotationMultiplier = tile.myMechanicalBlock.getRotationMultiplierToOutside(facing);
 
             if (facing == Direction.EAST) {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) 270));
@@ -111,7 +111,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, (float) 270));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, 14.7f+ (float) (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier)));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (14.7f+ (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier))));
 
             ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());

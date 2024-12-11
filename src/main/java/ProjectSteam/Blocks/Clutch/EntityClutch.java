@@ -48,18 +48,18 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             return 100000;
         }
         @Override
-        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getMass(Direction face) {
             return massPerSide;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face) {
             double resistance = baseFrictionPerSide;
             return resistance;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face) {
             if (isFullyConnected) return 0;
             if (shouldConnect) {
                 return current_force.get(face);
@@ -68,7 +68,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
         }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
 
@@ -193,18 +193,18 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             return 100000;
         }
         @Override
-        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getMass(Direction face) {
             return massPerSide;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face) {
             double resistance = baseFrictionPerSide;
             return resistance;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face) {
             if (isFullyConnected) return 0;
             if (shouldConnect) {
                 return current_force.get(face);
@@ -213,7 +213,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
         }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
 

@@ -1,6 +1,7 @@
 package ProjectSteam.Blocks.TJunction;
 
 import ARLib.network.INetworkTagReceiver;
+import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
 import ProjectSteam.api.AbstractMechanicalBlock;
 import ProjectSteam.api.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -16,6 +17,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.HashSet;
+import java.util.Map;
 
 import static ProjectSteam.Registry.ENTITY_TJUNCTION;
 
@@ -39,24 +43,24 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
         }
 
         @Override
-        public double getMass(Direction face, @Nullable BlockState myBlockState) {
+        public double getMass(Direction face) {
             return myMass;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face) {
             return myFriction;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face) {
             return 0;
         }
 
         @Override
-        public double getRotationMultiplierToInside(@Nullable Direction receivingFace, @Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@Nullable Direction receivingFace) {
             if (receivingFace == null) return 1;
-            if (myState == null) myState = getBlockState();
+            BlockState myState = getBlockState();
 
             if (myState.getBlock() instanceof BlockTJunction) {
                 Direction.Axis myAxis = myState.getValue(BlockTJunction.AXIS);
@@ -73,6 +77,38 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
                     return 1*inversionMultiplier;
             }
             return 1;
+        }
+
+        double getRotationOffsetForFace(Direction face){
+
+            if(face == null)return 0;
+
+            BlockState myState = getBlockState();
+            if(myState.getValue(BlockTJunction.FACING) == face) {
+                    return 14.7f;
+            }
+
+            return 0;
+        }
+
+        @Override
+        public void propagateResetRotation(double rotation,Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+            if (!workedPositions.contains(this)) {
+                workedPositions.add(this);
+                Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
+
+                if (receivingFace != null) {
+                    rotation +=getRotationOffsetForFace(receivingFace) * getRotationMultiplierToInside(receivingFace);
+                    rotation *= getRotationMultiplierToInside(receivingFace);
+                }
+
+                currentRotation = rotation;
+
+                for (Direction i : connections.keySet()) {
+                    double rotationToOutside = (-getRotationOffsetForFace(i)+currentRotation) * getRotationMultiplierToOutside(i);
+                    connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
+                }
+            }
         }
 
         @Override

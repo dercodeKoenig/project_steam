@@ -55,20 +55,20 @@ public abstract class AbstractMechanicalBlock {
 
     public abstract double getMaxStress();
 
-    public abstract double getMass(Direction face, @Nullable BlockState myBlockState);
+    public abstract double getMass(Direction face);
 
-    public abstract double getTorqueResistance(Direction face, @Nullable BlockState myBlockState);
+    public abstract double getTorqueResistance(Direction face);
 
-    public abstract double getTorqueProduced(Direction face, @Nullable BlockState myBlockState);
+    public abstract double getTorqueProduced(Direction face);
 
     /**
      * to check if the block south to me (z+1) is connected to me i will ask him connectsAtFace(NORTH)
      **/
 
-    public abstract double getRotationMultiplierToInside(@Nullable Direction receivingFace, @Nullable BlockState myState);
+    public abstract double getRotationMultiplierToInside(@Nullable Direction receivingFace);
 
-    public double getRotationMultiplierToOutside(@Nullable Direction outputFace, @Nullable BlockState myState) {
-        return 1 / getRotationMultiplierToInside(outputFace, myState);
+    public double getRotationMultiplierToOutside(@Nullable Direction outputFace) {
+        return 1 / getRotationMultiplierToInside(outputFace);
     }
 
 
@@ -107,7 +107,7 @@ public abstract class AbstractMechanicalBlock {
                 AbstractMechanicalBlock b = connectedParts.get(i);
                 b.getPropagatedData(d, i.getOpposite(), workedPositions);
 
-                double rotationMultiplierToInside = getRotationMultiplierToInside(i, myState);
+                double rotationMultiplierToInside = getRotationMultiplierToInside(i);
 
                 myInputFlowData.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
                 myInputFlowData.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
@@ -115,12 +115,12 @@ public abstract class AbstractMechanicalBlock {
                 myInputFlowData.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
             }
 
-            double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom, myState);
+            double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
-            myInputFlowData.combinedTransformedForce += getTorqueProduced(requestedFrom, myState);
-            myInputFlowData.combinedTransformedMass += getMass(requestedFrom, myState);
-            myInputFlowData.combinedTransformedMomentum += internalVelocity * getMass(requestedFrom, myState);
-            myInputFlowData.combinedTransformedResistanceForce += getTorqueResistance(requestedFrom, myState);
+            myInputFlowData.combinedTransformedForce += getTorqueProduced(requestedFrom);
+            myInputFlowData.combinedTransformedMass += getMass(requestedFrom);
+            myInputFlowData.combinedTransformedMomentum += internalVelocity * getMass(requestedFrom);
+            myInputFlowData.combinedTransformedResistanceForce += getTorqueResistance(requestedFrom);
 
 
             data.combinedTransformedForce += myInputFlowData.combinedTransformedForce / rotationMultiplierToOutside;
@@ -142,10 +142,10 @@ public abstract class AbstractMechanicalBlock {
         BlockEntity myTile = me.getBlockEntity();
         Level level = myTile.getLevel();
         BlockState myState = level.getBlockState(myTile.getBlockPos());
-        if (!ignorePreviousUpdates && !level.isClientSide && workedPositions.contains(this) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace, myState) - internalVelocity) > 0.00001) {
+        if (!ignorePreviousUpdates && !level.isClientSide && workedPositions.contains(this) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace) - internalVelocity) > 0.00001) {
             // break this block because something is wrong with the network
             System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos() + ", id: " + id);
-            System.out.println("current reveiced rotation from face " + receivingFace + ":" + velocity * getRotationMultiplierToInside(receivingFace, myState) + ". Last received velocity: " + internalVelocity);
+            System.out.println("current reveiced rotation from face " + receivingFace + ":" + velocity * getRotationMultiplierToInside(receivingFace) + ". Last received velocity: " + internalVelocity);
 
             level.destroyBlock(myTile.getBlockPos(), true);
             return;
@@ -156,19 +156,19 @@ public abstract class AbstractMechanicalBlock {
 
             double lastVelocity = internalVelocity;
 
-            double currentProducedForceBeforeVelocityChange = getTorqueProduced(receivingFace, myState);
-            double currentResistanceBeforeVelocityChange = getTorqueResistance(receivingFace, myState);
-            double currentMassBeforeVelocityChange = getMass(receivingFace, myState);
+            double currentProducedForceBeforeVelocityChange = getTorqueProduced(receivingFace);
+            double currentResistanceBeforeVelocityChange = getTorqueResistance(receivingFace);
+            double currentMassBeforeVelocityChange = getMass(receivingFace);
 
             internalVelocity = velocity;
             if (receivingFace != null) {
-                internalVelocity *= getRotationMultiplierToInside(receivingFace, myState);
+                internalVelocity *= getRotationMultiplierToInside(receivingFace);
             }
 
             // forward the transformed rotation to the other blocks
             for (Direction i : connectedParts.keySet()) {
                 AbstractMechanicalBlock b = connectedParts.get(i);
-                double outputVelocity = internalVelocity * getRotationMultiplierToOutside(i, myState);
+                double outputVelocity = internalVelocity * getRotationMultiplierToOutside(i);
                 b.propagateVelocityUpdate(outputVelocity, i.getOpposite(), workedPositions, ignorePreviousUpdates, resetStress);
             }
 
@@ -201,20 +201,28 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
-    public void aggregateConnectedParts(Set<AbstractMechanicalBlock> parts) {
-        if (!parts.contains(this)) {
-            parts.add(this);
-            for (Direction i : connectedParts.keySet()) {
-                AbstractMechanicalBlock b = connectedParts.get(i);
-                b.aggregateConnectedParts(parts);
+    public void propagateResetRotation(double rotation,Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+        if (!workedPositions.contains(this)) {
+            workedPositions.add(this);
+            Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
+
+            if (receivingFace != null)
+                rotation *= getRotationMultiplierToInside(receivingFace);
+
+            currentRotation = rotation;
+
+            for (Direction i : connections.keySet()) {
+                double rotationToOutside = currentRotation * getRotationMultiplierToOutside(i);
+                connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
             }
         }
     }
 
 
+
     public void mechanicalOnload() {
         if (me.getBlockEntity().getLevel().isClientSide()) {
-
+            propagateResetRotation(45,null,new HashSet<AbstractMechanicalBlock>());
         }
         if (!me.getBlockEntity().getLevel().isClientSide()) {
             MechanicalFlowData data = new MechanicalFlowData();
@@ -227,7 +235,6 @@ public abstract class AbstractMechanicalBlock {
             if (data.combinedTransformedMass != 0) {
                 target_velocity = data.combinedTransformedMomentum / data.combinedTransformedMass;
             }
-            System.out.println("target velocity:" + target_velocity);
             propagateVelocityUpdate(target_velocity, null, worked, true, false);
 
         }
@@ -247,6 +254,15 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
+    public void aggregateConnectedParts(Set<AbstractMechanicalBlock> parts) {
+        if (!parts.contains(this)) {
+            parts.add(this);
+            for (Direction i : connectedParts.keySet()) {
+                AbstractMechanicalBlock b = connectedParts.get(i);
+                b.aggregateConnectedParts(parts);
+            }
+        }
+    }
     public class forceDistributionNode {
         public AbstractMechanicalBlock daddy;
         public Set<AbstractMechanicalBlock> path = new LinkedHashSet<>();
@@ -284,7 +300,7 @@ public abstract class AbstractMechanicalBlock {
             myNode.path.add(this);
             double forceMultiplierForNode = 1 * myNode.lastOutputForceMultiplier;
             if (receivingFace != null) {
-                forceMultiplierForNode *= 1 / getRotationMultiplierToInside(receivingFace, null);
+                forceMultiplierForNode *= 1 / getRotationMultiplierToInside(receivingFace);
             }
             myNode.pathWithForceTransformations.add(new MechanicalBlockWithForceTransformation(this, forceMultiplierForNode));
 
@@ -317,7 +333,7 @@ public abstract class AbstractMechanicalBlock {
             if (Math.abs(currentEffectiveForce) > 0.01) {
                 for (Direction i : connectedParts.keySet()) {
                     forceDistributionNode newNode = myNode.copy();
-                    newNode.lastOutputForceMultiplier = 1 / getRotationMultiplierToOutside(i, null);
+                    newNode.lastOutputForceMultiplier = 1 / getRotationMultiplierToOutside(i);
                     nodeInfo info = new nodeInfo();
                     info.nextTarget = connectedParts.get(i);
                     info.node = newNode;

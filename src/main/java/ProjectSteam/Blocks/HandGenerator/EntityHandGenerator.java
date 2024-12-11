@@ -49,23 +49,23 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
             return maxStress;
         }
         @Override
-        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getMass(Direction face) {
             return myMass;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face) {
             return myFriction;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face) {
             double actualForce = myForce * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
             return actualForce;
         }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
 

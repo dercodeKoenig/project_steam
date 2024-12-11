@@ -44,24 +44,24 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
         }
 
         @Override
-        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getMass(Direction face) {
             return myMass;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face) {
             return myFriction;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face) {
             return 0;
         }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             if (receivingFace == null) return 1;
-            if (myState == null) myState = level.getBlockState(getBlockPos());
+            BlockState myState = getBlockState();
 
             if (myState.getBlock() instanceof BlockGearbox) {
                 Direction facing = myState.getValue(BlockGearbox.FACING);

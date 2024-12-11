@@ -19,6 +19,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.HashSet;
+import java.util.Map;
+
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
 
 public class EntityDistributorGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
@@ -39,24 +42,24 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
         }
 
         @Override
-        public double getMass(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getMass(Direction face) {
             return myMass;
         }
 
         @Override
-        public double getTorqueResistance(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueResistance(Direction face) {
             return myFriction;
         }
 
         @Override
-        public double getTorqueProduced(Direction face, @org.jetbrains.annotations.Nullable BlockState myBlockState) {
+        public double getTorqueProduced(Direction face) {
             return 0;
         }
 
         @Override
-        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace, @org.jetbrains.annotations.Nullable BlockState myState) {
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             if (receivingFace == null) return 1;
-            if (myState == null) myState = level.getBlockState(getBlockPos());
+            BlockState myState = getBlockState();
 
             if (myState.getBlock() instanceof BlockDistributorGearbox) {
                 Direction.Axis myNormalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
@@ -81,6 +84,46 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
                 }
             }
             return 1;
+        }
+        double getRotationOffsetForFace(Direction face){
+
+            if(face == null)return 0;
+
+            BlockState myState = getBlockState();
+            if(myState.getValue(BlockDistributorGearbox.ROTATION_AXIS) == Direction.Axis.Y) {
+                if(face.getAxis() == Direction.Axis.X)
+                    return 14.7f;
+            }
+            if(myState.getValue(BlockDistributorGearbox.ROTATION_AXIS) == Direction.Axis.X) {
+                if(face.getAxis() == Direction.Axis.Y)
+                    return 14.7f;
+            }
+            if(myState.getValue(BlockDistributorGearbox.ROTATION_AXIS) == Direction.Axis.Z) {
+                if(face.getAxis() == Direction.Axis.Y)
+                    return 14.7f;
+            }
+
+            return 0;
+        }
+
+@Override
+        public void propagateResetRotation(double rotation,Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+            if (!workedPositions.contains(this)) {
+                workedPositions.add(this);
+                Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
+
+                if (receivingFace != null) {
+                    rotation+=getRotationOffsetForFace(receivingFace)*getRotationMultiplierToInside(receivingFace);
+                    rotation *= getRotationMultiplierToInside(receivingFace);
+                }
+
+                currentRotation = rotation;
+
+                for (Direction i : connections.keySet()) {
+                    double rotationToOutside = (-getRotationOffsetForFace(i)+currentRotation) * getRotationMultiplierToOutside(i);;
+                    connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
+                }
+            }
         }
 
         @Override

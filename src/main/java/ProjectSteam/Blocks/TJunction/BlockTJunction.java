@@ -1,6 +1,7 @@
 package ProjectSteam.Blocks.TJunction;
 
 import ProjectSteam.Blocks.HandGenerator.EntityHandGenerator;
+import ProjectSteam.api.AbstractMechanicalBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -23,6 +24,7 @@ import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 import static ProjectSteam.Registry.ENTITY_TJUNCTION;
@@ -66,28 +68,34 @@ public class BlockTJunction extends Block implements EntityBlock {
     }
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(player.isShiftKeyDown() && player.getMainHandItem().isEmpty()){
-            Direction cf = state.getValue(FACING);
-            Direction nf = cf;
-            Direction.Axis ca = state.getValue(AXIS);
-            boolean isInverted = state.getValue(INVERTED);
+        if(player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
+            BlockEntity tile = level.getBlockEntity(pos);
+            if (tile instanceof EntityTJunction tj) {
+                Direction cf = state.getValue(FACING);
+                Direction nf = cf;
+                Direction.Axis ca = state.getValue(AXIS);
+                boolean isInverted = state.getValue(INVERTED);
 
-            if(ca == Direction.Axis.X){
-                if(cf == Direction.UP)nf = Direction.NORTH;
-                if(cf == Direction.NORTH)nf = Direction.DOWN;
-                if(cf == Direction.DOWN)nf = Direction.SOUTH;
-                if(cf == Direction.SOUTH && isInverted)nf = Direction.UP;
+                if (ca == Direction.Axis.X) {
+                    if (cf == Direction.UP) nf = Direction.NORTH;
+                    if (cf == Direction.NORTH) nf = Direction.DOWN;
+                    if (cf == Direction.DOWN) nf = Direction.SOUTH;
+                    if (cf == Direction.SOUTH) nf = Direction.UP;
+                }
+                if (ca == Direction.Axis.Z) {
+                    if (cf == Direction.UP) nf = Direction.EAST;
+                    if (cf == Direction.EAST) nf = Direction.DOWN;
+                    if (cf == Direction.DOWN) nf = Direction.WEST;
+                    if (cf == Direction.WEST) nf = Direction.UP;
+                }
+                //System.out.println(nf+":"+cf+":"+ca);
+                state = state.setValue(FACING, nf);
+                level.setBlock(pos, state, 3);
+
+               tj.myMechanicalBlock. propagateResetRotation(0, null, new HashSet<AbstractMechanicalBlock>());
+
+                return InteractionResult.SUCCESS_NO_ITEM_USED;
             }
-            if(ca == Direction.Axis.Z){
-                if(cf == Direction.UP)nf = Direction.EAST;
-                if(cf == Direction.EAST)nf = Direction.DOWN;
-                if(cf == Direction.DOWN)nf = Direction.WEST;
-                if(cf == Direction.WEST)nf = Direction.UP;
-            }
-            //System.out.println(nf+":"+cf+":"+ca);
-            state=state.setValue(FACING, nf);
-            level.setBlock(pos,state,3);
-            return InteractionResult.SUCCESS_NO_ITEM_USED;
         }
         return InteractionResult.PASS;
     }

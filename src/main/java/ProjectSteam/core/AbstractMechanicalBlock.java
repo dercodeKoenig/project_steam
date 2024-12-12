@@ -24,6 +24,9 @@ public abstract class AbstractMechanicalBlock {
     public IMechanicalBlockProvider me;
 
     // your can read from this and use it to update your machines
+    // I recommend you use internalVelocity, because the rotation will at some point "reset" to avoid numerical errors
+    // maybe make a counter "energy" and add abs(velocity) every tick until target progress is reached
+    // velocity is in degree per tick
     public double currentRotation;
     public double internalVelocity;
 
@@ -36,6 +39,7 @@ public abstract class AbstractMechanicalBlock {
     public double serverRotation;
     public double last_internalVelocity;
 
+    // only one part of the network will be master during a tick, all the others will skip update
     public boolean hasReceivedUpdate;
     public Map<Direction, AbstractMechanicalBlock> connectedParts = new HashMap<>();
 

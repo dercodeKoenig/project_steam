@@ -15,39 +15,37 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import javax.annotation.Nullable;
 import java.util.*;
 
+// look at the Example class and the EntityAxle to see how to use this
 public abstract class AbstractMechanicalBlock {
 
     public static int tps = 20;
 
-    public int id;
-
+    public int id; // in case you have multiple mechanical blocks in one blockentity (for example the clutch)
     public IMechanicalBlockProvider me;
 
+    // your can read from this and use it to update your machines
+    public double currentRotation;
+    public double internalVelocity;
+
+
+    // for server client sync stuff
     public Map<UUID, Integer> clientsTrackingThisAsMaster = new HashMap<>();
     public int cttam_timeout = 100;
     public int lastPing = 999999;
-
-
-    public Map<Direction, AbstractMechanicalBlock> connectedParts = new HashMap<>();
-
-    public boolean hasReceivedUpdate;
-
-    public double currentRotation;
-
-    public double internalVelocity;
+    public int timeWithImpossibleSmoothSync = 0; // only a safety thing that should never be used if all runs good
+    public double serverRotation;
     public double last_internalVelocity;
 
+    public boolean hasReceivedUpdate;
+    public Map<Direction, AbstractMechanicalBlock> connectedParts = new HashMap<>();
+
+// for stress calculations
     public double stress = 0;
     public double lastConsumedForce = 0;
     public double lastConsumedForce_filled1 = 0; // for positive and negative force.
     public double lastConsumedForce_filled2 = 0; // is probably not 100% physically correct but i need to keep it simple and can not do full simulation for performance reasons
     public double lastAddedForce = 0;
     public Deque<nodeInfo> forceDistributionDeq = new ArrayDeque<>();
-
-    public int timeWithImpossibleSmoothSync = 0; // only a safety thing that should never be used if all runs good
-
-    public double serverRotation;
-
     public boolean lastTickHadForceToDistribute = false;
 
 
@@ -64,24 +62,21 @@ public abstract class AbstractMechanicalBlock {
 
     public abstract double getTorqueProduced(Direction face);
 
-    /**
-     * to check if the block south to me (z+1) is connected to me i will ask him connectsAtFace(NORTH)
-     **/
-
+    // to convert received rotation into an internal representation of rotation/velocity
     public abstract double getRotationMultiplierToInside(@Nullable Direction receivingFace);
+
+
+     // Everything you write in here will be executed for all parts in the network in the tick BEFORE rotation / velocity changes!
+    public abstract void onPropagatedTickEnd();
 
     public double getRotationMultiplierToOutside(@Nullable Direction outputFace) {
         return 1 / getRotationMultiplierToInside(outputFace);
     }
 
 
-    public abstract void onPropagatedTickEnd();
-
-    /**
-     * called at the start of the tick update
-     */
+     // called at the start of the tick update
+    // notifies other parts in the network that the initial tick is done and calls the onPropagatedTickEnd() for every part in the network
     public void propagateTickBeforeUpdate() {
-
         if (!hasReceivedUpdate) {
             hasReceivedUpdate = true;
             connectedParts = me.getConnectedParts(me, this);
@@ -95,13 +90,12 @@ public abstract class AbstractMechanicalBlock {
     }
 
 
+// scans recursively through the network and collects mass, and forces and transforms them to match the current master
     public void getPropagatedData(MechanicalFlowData data, @org.jetbrains.annotations.Nullable Direction requestedFrom, HashSet<AbstractMechanicalBlock> workedPositions) {
 
         BlockEntity myTile = me.getBlockEntity();
         if (!workedPositions.contains(this)) {
             workedPositions.add(this);
-
-            BlockState myState = myTile.getLevel().getBlockState(myTile.getBlockPos());
 
             MechanicalFlowData myInputFlowData = new MechanicalFlowData();
             // update the connected parts
@@ -141,10 +135,10 @@ public abstract class AbstractMechanicalBlock {
         if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
     }
 
+// will recursively apply the velocity update to the entire network
     public void propagateVelocityUpdate(double velocity, @org.jetbrains.annotations.Nullable Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions, boolean ignorePreviousUpdates, boolean resetStress) {
         BlockEntity myTile = me.getBlockEntity();
         Level level = myTile.getLevel();
-        BlockState myState = level.getBlockState(myTile.getBlockPos());
         if (!ignorePreviousUpdates && !level.isClientSide && workedPositions.contains(this) && Math.abs(velocity * getRotationMultiplierToInside(receivingFace) - internalVelocity) > 0.00001) {
             // break this block because something is wrong with the network
             System.out.println("breaking the network because something is wrong: this tile received a different velocity update in the same tick:" + myTile.getBlockPos() + ", id: " + id);
@@ -204,6 +198,7 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
+    // used to recursively set the current rotation in the network
     public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
         if (!workedPositions.contains(this)) {
             workedPositions.add(this);
@@ -222,6 +217,8 @@ public abstract class AbstractMechanicalBlock {
     }
 
 
+    // will reset the rotation for all parts so that they render correctly connected to each other
+    // will also compute the momentum and calculate new velocity
     public void mechanicalOnload() {
 
         propagateResetRotation(0, null, new HashSet<>());
@@ -241,6 +238,8 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
+    // all the following is for stress calculations.
+    // I do not claim to fully understand it all, sometimes i just changed around some +/- until it worked
     public class nodeInfo {
         public Direction nextInputFace;
         public AbstractMechanicalBlock nextTarget;
@@ -352,6 +351,14 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
+    // end of stress calculation stuff
+
+
+    // this should be called in the tick method of the blockentity.
+    // I recommend to call it at the start directly so it will make sure that the entire network
+    // will perform its tick on the same state of the network.
+    // use the onPropagatedTickEnd() to make calculations before the velocity update if you need to
+    // but usually you can just make your calculations after the mechanicalTick
     public void mechanicalTick() {
 
         BlockEntity myTile = me.getBlockEntity();
@@ -386,9 +393,8 @@ public abstract class AbstractMechanicalBlock {
             }
         }
 
-        if (!hasReceivedUpdate) {
-            if (!myTile.getLevel().isClientSide()) {
-
+        if (!myTile.getLevel().isClientSide()) {
+            if (!hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
 
                 HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();

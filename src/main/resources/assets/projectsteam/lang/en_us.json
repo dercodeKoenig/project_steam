@@ -1,4 +1,28 @@
 {
   "block.projectsteam.axle": "Axle",
-  "item.projectsteam.axle": "Axle"
+  "item.projectsteam.axle": "Axle",
+
+  "block.projectsteam.gearbox": "Gearbox",
+  "item.projectsteam.gearbox": "Gearbox",
+
+  "block.projectsteam.tjunction": "3 sided Gearbox",
+  "item.projectsteam.tjunction": "3 sided Gearbox",
+
+  "block.projectsteam.distributor_gearbox": "4 sided Gearbox",
+  "item.projectsteam.distributor_gearbox": "4 sided Gearbox",
+
+  "block.projectsteam.motor": "Electric Motor",
+  "item.projectsteam.motor": "Electric Motor",
+
+  "block.projectsteam.clutch": "Clutch",
+  "item.projectsteam.clutch": "Clutch",
+
+  "block.projectsteam.hand_generator": "Hand powered generator",
+  "item.projectsteam.hand_generator": "Hand powered generator",
+
+  "block.projectsteam.casing": "Casing",
+  "item.projectsteam.casing": "Casing",
+
+  "item.projectsteam.wooden_hammer": "Wooden Hammer",
+  "item.projectsteam.wooden_gear": "Wooden Gear"
 }

@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " g",
+        " C ",
+        "aag"
+    ],
+    "key": {
+        "C": {
+            "item": "projectsteam:casing"
+        },
+        "g": {
+            "item": "projectsteam:wooden_gear"
+        },
+        "a": {
+            "item": "projectsteam:axle"
+        }
+    },
+    "result": {
+        "id": "projectsteam:tjunction",
+        "count": 1
+    }
+}

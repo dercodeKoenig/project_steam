@@ -1,21 +1,24 @@
 package ProjectSteam;
 
-import ProjectSteam.Blocks.Axle.BlockAxle;
-import ProjectSteam.Blocks.Axle.EntityAxle;
-import ProjectSteam.Blocks.BlockMotor.BlockMotor;
-import ProjectSteam.Blocks.BlockMotor.EntityMotor;
-import ProjectSteam.Blocks.Clutch.BlockClutch;
-import ProjectSteam.Blocks.Clutch.EntityClutch;
-import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
-import ProjectSteam.Blocks.DistributorGearbox.EntityDistributorGearbox;
-import ProjectSteam.Blocks.Gearbox.BlockGearbox;
-import ProjectSteam.Blocks.Gearbox.EntityGearbox;
-import ProjectSteam.Blocks.HandGenerator.BlockHandGenerator;
-import ProjectSteam.Blocks.HandGenerator.EntityHandGenerator;
-import ProjectSteam.Blocks.TJunction.EntityTJunction;
-import ProjectSteam.Blocks.TJunction.BlockTJunction;
+import ProjectSteam.Blocks.SimpleBlocks.BlockCasing;
+import ProjectSteam.Blocks.mechanics.Axle.BlockWoodenAxle;
+import ProjectSteam.Blocks.mechanics.Axle.EntityWoodenAxle;
+import ProjectSteam.Blocks.mechanics.BlockMotor.BlockMotor;
+import ProjectSteam.Blocks.mechanics.BlockMotor.EntityMotor;
+import ProjectSteam.Blocks.mechanics.Clutch.BlockClutch;
+import ProjectSteam.Blocks.mechanics.Clutch.EntityClutch;
+import ProjectSteam.Blocks.mechanics.DistributorGearbox.BlockDistributorGearbox;
+import ProjectSteam.Blocks.mechanics.DistributorGearbox.EntityDistributorGearbox;
+import ProjectSteam.Blocks.mechanics.Gearbox.BlockGearbox;
+import ProjectSteam.Blocks.mechanics.Gearbox.EntityGearbox;
+import ProjectSteam.Blocks.mechanics.HandGenerator.BlockHandGenerator;
+import ProjectSteam.Blocks.mechanics.HandGenerator.EntityHandGenerator;
+import ProjectSteam.Blocks.mechanics.TJunction.EntityTJunction;
+import ProjectSteam.Blocks.mechanics.TJunction.BlockTJunction;
+import ProjectSteam.Items.Hammer.WoodenHammer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -27,17 +30,19 @@ public class Registry {
     public static final net.neoforged.neoforge.registries.DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, "projectsteam");
     public static final net.neoforged.neoforge.registries.DeferredRegister<Item> ITEMS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.ITEM, "projectsteam");
 
-    public static void registerBlockItem(String name, DeferredHolder<Block,Block> b){
-        ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
+    public static final net.neoforged.neoforge.registries.DeferredRegister<CreativeModeTab> CREATIVE_TAB = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, "projectsteam");
+
+    public static DeferredHolder<Item, BlockItem> registerBlockItem(String name, DeferredHolder<Block,Block> b){
+        return ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
     }
 
     public static final DeferredHolder<Block, Block> AXLE = BLOCKS.register(
             "axle",
-            () -> new BlockAxle()
+            () -> new BlockWoodenAxle()
     );
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityAxle>> ENTITY_AXLE = BLOCK_ENTITIES.register(
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityWoodenAxle>> ENTITY_AXLE = BLOCK_ENTITIES.register(
             "entity_axle",
-            () -> BlockEntityType.Builder.of(EntityAxle::new, AXLE.get()).build(null)
+            () -> BlockEntityType.Builder.of(EntityWoodenAxle::new, AXLE.get()).build(null)
     );
 
     public static final DeferredHolder<Block, Block> DISTRIBUTOR_GEARBOX = BLOCKS.register(
@@ -95,12 +100,27 @@ public class Registry {
     );
 
 
+    public static final DeferredHolder<Block, Block> CASING = BLOCKS.register(
+            "casing",
+            () -> new BlockCasing()
+    );
 
 
+    public static final DeferredHolder<Item, Item> ITEM_WOODEN_HAMMER = ITEMS.register(
+            "wooden_hammer",
+            () ->new WoodenHammer()
+    );
+    public static final DeferredHolder<Item, Item> ITEM_WOODEN_GEAR = ITEMS.register(
+            "wooden_gear",
+            () ->new Item(new Item.Properties())
+    );
 
 
+    public static final DeferredHolder<CreativeModeTab, CreativeModeTab> PROJECTSTEAM_CREATIVETAB = CREATIVE_TAB.register(
+            "age_of_steam",()->new CustomCreativeTab()
+    );
 
-    public static void register(IEventBus modBus) {
+    static {
         registerBlockItem("axle", AXLE);
         registerBlockItem("distributor_gearbox", DISTRIBUTOR_GEARBOX);
         registerBlockItem("gearbox", GEARBOX);
@@ -109,6 +129,12 @@ public class Registry {
         registerBlockItem("hand_generator", HAND_GENERATOR);
         registerBlockItem("tjunction", TJUNCTION);
 
+        registerBlockItem("casing", CASING);
+    }
+
+    public static void register(IEventBus modBus) {
+
+        CREATIVE_TAB.register(modBus);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);

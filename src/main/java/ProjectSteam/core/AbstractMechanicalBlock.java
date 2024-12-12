@@ -15,7 +15,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import javax.annotation.Nullable;
 import java.util.*;
 
-// look at the Example class and the EntityAxle to see how to use this
+// look at the Example class and the EntityWoodenAxle to see how to use this
 public abstract class AbstractMechanicalBlock {
 
     public static int tps = 20;

@@ -1,11 +1,11 @@
 package ProjectSteam;
 
-import ProjectSteam.Blocks.Axle.RenderAxle;
-import ProjectSteam.Blocks.BlockMotor.RenderMotor;
-import ProjectSteam.Blocks.DistributorGearbox.RenderDistributorGearbox;
-import ProjectSteam.Blocks.Gearbox.RenderGearbox;
-import ProjectSteam.Blocks.HandGenerator.RenderHandGenerator;
-import ProjectSteam.Blocks.TJunction.RenderTJunction;
+import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxle;
+import ProjectSteam.Blocks.mechanics.BlockMotor.RenderMotor;
+import ProjectSteam.Blocks.mechanics.DistributorGearbox.RenderDistributorGearbox;
+import ProjectSteam.Blocks.mechanics.Gearbox.RenderGearbox;
+import ProjectSteam.Blocks.mechanics.HandGenerator.RenderHandGenerator;
+import ProjectSteam.Blocks.mechanics.TJunction.RenderTJunction;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
@@ -27,6 +27,7 @@ import java.io.IOException;
 
 import static ProjectSteam.Registry.*;
 import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 
 @Mod("projectsteam")
@@ -55,7 +56,7 @@ public class ProjectSteam {
 
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderAxle::new);
+        event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderWoodenAxle::new);
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
@@ -69,7 +70,7 @@ public class ProjectSteam {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTabKey() == CreativeModeTabs.FUNCTIONAL_BLOCKS) {
+        if (e.getTabKey() == PROJECTSTEAM_CREATIVETAB.getKey()) {
             e.accept(AXLE.get());
             e.accept(DISTRIBUTOR_GEARBOX.get());
             e.accept(GEARBOX.get());
@@ -77,6 +78,10 @@ public class ProjectSteam {
             e.accept(CLUTCH.get());
             e.accept(HAND_GENERATOR.get());
             e.accept(TJUNCTION.get());
+
+            e.accept(CASING.get());
+            e.accept(ITEM_WOODEN_HAMMER.get());
+            e.accept(ITEM_WOODEN_GEAR.get());
         }
     }
 

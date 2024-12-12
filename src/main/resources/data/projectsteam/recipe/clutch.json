@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        "SAA",
+        " C ",
+        "AAS"
+    ],
+    "key": {
+        "C": {
+            "item": "projectsteam:casing"
+        },
+        "S": {
+            "item": "minecraft:stone"
+        },
+        "A": {
+            "item": "projectsteam:axle"
+        }
+    },
+    "result": {
+        "id": "projectsteam:clutch",
+        "count": 1
+    }
+}

@@ -13,6 +13,9 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -23,6 +26,7 @@ import org.joml.Vector3f;
 import java.util.*;
 
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
+import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityClutch extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
@@ -499,9 +503,31 @@ if(level.isClientSide)
                     double z = level.random.nextDouble() - 0.5;
                     level.addParticle(new DustParticleOptions(new Vector3f(0.5f, 0.5f, 0.5f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
                 }
+
             }else timeSinceConnectStart = 0;
         }
-    }
+
+
+        if(level.random.nextFloat() < 0.005*(Math.abs(myMechanicalBlockA.internalVelocity)+Math.abs(myMechanicalBlockB.internalVelocity))) {
+            int randomIndex = level.random.nextInt(WOODEN_SOUNDS.length);
+            SoundEvent randomEvent = WOODEN_SOUNDS[randomIndex];
+            level.playSound(null, getBlockPos(), randomEvent,
+                    SoundSource.BLOCKS, 0.002f*(float)((Math.abs(myMechanicalBlockA.internalVelocity)+Math.abs(myMechanicalBlockB.internalVelocity))), 1.0f);  //
+        }
+
+        if(level.hasNeighborSignal(getBlockPos()) && Math.abs(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity) > 0.5) {
+            for (int i = 0; i < 2; i++) {
+                SoundEvent[] clutch_sounds = {
+                        SoundEvents.GRAVEL_BREAK,
+                        SoundEvents.STONE_HIT
+                };
+                int randomIndex = level.random.nextInt(clutch_sounds.length);
+                SoundEvent randomEvent = clutch_sounds[randomIndex];
+                level.playSound(null, getBlockPos(), randomEvent,
+                        SoundSource.BLOCKS, 0.005f * (float) ((Math.abs(myMechanicalBlockA.internalVelocity - myMechanicalBlockB.internalVelocity))), 0.1f * (float) (Math.abs(myMechanicalBlockA.internalVelocity - myMechanicalBlockB.internalVelocity)));  //
+            }
+        }
+        }
 
     @Override
     public Map<Direction, AbstractMechanicalBlock> getConnectedParts(IMechanicalBlockProvider mechanicalBlockProvider, AbstractMechanicalBlock MechanicalBlock) {

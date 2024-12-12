@@ -10,7 +10,7 @@
       "tag": "minecraft:planks"
     },
     "S": {
-      "tag": "item:c:stones"
+      "tag": "c:stones"
     }
   },
   "result": {

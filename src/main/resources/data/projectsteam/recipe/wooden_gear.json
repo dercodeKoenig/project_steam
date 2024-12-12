@@ -7,7 +7,7 @@
   ],
   "key": {
     "S": {
-      "tag": "item:c:rods/wooden"
+      "tag": "c:rods/wooden"
     },
     "P": {
       "tag": "minecraft:planks"

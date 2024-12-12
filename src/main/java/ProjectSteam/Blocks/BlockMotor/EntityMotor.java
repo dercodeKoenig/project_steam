@@ -23,9 +23,11 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     VertexBuffer vertexBuffer;
     MeshData mesh;
 
-    public double myForce = 0;
-    public double myFriction = 50;
+
     public double myMass = 10;
+public boolean isRedstonePowered=false;
+
+    public static double MOTOR_BASE_FRICTION = 5;
 
     public static double MOTOR_FORCE = 500;
     public static double MAX_SPEED = 20;
@@ -54,14 +56,24 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return myFriction;
+            double resistance = MOTOR_BASE_FRICTION;
+if(!isRedstonePowered){
+    double additionalFriction = MOTOR_FORCE * Math.abs(internalVelocity) / MAX_SPEED;
+    resistance+=additionalFriction;
+}
+            return resistance;
         }
 
         @Override
         public double getTorqueProduced(Direction face) {
-            double actualForce = myForce * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
-            double facingMultiplier = getBlockState().getValue(BlockMotor.FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1:-1;
-            return actualForce*facingMultiplier;
+            if(isRedstonePowered) {
+                double actualForce = MOTOR_FORCE * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
+                double facingMultiplier = getBlockState().getValue(BlockMotor.FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1;
+                return actualForce * facingMultiplier;
+            }
+            else{
+                return 0;
+            }
         }
 
         @Override
@@ -97,9 +109,9 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         myMechanicalBlock.mechanicalTick();
 
         if (level.hasNeighborSignal(getBlockPos())) {
-            myForce = MOTOR_FORCE;
+            isRedstonePowered = true;
         } else {
-            myForce = 0;
+            isRedstonePowered = false;
         }
     }
 

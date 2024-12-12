@@ -1,0 +1,96 @@
+{
+  "loader": "neoforge:obj",
+  "model": "projectsteam:models/item/handcranked_generator.obj",
+  "mtl_override": "projectsteam:models/item/handcranked_generator.mtl",
+  "automatic_culling": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "display": {
+    "gui": {
+      "rotation": [
+        20,
+        110,
+        0
+      ],
+      "translation": [
+        3,
+        8,
+        0
+      ],
+      "scale": [
+        0.7,
+        0.7,
+        0.7
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        10,
+        -90,
+        0
+      ],
+      "translation": [
+        0,
+        2,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        10,
+        90,
+        0
+      ],
+      "translation": [
+        8,
+        2,
+        0
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        90,
+        90,
+        0
+      ],
+      "translation": [
+        5,
+        0,
+        6
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    },
+
+    "thirdperson_righthand": {
+      "rotation": [
+        90,
+        -90,
+        0
+      ],
+      "translation": [
+        -5,
+        0,
+        6
+      ],
+      "scale": [
+        0.5,
+        0.5,
+        0.5
+      ]
+    }
+  }
+}

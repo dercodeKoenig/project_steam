@@ -24,8 +24,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
     MeshData mesh;
     VertexBuffer vertexBuffer2;
     MeshData mesh2;
-    VertexBuffer vertexBuffer3;
-    MeshData mesh3;
     public double myForce = 0;
 
     public static double MOTOR_FORCE = 25;
@@ -36,7 +34,7 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
     int ticksRemainingForForce = 0;
 
     double myFriction = 2;
-    double myMass = 1;
+    double myMass = 5;
     double maxStress = 10000;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
@@ -88,7 +86,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer.close();
                 vertexBuffer2.close();
-                vertexBuffer3.close();
             });
 
         }
@@ -134,7 +131,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
                 vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer3 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
 

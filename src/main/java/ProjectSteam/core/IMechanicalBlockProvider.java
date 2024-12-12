@@ -1,4 +1,4 @@
-package ProjectSteam.api;
+package ProjectSteam.core;
 
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.entity.BlockEntity;

@@ -1,7 +1,6 @@
 package ProjectSteam.Blocks.Axle;
 
-import ProjectSteam.api.AbstractMechanicalBlock;
-import ProjectSteam.api.IMechanicalBlockProvider;
+import ProjectSteam.core.IMechanicalBlockProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;

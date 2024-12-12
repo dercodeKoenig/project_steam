@@ -1,9 +1,8 @@
 package ProjectSteam.Blocks.TJunction;
 
 import ARLib.network.INetworkTagReceiver;
-import ProjectSteam.Blocks.DistributorGearbox.BlockDistributorGearbox;
-import ProjectSteam.api.AbstractMechanicalBlock;
-import ProjectSteam.api.IMechanicalBlockProvider;
+import ProjectSteam.core.AbstractMechanicalBlock;
+import ProjectSteam.core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;

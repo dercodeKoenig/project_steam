@@ -1,10 +1,8 @@
 package ProjectSteam.Blocks.DistributorGearbox;
 
 import ARLib.network.INetworkTagReceiver;
-import ProjectSteam.Blocks.Gearbox.BlockGearbox;
-import ProjectSteam.api.AbstractMechanicalBlock;
-import ProjectSteam.api.IMechanicalBlockProvider;
-import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
+import ProjectSteam.core.AbstractMechanicalBlock;
+import ProjectSteam.core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -17,7 +15,6 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Map;

@@ -1,10 +1,8 @@
 package ProjectSteam.Blocks.BlockMotor;
 
 import ARLib.network.INetworkTagReceiver;
-import ProjectSteam.Blocks.Axle.BlockAxle;
-import ProjectSteam.api.AbstractMechanicalBlock;
-import ProjectSteam.api.IMechanicalBlockProvider;
-import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
+import ProjectSteam.core.AbstractMechanicalBlock;
+import ProjectSteam.core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -17,18 +15,14 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
-import org.jetbrains.annotations.Nullable;
 
-import static ProjectSteam.Blocks.Axle.BlockAxle.ROTATION_AXIS;
-import static ProjectSteam.Registry.ENTITY_AXLE;
 import static ProjectSteam.Registry.ENTITY_MOTOR;
 
 public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
-    VertexBuffer vertexBuffer2;
-    MeshData mesh2;
+
     public double myForce = 0;
     public double myFriction = 50;
     public double myMass = 10;
@@ -44,7 +38,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
@@ -67,7 +60,8 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         @Override
         public double getTorqueProduced(Direction face) {
             double actualForce = myForce * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
-            return actualForce;
+            double facingMultiplier = getBlockState().getValue(BlockMotor.FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1:-1;
+            return actualForce*facingMultiplier;
         }
 
         @Override
@@ -93,7 +87,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer.close();
-                vertexBuffer2.close();
             });
 
         }

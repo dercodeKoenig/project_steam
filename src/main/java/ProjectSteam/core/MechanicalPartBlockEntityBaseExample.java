@@ -1,4 +1,4 @@
-package ProjectSteam.api;
+package ProjectSteam.core;
 
 import ARLib.network.INetworkTagReceiver;
 import net.minecraft.core.BlockPos;
@@ -8,8 +8,6 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-
-import javax.annotation.Nullable;
 
 public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
     public MechanicalPartBlockEntityBaseExample(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {

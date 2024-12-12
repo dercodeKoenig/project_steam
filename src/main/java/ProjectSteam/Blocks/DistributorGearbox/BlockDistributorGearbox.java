@@ -1,6 +1,5 @@
 package ProjectSteam.Blocks.DistributorGearbox;
 
-import ProjectSteam.api.IMechanicalBlockProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;

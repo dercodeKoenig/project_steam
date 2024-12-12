@@ -1,7 +1,6 @@
 package ProjectSteam.Blocks.TJunction;
 
-import ProjectSteam.Blocks.HandGenerator.EntityHandGenerator;
-import ProjectSteam.api.AbstractMechanicalBlock;
+import ProjectSteam.core.AbstractMechanicalBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;

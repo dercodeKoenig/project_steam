@@ -2,14 +2,9 @@ package ProjectSteam.Blocks.Clutch;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.api.AbstractMechanicalBlock;
-import ProjectSteam.api.IMechanicalBlockProvider;
-import ProjectSteam.api.MechanicalFlowData;
-import ProjectSteam.api.MechanicalPartBlockEntityBaseExample;
-import com.ibm.icu.impl.Pair;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
+import ProjectSteam.core.AbstractMechanicalBlock;
+import ProjectSteam.core.IMechanicalBlockProvider;
+import ProjectSteam.core.MechanicalFlowData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,14 +12,10 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 

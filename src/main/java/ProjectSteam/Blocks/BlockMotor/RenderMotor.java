@@ -44,21 +44,11 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
         tile.vertexBuffer.bind();
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("stator").faces) {
+        for (Face i : model.groupObjects.get("rotor").faces) {
             i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
         }
         tile.mesh = b.build();
         tile.vertexBuffer.upload(tile.mesh);
-        byteBuffer.close();
-
-        tile.vertexBuffer2.bind();
-        byteBuffer = new ByteBufferBuilder(1024);
-        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("rotor").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        tile.mesh2 = b.build();
-        tile.vertexBuffer2.upload(tile.mesh2);
         byteBuffer.close();
     }
 
@@ -102,20 +92,13 @@ public class RenderMotor implements BlockEntityRenderer<EntityMotor> {
                 //rotorRotationMultiplier = -1;
             }
 
+            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1.0f, (float) 0, 0, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+tile.myMechanicalBlock.internalVelocity*partialTick))));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m1).invert().transpose());
 
             shader.apply();
             tile.vertexBuffer.bind();
             tile.vertexBuffer.draw();
-
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1.0f, (float) 0, 0, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+tile.myMechanicalBlock.internalVelocity*partialTick))));
-            shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
-            shader.getUniform("NormalMatrix").set(new Matrix3f(m1).invert().transpose());
-
-            shader.apply();
-            tile.vertexBuffer2.bind();
-            tile.vertexBuffer2.draw();
 
             shader.clear();
             VertexBuffer.unbind();

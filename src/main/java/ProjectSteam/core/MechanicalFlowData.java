@@ -1,11 +1,9 @@
-package ProjectSteam.api;
+package ProjectSteam.core;
 
 public class MechanicalFlowData {
 
 
     public double combinedTransformedMass;
-
-    //List<Pair<Double, Double>> momentums = new ArrayList<>();
 
     // I will use clockwise rotation of the axis as positive
     // and counter-clockwise rotation as negative.

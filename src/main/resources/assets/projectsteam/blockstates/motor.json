@@ -1,19 +1,19 @@
 {
     "variants": {
         "facing=south": {
-            "model": "minecraft:block/air",
-            "y": 0
+            "model": "projectsteam:block/motor",
+            "y": 270
         },
         "facing=north": {
-            "model": "minecraft:block/air",
-            "y": 0
+            "model": "projectsteam:block/motor",
+            "y": 90
         },
         "facing=east": {
-            "model": "minecraft:block/air",
-            "y": 0
+            "model": "projectsteam:block/motor",
+            "y": 180
         },
         "facing=west": {
-            "model": "minecraft:block/air",
+            "model": "projectsteam:block/motor",
             "y": 0
         }
     }

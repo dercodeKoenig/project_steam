@@ -1,20 +1,20 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    "SPS",
-    "PPP",
-    "SPS"
+    " I ",
+    "IAI",
+    " I "
   ],
   "key": {
-    "P": {
+    "I": {
       "tag": "minecraft:planks"
     },
-    "S": {
-      "tag": "item:c:stones"
+    "A": {
+      "item": "projectsteam:axle"
     }
   },
   "result": {
-    "id": "projectsteam:casing",
+    "id": "projectsteam:axle_flywheel",
     "count": 1
   }
 }

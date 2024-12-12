@@ -29,7 +29,7 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
     MeshData mesh2;
     public double myForce = 0;
 
-    public static double MOTOR_FORCE = 25;
+    public static double MAX_FORCE = 100;
     public static double MAX_SPEED = 20;
 
     int lastLight = 0;
@@ -160,10 +160,10 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
         if (ticksRemainingForForce > 0) {
             ticksRemainingForForce--;
-            myForce = MOTOR_FORCE;
+            myForce = MAX_FORCE;
         } else if (ticksRemainingForForce < 0) {
             ticksRemainingForForce++;
-            myForce = -MOTOR_FORCE;
+            myForce = -MAX_FORCE;
         } else {
             myForce = 0;
         }

@@ -1,0 +1,26 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " g ",
+    "fag",
+    "ppp"
+  ],
+  "key": {
+    "f": {
+      "item": "projectsteam:axle_flywheel"
+    },
+    "g": {
+      "item": "projectsteam:wooden_gear"
+    },
+    "a": {
+      "item": "projectsteam:axle"
+    },
+    "p": {
+      "tag": "minecraft:planks"
+    }
+  },
+  "result": {
+    "id": "projectsteam:hand_generator",
+    "count": 1
+  }
+}

@@ -10,7 +10,7 @@
             "item": "projectsteam:casing"
         },
         "S": {
-            "item": "minecraft:stone"
+            "item": "item:c:stones"
         },
         "A": {
             "item": "projectsteam:axle"

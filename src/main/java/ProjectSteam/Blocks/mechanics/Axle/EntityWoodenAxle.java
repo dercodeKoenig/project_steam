@@ -13,12 +13,14 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 
 import static ProjectSteam.Blocks.mechanics.Axle.BlockWoodenAxle.ROTATION_AXIS;
 import static ProjectSteam.Registry.ENTITY_AXLE;
+import static ProjectSteam.Registry.ENTITY_AXLE_FLYWHEEL;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityWoodenAxle extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
@@ -62,14 +64,17 @@ public class EntityWoodenAxle extends BlockEntity implements IMechanicalBlockPro
         }
     };
 
-    public EntityWoodenAxle(BlockPos pos, BlockState blockState) {
-        super(ENTITY_AXLE.get(), pos, blockState);
+    public EntityWoodenAxle(BlockEntityType t, BlockPos pos, BlockState blockState) {
+        super(t, pos, blockState);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
                 vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
+    }
+    public EntityWoodenAxle(BlockPos pos, BlockState blockState) {
+        this(ENTITY_AXLE.get(), pos, blockState);
     }
 
     @Override

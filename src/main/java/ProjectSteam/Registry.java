@@ -2,7 +2,9 @@ package ProjectSteam;
 
 import ProjectSteam.Blocks.SimpleBlocks.BlockCasing;
 import ProjectSteam.Blocks.mechanics.Axle.BlockWoodenAxle;
+import ProjectSteam.Blocks.mechanics.Axle.BlockWoodenAxleFlyWheel;
 import ProjectSteam.Blocks.mechanics.Axle.EntityWoodenAxle;
+import ProjectSteam.Blocks.mechanics.Axle.EntityWoodenAxleFlyWheel;
 import ProjectSteam.Blocks.mechanics.BlockMotor.BlockMotor;
 import ProjectSteam.Blocks.mechanics.BlockMotor.EntityMotor;
 import ProjectSteam.Blocks.mechanics.Clutch.BlockClutch;
@@ -43,6 +45,15 @@ public class Registry {
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityWoodenAxle>> ENTITY_AXLE = BLOCK_ENTITIES.register(
             "entity_axle",
             () -> BlockEntityType.Builder.of(EntityWoodenAxle::new, AXLE.get()).build(null)
+    );
+
+    public static final DeferredHolder<Block, Block> AXLE_FLYWHEEL = BLOCKS.register(
+            "axle_flywheel",
+            () -> new BlockWoodenAxleFlyWheel()
+    );
+    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityWoodenAxleFlyWheel>> ENTITY_AXLE_FLYWHEEL = BLOCK_ENTITIES.register(
+            "entity_axle_flywheel",
+            () -> BlockEntityType.Builder.of(EntityWoodenAxleFlyWheel::new, AXLE_FLYWHEEL.get()).build(null)
     );
 
     public static final DeferredHolder<Block, Block> DISTRIBUTOR_GEARBOX = BLOCKS.register(
@@ -122,6 +133,7 @@ public class Registry {
 
     static {
         registerBlockItem("axle", AXLE);
+        registerBlockItem("axle_flywheel", AXLE_FLYWHEEL);
         registerBlockItem("distributor_gearbox", DISTRIBUTOR_GEARBOX);
         registerBlockItem("gearbox", GEARBOX);
         registerBlockItem("motor", MOTOR);

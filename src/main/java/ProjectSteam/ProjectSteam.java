@@ -1,6 +1,7 @@
 package ProjectSteam;
 
 import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxle;
+import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxleFlyWheel;
 import ProjectSteam.Blocks.mechanics.BlockMotor.RenderMotor;
 import ProjectSteam.Blocks.mechanics.DistributorGearbox.RenderDistributorGearbox;
 import ProjectSteam.Blocks.mechanics.Gearbox.RenderGearbox;
@@ -57,6 +58,7 @@ public class ProjectSteam {
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderWoodenAxle::new);
+        event.registerBlockEntityRenderer(ENTITY_AXLE_FLYWHEEL.get(), RenderWoodenAxleFlyWheel::new);
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
@@ -72,6 +74,7 @@ public class ProjectSteam {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTabKey() == PROJECTSTEAM_CREATIVETAB.getKey()) {
             e.accept(AXLE.get());
+            e.accept(AXLE_FLYWHEEL.get());
             e.accept(DISTRIBUTOR_GEARBOX.get());
             e.accept(GEARBOX.get());
             e.accept(MOTOR.get());

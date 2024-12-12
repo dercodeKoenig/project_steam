@@ -23,21 +23,19 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderWoodenAxle implements BlockEntityRenderer<EntityWoodenAxle> {
 
-    static WavefrontObject model;
+    public WavefrontObject model;
     public ResourceLocation tex;
 
-    static {
-        try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_new.obj"));
-        } catch (ModelFormatException ex) {
-            throw new RuntimeException(ex);
-        }
-    }
 
 
     public RenderWoodenAxle(BlockEntityRendererProvider.Context c) {
         super();
          tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
+        try {
+            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_new.obj"));
+        } catch (ModelFormatException ex) {
+            throw new RuntimeException(ex);
+        }
     }
 
 

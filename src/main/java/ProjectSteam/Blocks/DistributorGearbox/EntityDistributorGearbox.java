@@ -10,6 +10,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -20,6 +23,7 @@ import java.util.HashSet;
 import java.util.Map;
 
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
+import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityDistributorGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
@@ -143,6 +147,12 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+        if(level.random.nextFloat() < 0.005*Math.abs(myMechanicalBlock.internalVelocity)) {
+            int randomIndex = level.random.nextInt(WOODEN_SOUNDS.length);
+            SoundEvent randomEvent = WOODEN_SOUNDS[randomIndex];
+            level.playSound(null, getBlockPos(), randomEvent,
+                    SoundSource.BLOCKS, 0.002f*(float)Math.abs(myMechanicalBlock.internalVelocity), 1.0f);  //
+        }
     }
 
 

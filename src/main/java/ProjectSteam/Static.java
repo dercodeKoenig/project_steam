@@ -3,6 +3,8 @@ package ProjectSteam;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import com.mojang.blaze3d.vertex.VertexFormatElement;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
 
 public class Static {
 
@@ -23,4 +25,14 @@ public class Static {
     public static ShaderInstance getEntitySolidDynamicNormalShader(){return ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;}
 
 
+    public static SoundEvent[] WOODEN_SOUNDS = {
+            SoundEvents.WOODEN_BUTTON_CLICK_ON,
+            SoundEvents.WOODEN_BUTTON_CLICK_OFF,
+            SoundEvents.WOOD_HIT,
+            SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_ON,
+            SoundEvents.WOODEN_PRESSURE_PLATE_CLICK_OFF,
+            SoundEvents.HORSE_STEP_WOOD,
+            SoundEvents.NOTE_BLOCK_HAT.value(),
+            SoundEvents.DISPENSER_LAUNCH
+    };
 }

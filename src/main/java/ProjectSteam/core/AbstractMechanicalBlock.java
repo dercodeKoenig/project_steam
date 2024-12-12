@@ -374,15 +374,14 @@ public abstract class AbstractMechanicalBlock {
                     // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
                     // in this case, ignore and wait until the client had reset itself and continue with sync
                     propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
+                    timeWithImpossibleSmoothSync = 0;
                 } else {
                     timeWithImpossibleSmoothSync++;
                     if (timeWithImpossibleSmoothSync > 200) {
                         propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
                     }
                 }
-                serverRotation += internalVelocity;
 
-                lastPing++;
                 if (lastPing > cttam_timeout / 2) {
                     lastPing = 0;
                     CompoundTag tag = new CompoundTag();
@@ -457,6 +456,11 @@ public abstract class AbstractMechanicalBlock {
         }
         hasReceivedUpdate = false;
         applyRotations();
+        if(me.getBlockEntity(). getLevel().isClientSide) {
+            serverRotation += internalVelocity;
+            if( lastPing < cttam_timeout)
+                lastPing++;
+        }
 
         if (!myTile.getLevel().isClientSide()) {
             for (UUID i : clientsTrackingThisAsMaster.keySet()) {

@@ -9,6 +9,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
@@ -16,6 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -74,21 +77,21 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                    propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
+                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, false);
 
                     double rotationDiff = serverRotation - currentRotation;
                     if (Math.abs(rotationDiff) < 3600) {
                         // to avoid precision errors, the rotation will not always increase.
                         // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
                         // in this case, ignore and wait until the client had reset itself and continue with sync
-                        propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
+                        propagateResetRotation(currentRotation + rotationDiff * 0.01, getBlockState().getValue(BlockClutch.FACING), new HashSet<AbstractMechanicalBlock>());
+                        timeWithImpossibleSmoothSync = 0;
                     } else {
                         timeWithImpossibleSmoothSync++;
                         if (timeWithImpossibleSmoothSync > 200) {
-                            propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
+                            propagateResetRotation(serverRotation, getBlockState().getValue(BlockClutch.FACING), new HashSet<AbstractMechanicalBlock>());
                         }
                     }
-                    serverRotation += internalVelocity;
 
                     lastPing++;
                     if (lastPing > cttam_timeout / 2) {
@@ -166,6 +169,8 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             }
             hasReceivedUpdate = false;
             applyRotations();
+if(level.isClientSide)
+            serverRotation += internalVelocity;
 
             if (!myTile.getLevel().isClientSide()) {
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
@@ -190,6 +195,25 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
                     System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
                     me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
+                }
+            }
+        }
+
+        public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+            // keep the current rotationdiff
+            double d = myMechanicalBlockA.currentRotation - myMechanicalBlockB.currentRotation;
+
+            if (!workedPositions.contains(this)) {
+                workedPositions.add(this);
+                Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
+
+                currentRotation = rotation;
+
+                for (Direction i : connections.keySet()) {
+                    double rotationToOutside = currentRotation;
+                    if(i == getBlockState().getValue(BlockClutch.FACING).getOpposite())
+                        rotationToOutside -= d;
+                    connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }
         }
@@ -237,21 +261,21 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                    propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
+                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, false);
 
                     double rotationDiff = serverRotation - currentRotation;
                     if (Math.abs(rotationDiff) < 3600) {
                         // to avoid precision errors, the rotation will not always increase.
                         // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
                         // in this case, ignore and wait until the client had reset itself and continue with sync
-                        propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
+                        propagateResetRotation(currentRotation + rotationDiff * 0.01, getBlockState().getValue(BlockClutch.FACING).getOpposite(), new HashSet<AbstractMechanicalBlock>());
+                        timeWithImpossibleSmoothSync = 0;
                     } else {
                         timeWithImpossibleSmoothSync++;
                         if (timeWithImpossibleSmoothSync > 200) {
-                            propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
+                            propagateResetRotation(serverRotation, getBlockState().getValue(BlockClutch.FACING).getOpposite(), new HashSet<AbstractMechanicalBlock>());
                         }
                     }
-                    serverRotation += internalVelocity;
 
                     lastPing++;
                     if (lastPing > cttam_timeout / 2) {
@@ -330,6 +354,8 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             }
             hasReceivedUpdate = false;
             applyRotations();
+            if(level.isClientSide)
+                serverRotation += internalVelocity;
 
             if (!myTile.getLevel().isClientSide()) {
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
@@ -354,6 +380,24 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
                     System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
                     me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
+                }
+            }
+        }
+        public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+            // keep the current rotationdiff
+            double d = myMechanicalBlockB.currentRotation - myMechanicalBlockA.currentRotation;
+
+            if (!workedPositions.contains(this)) {
+                workedPositions.add(this);
+                Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
+
+                currentRotation = rotation;
+
+                for (Direction i : connections.keySet()) {
+                    double rotationToOutside = currentRotation;
+                    if(i == getBlockState().getValue(BlockClutch.FACING))
+                        rotationToOutside -= d;
+                    connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }
         }
@@ -422,8 +466,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
         myMechanicalBlockA.mechanicalTick();
         myMechanicalBlockB.mechanicalTick();
-
-        if (!level.isClientSide()) {
+        if(!level.isClientSide) {
             if (level.hasNeighborSignal(getBlockPos())) {
                 if (!last_wasPowered) {
                     last_wasPowered = true;
@@ -443,6 +486,20 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 isFullyConnected = false;
                 shouldConnect = false;
             }
+        }
+        if(level.isClientSide){
+            if(level.hasNeighborSignal(getBlockPos()) && Math.abs(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity) > 0.5) {
+                int i = Math.abs(level.random.nextInt() % 1000);
+                boolean doParticle = i < timeSinceConnectStart*10;
+                timeSinceConnectStart++;
+
+                if(doParticle) {
+                    double x = level.random.nextDouble() - 0.5;
+                    double y = level.random.nextDouble() - 0.5;
+                    double z = level.random.nextDouble() - 0.5;
+                    level.addParticle(new DustParticleOptions(new Vector3f(0.5f, 0.5f, 0.5f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
+                }
+            }else timeSinceConnectStart = 0;
         }
     }
 

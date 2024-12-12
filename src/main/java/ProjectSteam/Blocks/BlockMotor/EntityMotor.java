@@ -25,7 +25,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
 
     public double myMass = 10;
-public boolean isRedstonePowered=false;
+    public boolean isRedstonePowered = false;
 
     public static double MOTOR_BASE_FRICTION = 5;
 
@@ -44,11 +44,12 @@ public boolean isRedstonePowered=false;
         }
     }
 
-    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0,this) {
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return MOTOR_FORCE*10;
+            return MOTOR_FORCE * 10;
         }
+
         @Override
         public double getMass(Direction face) {
             return myMass;
@@ -56,22 +57,22 @@ public boolean isRedstonePowered=false;
 
         @Override
         public double getTorqueResistance(Direction face) {
+            // TODO: only break when it can generate rf (when it has space for rf in inventory)
             double resistance = MOTOR_BASE_FRICTION;
-if(!isRedstonePowered){
-    double additionalFriction = MOTOR_FORCE * Math.abs(internalVelocity) / MAX_SPEED;
-    resistance+=additionalFriction;
-}
+            if (!isRedstonePowered) {
+                double additionalFriction = MOTOR_FORCE * Math.abs(internalVelocity) / MAX_SPEED;
+                resistance += additionalFriction;
+            }
             return resistance;
         }
 
         @Override
         public double getTorqueProduced(Direction face) {
-            if(isRedstonePowered) {
+            if (isRedstonePowered) {
                 double actualForce = MOTOR_FORCE * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
                 double facingMultiplier = getBlockState().getValue(BlockMotor.FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1;
                 return actualForce * facingMultiplier;
-            }
-            else{
+            } else {
                 return 0;
             }
         }
@@ -86,14 +87,18 @@ if(!isRedstonePowered){
 
         }
     };
+
     @Override
-    public BlockEntity getBlockEntity(){return this;}
+    public BlockEntity getBlockEntity() {
+        return this;
+    }
 
     @Override
     public void onLoad() {
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
     }
+
     @Override
     public void setRemoved() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
@@ -142,13 +147,13 @@ if(!isRedstonePowered){
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
         if (myState.getBlock() instanceof BlockMotor) {
-            if(side == myState.getValue(BlockMotor.FACING))
+            if (side == myState.getValue(BlockMotor.FACING))
                 return myMechanicalBlock;
         }
         return null;
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityMotor)t).tick();
+        ((EntityMotor) t).tick();
     }
 }

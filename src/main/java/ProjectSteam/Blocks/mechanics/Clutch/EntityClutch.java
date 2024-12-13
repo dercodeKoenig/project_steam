@@ -25,6 +25,7 @@ import org.joml.Vector3f;
 import java.util.*;
 
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
+import static ProjectSteam.Static.TPS;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityClutch extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
@@ -117,7 +118,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     getPropagatedData(data, getBlockState().getValue(BlockClutch.FACING), workedPositions);
                     workedPositions.clear();
 
-                    double t = (double) 1 / tps;
+                    double t = (double) 1 / TPS;
 
                     data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
                     double newVelocity = internalVelocity;
@@ -301,7 +302,7 @@ if(level.isClientSide)
                     getPropagatedData(data, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions);
                     workedPositions.clear();
 
-                    double t = (double) 1 / tps;
+                    double t = (double) 1 / TPS;
 
                     data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
                     double newVelocity = internalVelocity;

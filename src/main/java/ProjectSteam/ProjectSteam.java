@@ -1,5 +1,7 @@
 package ProjectSteam;
 
+import ARLib.ARLibRegistry;
+import ARLib.blockentities.EntityEnergyInputBlock;
 import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxle;
 import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxleFlyWheel;
 import ProjectSteam.Blocks.mechanics.BlockMotor.RenderMotor;
@@ -17,6 +19,7 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
@@ -98,6 +101,7 @@ public class ProjectSteam {
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
+        e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ENTITY_MOTOR.get(), (x, y) -> (x));
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

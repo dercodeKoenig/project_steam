@@ -18,7 +18,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderWoodenAxle implements BlockEntityRenderer<EntityWoodenAxle> {
@@ -85,7 +85,7 @@ public class RenderWoodenAxle implements BlockEntityRenderer<EntityWoodenAxle> {
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, -90));
             }
 
-            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.myMechanicalBlock.currentRotation+tile.myMechanicalBlock.internalVelocity*partialTick)));
+            m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick)));
             //System.out.println(tile.currentRotation);
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());

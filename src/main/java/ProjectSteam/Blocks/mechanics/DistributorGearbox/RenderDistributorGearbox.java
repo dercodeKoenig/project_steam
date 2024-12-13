@@ -18,7 +18,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistributorGearbox> {
@@ -91,13 +91,13 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 90 * i));
 
                 if (i == 0)
-                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick)));
+                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
                 if (i == 1)
-                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, 14.7f - (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick)));
+                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, 14.7f - (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
                 if (i == 2)
-                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick)));
+                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
                 if (i == 3)
-                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, 14.7f - (float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick)));
+                    m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, 14.7f - (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
 
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
                 shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

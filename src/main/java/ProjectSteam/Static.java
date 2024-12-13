@@ -8,6 +8,9 @@ import net.minecraft.sounds.SoundEvents;
 
 public class Static {
 
+    public static int TPS = 20;
+
+
     // the order in that you define it is very important!
     // unlike older versions, the order is not linked to .addvertex(...) but has to be like this
     // I dont know why but this is the only way it works
@@ -24,7 +27,6 @@ public class Static {
     public static ShaderInstance ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;
     public static ShaderInstance getEntitySolidDynamicNormalShader(){return ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL;}
 
-
     public static SoundEvent[] WOODEN_SOUNDS = {
             SoundEvents.WOODEN_BUTTON_CLICK_ON,
             SoundEvents.WOODEN_BUTTON_CLICK_OFF,
@@ -35,4 +37,9 @@ public class Static {
             SoundEvents.NOTE_BLOCK_HAT.value(),
             SoundEvents.DISPENSER_LAUNCH
     };
+
+
+    public static double rad_to_degree(double rad){
+        return rad*180.0/Math.PI;
+    }
 }

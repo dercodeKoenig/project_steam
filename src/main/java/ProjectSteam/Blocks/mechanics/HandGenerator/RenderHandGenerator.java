@@ -18,7 +18,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenerator> {
@@ -109,7 +109,7 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
 
             Matrix4f m2 = new Matrix4f(m1);
             m2 = m2.translate(0.0f, 0.0f, -0.2f);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1.0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+tile.myMechanicalBlock.internalVelocity*partialTick))));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1.0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick))));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
 
@@ -119,7 +119,7 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
 
             m2 = new Matrix4f(m1);
             m2 = m2.translate(0.0f, 0.1f, 0.2f);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+tile.myMechanicalBlock.internalVelocity*partialTick))));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick))));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
 

@@ -18,7 +18,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
@@ -120,7 +120,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing) * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -136,7 +136,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 0));
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing.getOpposite()) * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * tile.myMechanicalBlock.getRotationMultiplierToOutside(facing.getOpposite()) * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -153,7 +153,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.translate(0.3f,0,0);
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) ( facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
+                    (float) ( facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
@@ -168,7 +168,7 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
             m2 = m2.translate(-0.3f,0,0);
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f,
-                    (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity * partialTick))));
+                    (float) (facingBasedRotationMultiplier * (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick))));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

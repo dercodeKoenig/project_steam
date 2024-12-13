@@ -15,10 +15,11 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import javax.annotation.Nullable;
 import java.util.*;
 
+import static ProjectSteam.Static.TPS;
+import static ProjectSteam.Static.rad_to_degree;
+
 // look at the Example class and the EntityWoodenAxle to see how to use this
 public abstract class AbstractMechanicalBlock {
-
-    public static int tps = 20;
 
     public int id; // in case you have multiple mechanical blocks in one blockentity (for example the clutch)
     public IMechanicalBlockProvider me;
@@ -133,7 +134,7 @@ public abstract class AbstractMechanicalBlock {
     }
 
     public void applyRotations() {
-        currentRotation += internalVelocity;
+        currentRotation += rad_to_degree(internalVelocity) / TPS;
         double eqs = 2 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
         if (currentRotation > 360 * eqs) currentRotation -= 360 * eqs;
         if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
@@ -180,7 +181,7 @@ public abstract class AbstractMechanicalBlock {
                 stress = 0;
                 lastConsumedForce_filled1 = 0;
                 lastConsumedForce_filled2 = 0;
-                double acceleration = (internalVelocity - lastVelocity) * tps;
+                double acceleration = (internalVelocity - lastVelocity) * TPS;
                 double requiredForce1 = currentMassBeforeVelocityChange * acceleration * Math.signum(lastVelocity);
                 double requiredForce2 = currentResistanceBeforeVelocityChange * Math.abs(Math.signum(lastVelocity)) + requiredForce1;
                 double absResistance = Math.max(requiredForce2, 0);
@@ -405,9 +406,10 @@ public abstract class AbstractMechanicalBlock {
                 getPropagatedData(data, null, workedPositions);
                 workedPositions.clear();
 
-                double t = (double) 1 / tps;
+                double t = (double) 1 / TPS;
 
                 data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
+                //System.out.println(data.combinedTransformedMass+":"+data.combinedTransformedForce+":"+data.combinedTransformedResistanceForce+":"+internalVelocity);
                 double newVelocity = internalVelocity;
                 newVelocity += data.combinedTransformedForce / data.combinedTransformedMass * t;
                 float signBefore = (float) Math.signum(newVelocity);
@@ -422,8 +424,7 @@ public abstract class AbstractMechanicalBlock {
                 if (newVelocity < internalVelocity - 90)
                     newVelocity = internalVelocity - 90;
 
-                //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
-
+                //System.out.println(t+":"+newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
                 boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20 * 120) == 0;
 
@@ -488,7 +489,7 @@ public abstract class AbstractMechanicalBlock {
                 }
             }
             if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
-                System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
+                System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos()+":"+internalVelocity);
                 me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
             }
         }

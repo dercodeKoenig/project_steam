@@ -1,8 +1,11 @@
 package ProjectSteam.Blocks.mechanics.BlockMotor;
 
+import ProjectSteam.Blocks.mechanics.HandGenerator.EntityHandGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -13,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteam.Registry.ENTITY_MOTOR;
@@ -51,7 +55,14 @@ public class BlockMotor extends Block implements EntityBlock {
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
     }
 
-    
+    @Override
+    public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
+        BlockEntity b = level.getBlockEntity(pos);
+        if(b instanceof EntityMotor h)
+            h.openGui();
+        return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityMotor::tick;

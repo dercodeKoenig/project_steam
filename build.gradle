@@ -115,7 +115,10 @@ configurations {
 }
 
 dependencies {
-    implementation "curse.maven:library-for-ar-reworked-1038780:5942649"
+    //implementation "curse.maven:library-for-ar-reworked-1038780:5942649"
+    implementation(files('libs/arlib-1.0.0-deobf.jar'))
+
+
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
     // compileOnly "mezz.jei:jei-${mc_version}-common-core:${jei_version}"

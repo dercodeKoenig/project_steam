@@ -18,7 +18,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
 
-import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
+import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
@@ -114,7 +114,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0f, 0f, (float) 270));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (inversionMultiplier*14.7f+ (tile.myMechanicalBlock.currentRotation * rotationMultiplier + tile.myMechanicalBlock.internalVelocity*partialTick * rotationMultiplier))));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (inversionMultiplier*14.7f+ (tile.myMechanicalBlock.currentRotation * rotationMultiplier + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick * rotationMultiplier))));
 
             ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
@@ -137,7 +137,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
                     m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, 180f));
             }
 
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, inversionMultiplier*(float) (tile.myMechanicalBlock.currentRotation + tile.myMechanicalBlock.internalVelocity*partialTick)));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, inversionMultiplier*(float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick)));
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

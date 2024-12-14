@@ -2,9 +2,7 @@ package ProjectSteam.Blocks.mechanics.BlockMotor;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.IGuiHandler;
-import ARLib.gui.modules.guiModuleButton;
-import ARLib.gui.modules.guiModuleEnergy;
-import ARLib.gui.modules.guiModuleText;
+import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.BlockEntityBattery;
 import ProjectSteam.core.AbstractMechanicalBlock;
@@ -98,7 +96,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     public EntityMotor(BlockPos pos, BlockState blockState) {
         super(ENTITY_MOTOR.get(), pos, blockState);
 
-        System.out.println("max constant torque before overheat:" + maxConstantTorqueAllowedBeforeOverheat);
+        //System.out.println("max constant torque before overheat:" + maxConstantTorqueAllowedBeforeOverheat);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {

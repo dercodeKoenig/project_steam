@@ -116,7 +116,7 @@ configurations {
 
 dependencies {
     //implementation "curse.maven:library-for-ar-reworked-1038780:5942649"
-    implementation(files('libs/arlib-1.0.0-deobf.jar'))
+    implementation(files('libs/arlib-1.0.1-deobf.jar'))
 
 
     // Example optional mod dependency with JEI

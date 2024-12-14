@@ -157,7 +157,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         currentPowerText = new guiModuleText(6, rfPerTick + " RF/tick", guiHandler, 45, 74, 0xFF000000, false);
         guiHandler.registerModule(currentPowerText);
 
-        increasePower = new guiModuleButton(7, "+50", guiHandler, 105, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        increasePower = new guiModuleButton(7, "+50", guiHandler, 110, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         increasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(increasePower);
 
@@ -348,7 +348,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
             double z = level.random.nextDouble() - 0.5;
             level.addParticle(new DustParticleOptions( new Vector3f(0.2f, 0.2f, 0.2f),1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
         }
-        if(serverLastRPMForVisualEffects > 5) {
+        if(serverLastRPMForVisualEffects > 5 && level.hasNeighborSignal(getBlockPos())) {
             if((level.getGameTime() & 5) == 0){
                 double relativeSpeed = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity)) / 6 / MAX_RPM;
                 level.playSound((Entity) null, getBlockPos(),  SOUND_MOTOR.get(),
@@ -400,6 +400,9 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
         directionMultiplier = tag.getInt("direction");
+        invertRotation.setText(directionMultiplier > 0 ? "+":"-");
+        rfPerTick = tag.getInt("rfpt");
+        currentPowerText.setText(rfPerTick + " RF/tick");
     }
 
     @Override
@@ -407,6 +410,8 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
         tag.putInt("direction", directionMultiplier);
+        tag.putInt("rfpt", rfPerTick);
+
     }
 
     @Override

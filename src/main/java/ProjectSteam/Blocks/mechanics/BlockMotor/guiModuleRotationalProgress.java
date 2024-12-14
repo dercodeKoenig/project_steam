@@ -35,10 +35,13 @@ public class guiModuleRotationalProgress extends GuiModuleBase {
 
 
     public void setProgress(double progress) {
+        boolean needsUpdate =progress != this.progress;
         this.progress = progress;
+        if(needsUpdate) {
             CompoundTag tag = new CompoundTag();
             this.server_writeDataToSyncToClient(tag);
             this.guiHandler.sendToTrackingClients(tag);
+        }
     }
 
     public void server_writeDataToSyncToClient(CompoundTag tag) {

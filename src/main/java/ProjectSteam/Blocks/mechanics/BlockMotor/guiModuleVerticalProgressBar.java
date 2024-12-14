@@ -46,12 +46,14 @@ public void setHoverInfo(String s){
 }
 
     public void setProgress(double progress) {
-        this.progress = Math.max(0,Math.min(1,progress));
-
-            CompoundTag tag = new CompoundTag();
-            this.server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
-
+        progress = Math.max(0,Math.min(1,progress));
+        boolean needsUpdate =progress != this.progress;
+        this.progress = progress;
+if(needsUpdate) {
+    CompoundTag tag = new CompoundTag();
+    this.server_writeDataToSyncToClient(tag);
+    this.guiHandler.sendToTrackingClients(tag);
+}
     }
 
     public void server_writeDataToSyncToClient(CompoundTag tag) {

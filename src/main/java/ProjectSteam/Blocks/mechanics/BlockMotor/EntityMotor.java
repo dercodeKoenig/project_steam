@@ -41,14 +41,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     double maxHeat = 500;
     double maxRPM = 500;
 
-    double maxHeatRad = (Math.pow(maxHeat,4)- Math.pow(targetHeat,4)) *  SB_CONSTANT * AREA_FOR_HEAT_RADIATION;
-    double maxConstantTorqueAllowedBeforeOverheat = Math.sqrt(maxHeatRad/WIRE_RESISTANCE_FOR_HEAT_GENERATION)*K;
+    double maxHeatRad = (Math.pow(maxHeat, 4) - Math.pow(targetHeat, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION;
+    double maxConstantTorqueAllowedBeforeOverheat = Math.sqrt(maxHeatRad / WIRE_RESISTANCE_FOR_HEAT_GENERATION) * K;
 
 
     int rfPerTick = 500;
     double currentHeat = 300;
+
     /**
-     *
      * I use F = Fmax - k * V to get the current force
      * Fmax = k * Vmax
      * I use P = Fmax * Vmax / 4 because:
@@ -59,13 +59,12 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
      * So... I spent a lot of time figuring out why P = Fmax * Vmax has this horrible efficiency of 25%
      * At the end, I came to conclusion that I will just multiply Fmax by 4 to scale it to 100% max efficiency
      *
-     *
      * @param p power
      * @param k motor torque to speed constant
      * @return Fmax
      */
-    public static double Fmax_from_p_and_k(double p, double k){
-        return Math.sqrt(4*p*k);
+    public static double Fmax_from_p_and_k(double p, double k) {
+        return Math.sqrt(4 * p * k);
     }
 
     double currentForceProduced;
@@ -86,9 +85,11 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     guiModuleEnergy e1;
     guiModuleRotationalProgress rpm;
     guiModuleRotationalProgress torque;
+    guiModuleRotationalProgress efficiency;
     guiModuleVerticalProgressBar heat;
     guiModuleText torqueText;
     guiModuleText RPMText;
+    guiModuleText efficiencyText;
 
     guiModuleText currentPowerText;
     guiModuleButton increasePower;
@@ -97,7 +98,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     public EntityMotor(BlockPos pos, BlockState blockState) {
         super(ENTITY_MOTOR.get(), pos, blockState);
 
-        System.out.println("max constant torque before overheat:"+maxConstantTorqueAllowedBeforeOverheat);
+        System.out.println("max constant torque before overheat:" + maxConstantTorqueAllowedBeforeOverheat);
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
@@ -111,38 +112,44 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         //e1 = new guiModuleEnergy(0,this,guiHandler,10,10);
         //guiHandler.registerModule(e1);
 
-        rpm = new guiModuleRotationalProgress(1,guiHandler,30,10);
-        rpm.bg = ResourceLocation.fromNamespaceAndPath("arlib","textures/gui/simple_scale_round_red_end.png");
+        rpm = new guiModuleRotationalProgress(1, guiHandler, 30, 10);
+        rpm.bg = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_scale_round_red_end.png");
         guiHandler.registerModule(rpm);
 
-        torque = new guiModuleRotationalProgress(2,guiHandler,90,10);
-        torque.bg = ResourceLocation.fromNamespaceAndPath("arlib","textures/gui/simple_scale_round_red_line_at_61.png");
+        torque = new guiModuleRotationalProgress(2, guiHandler, 90, 10);
+        torque.bg = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_scale_round_red_line_at_61.png");
         guiHandler.registerModule(torque);
 
-        heat = new guiModuleVerticalProgressBar(3,guiHandler,10,10);
+        heat = new guiModuleVerticalProgressBar(3, guiHandler, 10, 10);
         heat.bar = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_vertical_progress_bar_i.png");
         guiHandler.registerModule(heat);
 
-        torqueText = new guiModuleText(4,"TORQUE",guiHandler,100,50,0xFF000000,false);
+        torqueText = new guiModuleText(4, "TORQUE", guiHandler, 100, 50, 0xFF000000, false);
         guiHandler.registerModule(torqueText);
-        RPMText = new guiModuleText(5,"RPM",guiHandler,35,50,0xFF000000,false);
+        RPMText = new guiModuleText(5, "RPM", guiHandler, 35, 50, 0xFF000000, false);
         guiHandler.registerModule(RPMText);
 
-        currentPowerText = new guiModuleText(6,String.valueOf(rfPerTick) +" RF/tick" ,guiHandler,60,72,0xFF000000,false);
+        currentPowerText = new guiModuleText(6, String.valueOf(rfPerTick) + " RF/tick", guiHandler, 60, 72, 0xFF000000, false);
         guiHandler.registerModule(currentPowerText);
 
-        increasePower = new guiModuleButton(7,"+50",guiHandler,130,70,20,10,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
-        increasePower.color=0xFFFFFFFF;
+        increasePower = new guiModuleButton(7, "+50", guiHandler, 130, 70, 20, 10, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        increasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(increasePower);
 
-        decreasePower = new guiModuleButton(8,"-50",guiHandler,20,70,20,10,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
-        decreasePower.color=0xFFFFFFFF;
+        decreasePower = new guiModuleButton(8, "-50", guiHandler, 20, 70, 20, 10, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        decreasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(decreasePower);
+
+        efficiency = new guiModuleRotationalProgress(9,guiHandler,150,10);
+        guiHandler.registerModule(efficiency);
+
+        efficiencyText = new guiModuleText(10, "", guiHandler, 155, 50, 0xFF000000, false);
+        guiHandler.registerModule(efficiencyText);
     }
 
-    public void openGui(){
-        if(level.isClientSide)
-            guiHandler.openGui(200,100);
+    public void openGui() {
+        if (level.isClientSide)
+            guiHandler.openGui(210, 90);
     }
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
@@ -202,70 +209,74 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     public void tick() {
         myMechanicalBlock.mechanicalTick();
 
-        if(!level.isClientSide) {
+        if (!level.isClientSide) {
             IGuiHandler.serverTick(guiHandler);
 
             int torque = 0;
+            double efficiency = 0;
             if (level.hasNeighborSignal(getBlockPos())) {
                 double facingMultiplier = getBlockState().getValue(BlockMotor.FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1;
                 int maxConsumedEnergy = Math.min(getEnergyStored(), rfPerTick);
                 double workingForce = Fmax_from_p_and_k(maxConsumedEnergy, K) - K * myMechanicalBlock.internalVelocity * facingMultiplier * directionMultiplier;
                 workingForce = Math.max(0, workingForce);
-                currentForceProduced =  workingForce * facingMultiplier * directionMultiplier;
+                currentForceProduced = workingForce * facingMultiplier * directionMultiplier;
                 currentResistance = MOTOR_BASE_FRICTION;
-                energyStorage.setEnergy(getEnergyStored()-maxConsumedEnergy);
+                energyStorage.setEnergy(getEnergyStored() - maxConsumedEnergy);
 
-                currentHeat +=   Math.pow(Math.abs(workingForce)/K,2) *WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+                currentHeat += Math.pow(Math.abs(workingForce) / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
 
-                torque= (int) Math.round(Math.abs(workingForce));
+                torque = (int) Math.round(Math.abs(workingForce));
+                efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / (rfPerTick+0.01);
             } else {
                 currentForceProduced = 0;
                 double workingResistance = Math.abs(-K * myMechanicalBlock.internalVelocity);
-                int energyProduced = (int) ( Math.abs(myMechanicalBlock.internalVelocity) * workingResistance);
+                int energyProduced = (int) (Math.abs(myMechanicalBlock.internalVelocity) * workingResistance);
                 int freeEnergyCapacity = getMaxEnergyStored() - getEnergyStored();
                 int toReceive = Math.min(freeEnergyCapacity, energyProduced);
-                energyStorage.setEnergy(getEnergyStored()+toReceive);
+                energyStorage.setEnergy(getEnergyStored() + toReceive);
                 currentResistance = MOTOR_BASE_FRICTION;
 
-                    currentHeat +=   Math.pow(workingResistance / K, 2) / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
-                    currentResistance += workingResistance ;
+                currentHeat += Math.pow(workingResistance / K, 2) / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+                currentResistance += workingResistance;
 
-                torque= (int) -Math.round(Math.abs((workingResistance / K)));
+                torque = (int) -Math.round(Math.abs((workingResistance)));
 
-                if(getEnergyStored() > 0) {
+                if (getEnergyStored() > 0) {
                     int toExtract = getEnergyStored();
                     for (Direction i : Direction.values()) {
                         BlockPos o = getBlockPos().relative(i);
                         IEnergyStorage e = level.getCapability(Capabilities.EnergyStorage.BLOCK, o, null);
                         if (e != null) {
-                            int extracted = e.receiveEnergy(toExtract,false);
-                            toExtract-=extracted;
-                            extractEnergy(extracted,false);
+                            int extracted = e.receiveEnergy(toExtract, false);
+                            toExtract -= extracted;
+                            extractEnergy(extracted, false);
                         }
                     }
                 }
             }
 
 
+            double heat_radiate_energy = Math.clamp((Math.pow(currentHeat, 4) - Math.pow(targetHeat, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION, -1000000, 1000000);
+            double tempDiffCreated = heat_radiate_energy / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
 
-            double heat_radiate_energy =Math.clamp((Math.pow(currentHeat,4)- Math.pow(targetHeat,4)) *  SB_CONSTANT * AREA_FOR_HEAT_RADIATION,-1000000,1000000);
-            double tempDiffCreated = heat_radiate_energy/TPS/ HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
-
-            currentHeat -=tempDiffCreated;
+            currentHeat -= tempDiffCreated;
 
 
-            heat.setProgress((currentHeat-272) / (maxHeat-272));
-            heat.setHoverInfo(String.valueOf(Math.round(currentHeat) - 272)+"°C");
+            heat.setProgress((currentHeat - 272) / (maxHeat - 272));
+            heat.setHoverInfo(String.valueOf(Math.round(currentHeat) - 272) + "°C");
 
             double dps = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity));
             double rps = dps / 360;
             double rpm = rps * 60;
 
-            this.rpm.setProgress(rpm/maxRPM);
-            this.RPMText.setText("RPM: "+Math.round(rpm));
+            this.rpm.setProgress(rpm / maxRPM);
+            this.RPMText.setText("RPM: " + Math.round(rpm));
 
-            torqueText.setText("T: "+torque);
+            torqueText.setText("T: " + torque);
             this.torque.setProgress(torque / maxConstantTorqueAllowedBeforeOverheat * 0.61);
+
+            this.efficiency.setProgress(efficiency);
+            this.efficiencyText.setText("eff: "+Math.round(efficiency*100)+"%");
         }
     }
 
@@ -283,16 +294,16 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         myMechanicalBlock.mechanicalReadServer(tag);
         guiHandler.readServer(tag);
 
-        if(tag.contains("guiButtonClick")){
+        if (tag.contains("guiButtonClick")) {
             int id = tag.getInt("guiButtonClick");
-            if(id == 7){
-                rfPerTick+=50;
+            if (id == 7) {
+                rfPerTick += 50;
             }
-            if(id == 8){
-                rfPerTick-=50;
+            if (id == 8) {
+                rfPerTick -= 50;
             }
-            rfPerTick = Math.max(0,rfPerTick);
-            this.currentPowerText.setText(rfPerTick+" RF/tick");
+            rfPerTick = Math.max(0, rfPerTick);
+            this.currentPowerText.setText(rfPerTick + " RF/tick");
         }
     }
 
@@ -324,12 +335,12 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     @Override
     public int receiveEnergy(int i, boolean b) {
-        return energyStorage.receiveEnergy(i,b);
+        return energyStorage.receiveEnergy(i, b);
     }
 
     @Override
     public int extractEnergy(int i, boolean b) {
-        return energyStorage.extractEnergy(i,b);
+        return energyStorage.extractEnergy(i, b);
     }
 
     @Override

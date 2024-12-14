@@ -20,6 +20,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
@@ -43,7 +44,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     double TARGET_HEAT = 300;
     double MAX_HEAT = 500;
-    double MAX_RPM = 500;
+    double MAX_RPM = 200;
 
     public double myInertia = 10;
     int rfPerTick = 500;
@@ -300,12 +301,31 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 heatlvlupdate.putInt("heatLvl", serverLastHeatlvlForVisualEffects);
                 PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, heatlvlupdate));
             }
+            if(heatlvl > 10){
+                level.destroyBlock(getBlockPos(), false);
+                level.explode(null,getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),2,true, Level.ExplosionInteraction.BLOCK);
+                level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(),3);
+            }
+            int rpmlvl = (int)Math.round(rpm/MAX_RPM*10);
+            /*  currently does nothing
+            if(serverLastRPMForVisualEffects != rpmlvl){
+                serverLastRPMForVisualEffects = rpmlvl;
+                CompoundTag heatlvlupdate = new CompoundTag();
+                heatlvlupdate.putInt("rpmLvl", serverLastRPMForVisualEffects);
+                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, heatlvlupdate));
+            }
+             */
+            if(rpmlvl > 10){
+                level.destroyBlock(getBlockPos(), false);
+                level.explode(null,getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),2,true, Level.ExplosionInteraction.BLOCK);
+                level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(),3);
+            }
         }
 
 
 
 
-            int particleNum = Math.max(clientHeatlvlForVisualEffects -6, 0);
+            int particleNum = Math.max(clientHeatlvlForVisualEffects -8, 0);
             for (int i = 0; i < particleNum; i++) {
                 double x = level.random.nextDouble() - 0.5;
                 double y = level.random.nextDouble() - 0.5;
@@ -318,11 +338,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     @Override
     public void readClient(CompoundTag tag) {
-        //System.out.println("readClient:"+tag);
+        System.out.println("readClient:"+tag);
         myMechanicalBlock.mechanicalReadClient(tag);
         guiHandler.readClient(tag);
         if(tag.contains("heatLvl")){
             clientHeatlvlForVisualEffects = tag.getInt("heatLvl");
+        }
+        if(tag.contains("rpmLvl")){
+            clientRPMForVisualEffects = tag.getInt("rpmLvl");
         }
     }
 

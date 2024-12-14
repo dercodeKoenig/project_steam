@@ -181,7 +181,7 @@ public abstract class AbstractMechanicalBlock {
                 lastConsumedForce_filled2 = 0;
                 double acceleration = (internalVelocity - lastVelocity) * TPS;
                 double requiredForce1 = currentMassBeforeVelocityChange * acceleration * Math.signum(lastVelocity);
-                double requiredForce2 = currentResistanceBeforeVelocityChange * Math.abs(Math.signum(lastVelocity)) + requiredForce1;
+                double requiredForce2 = currentResistanceBeforeVelocityChange + requiredForce1;
                 double absResistance = Math.max(requiredForce2, 0);
                 double inducedForce = Math.max(-requiredForce2, 0) * Math.signum(lastVelocity);
 
@@ -314,6 +314,7 @@ public abstract class AbstractMechanicalBlock {
             myNode.currentEffectiveForceMultiplier *= forceMultiplierForNode;
 
             double currentEffectiveForce = myNode.currentEffectiveForceMultiplier * myNode.daddy.lastAddedForce;
+//System.out.println( lastConsumedForce + ":"+me.getBlockEntity().getBlockPos()+":"+currentEffectiveForce);
 
             if (currentEffectiveForce > 0) {
                 double toSubtract = lastConsumedForce - lastConsumedForce_filled1;
@@ -321,6 +322,7 @@ public abstract class AbstractMechanicalBlock {
                 myNode.daddy.lastAddedForce -= toSubtract / myNode.currentEffectiveForceMultiplier;
                 lastConsumedForce_filled1 += toSubtract;
                 addStressBackwards(myNode, toSubtract);
+
             }
             if (currentEffectiveForce < 0) {
                 double toSubtract = lastConsumedForce - lastConsumedForce_filled2;
@@ -424,7 +426,7 @@ public abstract class AbstractMechanicalBlock {
 
                 //System.out.println(t+":"+newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
-                boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0 && !lastTickHadForceToDistribute;
+                boolean resetStress = (me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0) && !lastTickHadForceToDistribute;
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions, false, resetStress);
 
@@ -459,6 +461,7 @@ public abstract class AbstractMechanicalBlock {
         }
         hasReceivedUpdate = false;
         applyRotations();
+
         if(me.getBlockEntity(). getLevel().isClientSide) {
             serverRotation += rad_to_degree(internalVelocity) / TPS ;
             if( lastPing < cttam_timeout)

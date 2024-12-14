@@ -12,7 +12,7 @@ public class Static {
 
     public static double SB_CONSTANT = 0.0000000567;
 
-    public static int CALC_STRESS_EVERY_X_TICKS = 20*60;
+    public static int CALC_STRESS_EVERY_X_TICKS = 20*10;
 
     // the order in that you define it is very important!
     // unlike older versions, the order is not linked to .addvertex(...) but has to be like this

@@ -37,7 +37,7 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
     int ticksRemainingForForce = 0;
 
     double myFriction = 2;
-    double myMass = 5;
+    double myInertia = 5;
     double maxStress = 10000;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
@@ -46,8 +46,8 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
             return maxStress;
         }
         @Override
-        public double getMass(Direction face) {
-            return myMass;
+        public double getInertia(Direction face) {
+            return myInertia;
         }
 
         @Override

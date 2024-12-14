@@ -34,7 +34,7 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
     int lastLight = 0;
 
 
-    double myMass = 0.5;
+    double myInertia = 0.5;
     double myFriction = 10;
     double maxStress = 600;
 
@@ -45,8 +45,8 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
         }
 
         @Override
-        public double getMass(Direction face) {
-            return myMass;
+        public double getInertia(Direction face) {
+            return myInertia;
         }
 
         @Override

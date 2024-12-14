@@ -14,7 +14,7 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
         super(type, pos, blockState);
     }
 
-    public double myMass = 1;
+    public double myInertia = 1;
     public double myFriction = 0.1;
     public double maxStress = 500;
 
@@ -24,8 +24,8 @@ public abstract class MechanicalPartBlockEntityBaseExample extends BlockEntity i
             return maxStress;
         }
         @Override
-        public double getMass(Direction face) {
-            return myMass;
+        public double getInertia(Direction face) {
+            return myInertia;
         }
 
         @Override

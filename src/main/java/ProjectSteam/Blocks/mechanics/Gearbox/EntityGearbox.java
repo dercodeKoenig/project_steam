@@ -32,7 +32,7 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
     int lastLight = 0;
 
 
-    double myMass = 0.5;
+    double myInertia = 0.5;
     double myFriction = 10;
     double maxStress = 900;
 
@@ -43,8 +43,8 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
         }
 
         @Override
-        public double getMass(Direction face) {
-            return myMass;
+        public double getInertia(Direction face) {
+            return myInertia;
         }
 
         @Override

@@ -3,7 +3,7 @@ package ProjectSteam.core;
 public class MechanicalFlowData {
 
 
-    public double combinedTransformedMass;
+    public double combinedTransformedInertia;
 
     // I will use clockwise rotation of the axis as positive
     // and counter-clockwise rotation as negative.

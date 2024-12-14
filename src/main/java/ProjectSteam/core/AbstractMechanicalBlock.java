@@ -8,15 +8,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static ProjectSteam.Static.TPS;
-import static ProjectSteam.Static.rad_to_degree;
+import static ProjectSteam.Static.*;
 
 // look at the Example class and the EntityWoodenAxle to see how to use this
 public abstract class AbstractMechanicalBlock {
@@ -61,7 +59,7 @@ public abstract class AbstractMechanicalBlock {
 
     public abstract double getMaxStress();
 
-    public abstract double getMass(Direction face);
+    public abstract double getInertia(Direction face);
 
     public abstract double getTorqueResistance(Direction face);
 
@@ -112,7 +110,7 @@ public abstract class AbstractMechanicalBlock {
                 double rotationMultiplierToInside = getRotationMultiplierToInside(i);
 
                 myInputFlowData.combinedTransformedForce += d.combinedTransformedForce / rotationMultiplierToInside;
-                myInputFlowData.combinedTransformedMass += Math.abs(d.combinedTransformedMass / (rotationMultiplierToInside));
+                myInputFlowData.combinedTransformedInertia += Math.abs(d.combinedTransformedInertia / (rotationMultiplierToInside));
                 myInputFlowData.combinedTransformedMomentum += d.combinedTransformedMomentum * Math.signum(rotationMultiplierToInside);
                 myInputFlowData.combinedTransformedResistanceForce += Math.abs(d.combinedTransformedResistanceForce / rotationMultiplierToInside);
             }
@@ -120,14 +118,14 @@ public abstract class AbstractMechanicalBlock {
             double rotationMultiplierToOutside = getRotationMultiplierToOutside(requestedFrom);
 
             myInputFlowData.combinedTransformedForce += getTorqueProduced(requestedFrom);
-            myInputFlowData.combinedTransformedMass += getMass(requestedFrom);
-            myInputFlowData.combinedTransformedMomentum += internalVelocity * getMass(requestedFrom);
+            myInputFlowData.combinedTransformedInertia += getInertia(requestedFrom);
+            myInputFlowData.combinedTransformedMomentum += internalVelocity * getInertia(requestedFrom);
             myInputFlowData.combinedTransformedResistanceForce += getTorqueResistance(requestedFrom);
 
 
             data.combinedTransformedForce += myInputFlowData.combinedTransformedForce / rotationMultiplierToOutside;
             data.combinedTransformedResistanceForce += Math.abs(myInputFlowData.combinedTransformedResistanceForce / rotationMultiplierToOutside);
-            data.combinedTransformedMass += Math.abs(myInputFlowData.combinedTransformedMass / rotationMultiplierToOutside);
+            data.combinedTransformedInertia += Math.abs(myInputFlowData.combinedTransformedInertia / rotationMultiplierToOutside);
             data.combinedTransformedMomentum += myInputFlowData.combinedTransformedMomentum * Math.signum(rotationMultiplierToOutside);
 
         }
@@ -160,7 +158,7 @@ public abstract class AbstractMechanicalBlock {
 
             double currentProducedForceBeforeVelocityChange = getTorqueProduced(receivingFace);
             double currentResistanceBeforeVelocityChange = getTorqueResistance(receivingFace);
-            double currentMassBeforeVelocityChange = getMass(receivingFace);
+            double currentMassBeforeVelocityChange = getInertia(receivingFace);
 
             internalVelocity = velocity;
             if (receivingFace != null) {
@@ -236,8 +234,8 @@ public abstract class AbstractMechanicalBlock {
             worked.clear();
 
             double target_velocity = 0;
-            if (data.combinedTransformedMass != 0) {
-                target_velocity = data.combinedTransformedMomentum / data.combinedTransformedMass;
+            if (data.combinedTransformedInertia != 0) {
+                target_velocity = data.combinedTransformedMomentum / data.combinedTransformedInertia;
             }
             propagateVelocityUpdate(target_velocity, null, worked, true, false);
         }
@@ -408,12 +406,12 @@ public abstract class AbstractMechanicalBlock {
 
                 double t = (double) 1 / TPS;
 
-                data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
+                data.combinedTransformedInertia = Math.max(data.combinedTransformedInertia, 0.01);
                 //System.out.println(data.combinedTransformedMass+":"+data.combinedTransformedForce+":"+data.combinedTransformedResistanceForce+":"+internalVelocity);
                 double newVelocity = internalVelocity;
-                newVelocity += data.combinedTransformedForce / data.combinedTransformedMass * t;
+                newVelocity += data.combinedTransformedForce / data.combinedTransformedInertia * t;
                 float signBefore = (float) Math.signum(newVelocity);
-                newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedMass * t;
+                newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedInertia * t;
                 float signAfter = (float) Math.signum(newVelocity);
                 if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
@@ -426,7 +424,7 @@ public abstract class AbstractMechanicalBlock {
 
                 //System.out.println(t+":"+newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
-                boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20 * 120) == 0;
+                boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0 && !lastTickHadForceToDistribute;
 
                 propagateVelocityUpdate(newVelocity, null, workedPositions, false, resetStress);
 

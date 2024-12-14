@@ -27,6 +27,6 @@ public class EntityWoodenAxleFlyWheel extends EntityWoodenAxle{
 
     public EntityWoodenAxleFlyWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_AXLE_FLYWHEEL.get(), pos, blockState);
-        myMass = 20;
+        myInertia = 20;
     }
 }

@@ -29,7 +29,7 @@ public class EntityWoodenAxle extends BlockEntity implements IMechanicalBlockPro
     MeshData mesh;
     int lastLight = 0;
 
-    public double myMass = 1;
+    public double myInertia = 1;
     public double myFriction = 0.1;
     public double maxStress = 500;
 
@@ -39,8 +39,8 @@ public class EntityWoodenAxle extends BlockEntity implements IMechanicalBlockPro
             return maxStress;
         }
         @Override
-        public double getMass(Direction face) {
-            return myMass;
+        public double getInertia(Direction face) {
+            return myInertia;
         }
 
         @Override

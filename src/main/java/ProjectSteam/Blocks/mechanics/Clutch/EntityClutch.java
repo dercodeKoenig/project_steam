@@ -45,7 +45,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             return 100000;
         }
         @Override
-        public double getMass(Direction face) {
+        public double getInertia(Direction face) {
             return massPerSide;
         }
 
@@ -119,11 +119,11 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     double t = (double) 1 / TPS;
 
-                    data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
+                    data.combinedTransformedInertia = Math.max(data.combinedTransformedInertia, 0.01);
                     double newVelocity = internalVelocity;
-                    newVelocity += data.combinedTransformedForce / data.combinedTransformedMass * t;
+                    newVelocity += data.combinedTransformedForce / data.combinedTransformedInertia * t;
                     float signBefore = (float) Math.signum(newVelocity);
-                    newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedMass * t;
+                    newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedInertia * t;
                     float signAfter = (float) Math.signum(newVelocity);
                     if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
@@ -137,7 +137,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
 
-                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20*120) == 0;
+                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0 && !lastTickHadForceToDistribute;
 
                     propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, resetStress);
 
@@ -229,7 +229,7 @@ if(level.isClientSide)
             return 100000;
         }
         @Override
-        public double getMass(Direction face) {
+        public double getInertia(Direction face) {
             return massPerSide;
         }
 
@@ -303,11 +303,11 @@ if(level.isClientSide)
 
                     double t = (double) 1 / TPS;
 
-                    data.combinedTransformedMass = Math.max(data.combinedTransformedMass, 0.01);
+                    data.combinedTransformedInertia = Math.max(data.combinedTransformedInertia, 0.01);
                     double newVelocity = internalVelocity;
-                    newVelocity += data.combinedTransformedForce / data.combinedTransformedMass * t;
+                    newVelocity += data.combinedTransformedForce / data.combinedTransformedInertia * t;
                     float signBefore = (float) Math.signum(newVelocity);
-                    newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedMass * t;
+                    newVelocity -= data.combinedTransformedResistanceForce * Math.signum(newVelocity) / data.combinedTransformedInertia * t;
                     float signAfter = (float) Math.signum(newVelocity);
                     if (Math.abs(newVelocity) < 0.0001) newVelocity = 0;
 
@@ -321,7 +321,7 @@ if(level.isClientSide)
                     //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
 
-                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(20*120) == 0;
+                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0 && !lastTickHadForceToDistribute;
 
                     propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, resetStress);
 

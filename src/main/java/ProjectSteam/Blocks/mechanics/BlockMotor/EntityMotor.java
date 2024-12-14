@@ -4,6 +4,7 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.IGuiHandler;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityBattery;
 import ProjectSteam.core.AbstractMechanicalBlock;
 import ProjectSteam.core.IMechanicalBlockProvider;
@@ -13,8 +14,11 @@ import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -22,6 +26,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector3f;
 
 import static ProjectSteam.Registry.ENTITY_MOTOR;
 import static ProjectSteam.Static.*;
@@ -31,20 +37,20 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     public double MOTOR_BASE_FRICTION = 5;
     public double K = 10;
-    public double HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS = 200;
+    public double HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS = 100;
     public double AREA_FOR_HEAT_RADIATION = 1;
     public double WIRE_RESISTANCE_FOR_HEAT_GENERATION = 5;
 
-    double targetHeat = 300;
-    double maxHeat = 500;
-    double maxRPM = 500;
+    double TARGET_HEAT = 300;
+    double MAX_HEAT = 500;
+    double MAX_RPM = 500;
 
-    double maxHeatRad = (Math.pow(maxHeat, 4) - Math.pow(targetHeat, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION;
+    public double myInertia = 10;
+    int rfPerTick = 500;
+
+    double maxHeatRad = (Math.pow(MAX_HEAT*0.95, 4) - Math.pow(TARGET_HEAT, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION;
     double maxConstantTorqueAllowedBeforeOverheat = Math.sqrt(maxHeatRad / WIRE_RESISTANCE_FOR_HEAT_GENERATION) * K;
 
-
-    int rfPerTick = 500;
-    double currentHeat = 300;
 
     /**
      * I use F = Fmax - k * V to get the current force
@@ -69,11 +75,16 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     double currentResistance;
     int directionMultiplier = 1;
 
+    double currentHeat = 300;
+
+    int serverLastHeatlvlForVisualEffects;
+    int serverLastRPMForVisualEffects;
+    int clientHeatlvlForVisualEffects;
+    int clientRPMForVisualEffects;
+
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
-
-    public double myMass = 10;
 
     int lastLight = 0;
 
@@ -92,6 +103,9 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     guiModuleText currentPowerText;
     guiModuleButton increasePower;
     guiModuleButton decreasePower;
+    guiModuleText invertRotationText;
+
+    guiModuleButton invertRotation;
 
     public EntityMotor(BlockPos pos, BlockState blockState) {
         super(ENTITY_MOTOR.get(), pos, blockState);
@@ -157,8 +171,8 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         }
 
         @Override
-        public double getMass(Direction face) {
-            return myMass;
+        public double getInertia(Direction face) {
+            return myInertia;
         }
 
         @Override
@@ -221,7 +235,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 currentResistance = MOTOR_BASE_FRICTION;
                 energyStorage.setEnergy(getEnergyStored() - maxConsumedEnergy);
 
-                currentHeat += Math.pow(Math.abs(workingForce) / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+                currentHeat += Math.pow(Math.abs(workingForce) / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
 
                 torque = (int) Math.round(Math.abs(workingForce));
                 efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / (rfPerTick+0.01);
@@ -238,7 +252,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                     double actualTorqueProduced = maxWorkingResistance * energyProduced / energyMaxProduced;
                     currentResistance += actualTorqueProduced;
                     torque = (int) -Math.round(Math.abs(actualTorqueProduced));
-                    currentHeat += Math.pow(actualTorqueProduced / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+                    currentHeat += Math.pow(actualTorqueProduced / K, 2) * WIRE_RESISTANCE_FOR_HEAT_GENERATION / TPS / HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
                 }
 
                 if (getEnergyStored() > 0) {
@@ -256,20 +270,20 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
             }
 
 
-            double heat_radiate_energy = Math.clamp((Math.pow(currentHeat, 4) - Math.pow(targetHeat, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION, -1000000, 1000000);
-            double tempDiffCreated = heat_radiate_energy / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+            double heat_radiate_energy = Math.clamp((Math.pow(currentHeat, 4) - Math.pow(TARGET_HEAT, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION, -1000000, 1000000);
+            double tempDiffCreated = heat_radiate_energy / TPS / HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
 
             currentHeat -= tempDiffCreated;
 
-
-            heat.setProgress((currentHeat - 272) / (maxHeat - 272));
-            heat.setHoverInfo(String.valueOf(Math.round(currentHeat) - 272) + "°C");
+            double heatProgress = (currentHeat - 272) / (MAX_HEAT - 272);
+            heat.setProgress(heatProgress);
+            heat.setHoverInfo((Math.round(currentHeat) - 272) + "°C");
 
             double dps = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity));
             double rps = dps / 360;
             double rpm = rps * 60;
 
-            this.rpm.setProgress(rpm / maxRPM);
+            this.rpm.setProgress(rpm / MAX_RPM);
             this.RPMText.setText("RPM: " + Math.round(rpm));
 
             torqueText.setText("T: " + torque);
@@ -277,7 +291,28 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
             this.efficiency.setProgress(efficiency);
             this.efficiencyText.setText("eff: "+Math.round(efficiency*100)+"%");
+
+
+            int heatlvl = (int) Math.round(heatProgress*10);
+            if(serverLastHeatlvlForVisualEffects != heatlvl){
+                serverLastHeatlvlForVisualEffects = heatlvl;
+                CompoundTag heatlvlupdate = new CompoundTag();
+                heatlvlupdate.putInt("heatLvl", serverLastHeatlvlForVisualEffects);
+                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, heatlvlupdate));
+            }
         }
+
+
+
+
+            int particleNum = Math.max(clientHeatlvlForVisualEffects -6, 0);
+            for (int i = 0; i < particleNum; i++) {
+                double x = level.random.nextDouble() - 0.5;
+                double y = level.random.nextDouble() - 0.5;
+                double z = level.random.nextDouble() - 0.5;
+                level.addParticle(new DustParticleOptions(new Vector3f(0.5f, 0.5f, 0.5f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
+            }
+
     }
 
 
@@ -286,6 +321,9 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         //System.out.println("readClient:"+tag);
         myMechanicalBlock.mechanicalReadClient(tag);
         guiHandler.readClient(tag);
+        if(tag.contains("heatLvl")){
+            clientHeatlvlForVisualEffects = tag.getInt("heatLvl");
+        }
     }
 
     @Override

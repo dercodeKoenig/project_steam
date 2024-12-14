@@ -310,7 +310,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 double x = level.random.nextDouble() - 0.5;
                 double y = level.random.nextDouble() - 0.5;
                 double z = level.random.nextDouble() - 0.5;
-                level.addParticle(new DustParticleOptions(new Vector3f(0.5f, 0.5f, 0.5f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
+                level.addParticle(new DustParticleOptions(new Vector3f(0.2f, 0.2f, 0.2f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
             }
 
     }

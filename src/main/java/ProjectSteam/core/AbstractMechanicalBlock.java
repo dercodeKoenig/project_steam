@@ -462,7 +462,7 @@ public abstract class AbstractMechanicalBlock {
         hasReceivedUpdate = false;
         applyRotations();
         if(me.getBlockEntity(). getLevel().isClientSide) {
-            serverRotation += internalVelocity;
+            serverRotation += rad_to_degree(internalVelocity) / TPS ;
             if( lastPing < cttam_timeout)
                 lastPing++;
         }

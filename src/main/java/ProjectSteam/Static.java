@@ -10,6 +10,8 @@ public class Static {
 
     public static int TPS = 20;
 
+    public static double SB_CONSTANT = 0.0000000567;
+
 
     // the order in that you define it is very important!
     // unlike older versions, the order is not linked to .addvertex(...) but has to be like this

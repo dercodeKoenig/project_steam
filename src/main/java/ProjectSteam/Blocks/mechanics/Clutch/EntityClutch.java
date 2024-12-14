@@ -25,8 +25,7 @@ import org.joml.Vector3f;
 import java.util.*;
 
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
-import static ProjectSteam.Static.TPS;
-import static ProjectSteam.Static.WOODEN_SOUNDS;
+import static ProjectSteam.Static.*;
 
 public class EntityClutch extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
@@ -174,7 +173,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             hasReceivedUpdate = false;
             applyRotations();
 if(level.isClientSide)
-            serverRotation += internalVelocity;
+            serverRotation+=rad_to_degree(internalVelocity) / TPS ;
 
             if (!myTile.getLevel().isClientSide()) {
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
@@ -359,7 +358,7 @@ if(level.isClientSide)
             hasReceivedUpdate = false;
             applyRotations();
             if(level.isClientSide)
-                serverRotation += internalVelocity;
+                serverRotation+=rad_to_degree(internalVelocity) / TPS ;
 
             if (!myTile.getLevel().isClientSide()) {
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {

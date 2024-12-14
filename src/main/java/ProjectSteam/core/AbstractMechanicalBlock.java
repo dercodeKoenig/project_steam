@@ -25,7 +25,7 @@ public abstract class AbstractMechanicalBlock {
     // your can read from this and use it to update your machines
     // I recommend you use internalVelocity, because the rotation will at some point "reset" to avoid numerical errors
     // maybe make a counter "energy" and add abs(velocity) every tick until target progress is reached
-    // velocity is in degree per tick
+    // use rad_to_degree(velocity) / TPS to get speed in degree / tick
     public double currentRotation;
     public double internalVelocity;
 

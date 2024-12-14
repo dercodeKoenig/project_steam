@@ -19,6 +19,7 @@ import ProjectSteam.Blocks.mechanics.TJunction.EntityTJunction;
 import ProjectSteam.Blocks.mechanics.TJunction.BlockTJunction;
 import ProjectSteam.Items.Hammer.WoodenHammer;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -26,6 +27,9 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.registries.DeferredRegister;
+
+import java.util.function.Supplier;
 
 public class Registry {
     public static final net.neoforged.neoforge.registries.DeferredRegister<Block> BLOCKS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK, "projectsteam");
@@ -144,8 +148,16 @@ public class Registry {
         registerBlockItem("casing", CASING);
     }
 
-    public static void register(IEventBus modBus) {
+    public static final DeferredRegister<SoundEvent> SOUND_EVENTS =
+            DeferredRegister.create(BuiltInRegistries.SOUND_EVENT, "projectsteam");
+    public static final Supplier<SoundEvent> SOUND_MOTOR = SOUND_EVENTS.register(
+            "motor",
+            // Takes in the registry name
+            SoundEvent::createVariableRangeEvent
+    );
 
+    public static void register(IEventBus modBus) {
+        SOUND_EVENTS.register(modBus);
         CREATIVE_TAB.register(modBus);
         BLOCKS.register(modBus);
         ITEMS.register(modBus);

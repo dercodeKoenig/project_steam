@@ -1,7 +1,5 @@
 package ProjectSteam;
 
-import ARLib.ARLibRegistry;
-import ARLib.blockentities.EntityEnergyInputBlock;
 import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxle;
 import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxleFlyWheel;
 import ProjectSteam.Blocks.mechanics.BlockMotor.RenderMotor;
@@ -12,8 +10,9 @@ import ProjectSteam.Blocks.mechanics.TJunction.RenderTJunction;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
+import net.minecraft.data.DataGenerator;
+import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.CreativeModeTabs;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -23,6 +22,8 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.neoforge.common.data.ExistingFileHelper;
+import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -31,14 +32,14 @@ import java.io.IOException;
 
 import static ProjectSteam.Registry.*;
 import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
-import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 
 @Mod("projectsteam")
 public class ProjectSteam {
 
     public ProjectSteam(IEventBus modEventBus, ModContainer modContaine) throws IOException {
-        //NeoForge.EVENT_BUS.register(EntityPipe.class);
+        //modEventBus.register(this);
+
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
@@ -48,8 +49,6 @@ public class ProjectSteam {
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
-
-
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {

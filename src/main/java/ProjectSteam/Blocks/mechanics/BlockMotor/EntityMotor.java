@@ -14,15 +14,24 @@ import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.DustParticleOptions;
+import net.minecraft.core.particles.VibrationParticleOption;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.enchantment.effects.SpawnParticlesEffect;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.gameevent.BlockPositionSource;
+import net.minecraft.world.level.gameevent.PositionSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.capabilities.Capabilities;
@@ -31,22 +40,25 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Vector3f;
 
 import static ProjectSteam.Registry.ENTITY_MOTOR;
+import static ProjectSteam.Registry.SOUND_MOTOR;
 import static ProjectSteam.Static.*;
 
 
 public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, IEnergyStorage {
 
-    public double MOTOR_BASE_FRICTION = 5;
-    public double K = 10;
+    double n = 1;
+
+    public double MOTOR_BASE_FRICTION = 5*Math.sqrt(n);
+    public double K = 10*n;
     public double HEAT_CAPACITY_TIMES_MASS_CONSTANT_FOR_HEAT_CALCULATIONS = 100;
     public double AREA_FOR_HEAT_RADIATION = 1;
-    public double WIRE_RESISTANCE_FOR_HEAT_GENERATION = 5;
+    public double WIRE_RESISTANCE_FOR_HEAT_GENERATION = 5*n;
 
     double TARGET_HEAT = 300;
     double MAX_HEAT = 500;
-    double MAX_RPM = 200;
+    double MAX_RPM = 200/Math.sqrt(n);
 
-    public double myInertia = 10;
+    public double myInertia = 10*n;
     int rfPerTick = 500;
 
     double maxHeatRad = (Math.pow(MAX_HEAT*0.95, 4) - Math.pow(TARGET_HEAT, 4)) * SB_CONSTANT * AREA_FOR_HEAT_RADIATION;
@@ -104,8 +116,8 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     guiModuleText currentPowerText;
     guiModuleButton increasePower;
     guiModuleButton decreasePower;
-    guiModuleText invertRotationText;
 
+    guiModuleText invertRotationText;
     guiModuleButton invertRotation;
 
     public EntityMotor(BlockPos pos, BlockState blockState) {
@@ -142,14 +154,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         RPMText = new guiModuleText(5, "RPM", guiHandler, 35, 50, 0xFF000000, false);
         guiHandler.registerModule(RPMText);
 
-        currentPowerText = new guiModuleText(6, rfPerTick + " RF/tick", guiHandler, 60, 74, 0xFF000000, false);
+        currentPowerText = new guiModuleText(6, rfPerTick + " RF/tick", guiHandler, 45, 74, 0xFF000000, false);
         guiHandler.registerModule(currentPowerText);
 
-        increasePower = new guiModuleButton(7, "+50", guiHandler, 130, 70, 30, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        increasePower = new guiModuleButton(7, "+50", guiHandler, 105, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         increasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(increasePower);
 
-        decreasePower = new guiModuleButton(8, "-50", guiHandler, 20, 70, 30, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        decreasePower = new guiModuleButton(8, "-50", guiHandler, 10, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         decreasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(decreasePower);
 
@@ -158,6 +170,10 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
         efficiencyText = new guiModuleText(10, "", guiHandler, 155, 50, 0xFF000000, false);
         guiHandler.registerModule(efficiencyText);
+
+        invertRotation = new guiModuleButton(11, directionMultiplier > 0 ? "+":"-", guiHandler, 155, 70, 30,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        invertRotation.color = 0xFFFFFFFF;
+        guiHandler.registerModule(invertRotation);
     }
 
     public void openGui() {
@@ -307,14 +323,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 level.setBlock(getBlockPos(), Blocks.FIRE.defaultBlockState(),3);
             }
             int rpmlvl = (int)Math.round(rpm/MAX_RPM*10);
-            /*  currently does nothing
+            //  currently does nothing
             if(serverLastRPMForVisualEffects != rpmlvl){
                 serverLastRPMForVisualEffects = rpmlvl;
                 CompoundTag heatlvlupdate = new CompoundTag();
                 heatlvlupdate.putInt("rpmLvl", serverLastRPMForVisualEffects);
                 PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, heatlvlupdate));
             }
-             */
+             //*/
             if(rpmlvl > 10){
                 level.destroyBlock(getBlockPos(), false);
                 level.explode(null,getBlockPos().getX(), getBlockPos().getY(), getBlockPos().getZ(),2,true, Level.ExplosionInteraction.BLOCK);
@@ -325,20 +341,26 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
 
 
-            int particleNum = Math.max(clientHeatlvlForVisualEffects -8, 0);
-            for (int i = 0; i < particleNum; i++) {
-                double x = level.random.nextDouble() - 0.5;
-                double y = level.random.nextDouble() - 0.5;
-                double z = level.random.nextDouble() - 0.5;
-                level.addParticle(new DustParticleOptions(new Vector3f(0.2f, 0.2f, 0.2f), 1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
-            }
-
+        int particleNum = Math.max(clientHeatlvlForVisualEffects -8, 0);
+        for (int i = 0; i < particleNum; i++) {
+            double x = level.random.nextDouble() - 0.5;
+            double y = level.random.nextDouble() - 0.5;
+            double z = level.random.nextDouble() - 0.5;
+            level.addParticle(new DustParticleOptions( new Vector3f(0.2f, 0.2f, 0.2f),1f), getBlockPos().getCenter().x + x, getBlockPos().getCenter().y + 0.5 + y, getBlockPos().getCenter().z + z, x, y, z);
+        }
+        if(serverLastRPMForVisualEffects > 5) {
+            if((level.getGameTime() & 5) == 0){
+                double relativeSpeed = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity)) / 6 / MAX_RPM;
+                level.playSound((Entity) null, getBlockPos(),  SOUND_MOTOR.get(),
+                        SoundSource.BLOCKS, 0.5f * (float) (Math.max(0, relativeSpeed - 0.5)), (float)(relativeSpeed-0.5)*4f);  //
+                }
+        }
     }
 
 
     @Override
     public void readClient(CompoundTag tag) {
-        System.out.println("readClient:"+tag);
+        //System.out.println("readClient:"+tag);
         myMechanicalBlock.mechanicalReadClient(tag);
         guiHandler.readClient(tag);
         if(tag.contains("heatLvl")){
@@ -365,6 +387,11 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
             }
             rfPerTick = Math.max(0, rfPerTick);
             this.currentPowerText.setText(rfPerTick + " RF/tick");
+
+            if(id == 11){
+                directionMultiplier =directionMultiplier > 0 ? -1:1;
+                invertRotation.setText(directionMultiplier > 0 ? "+":"-");
+            }
         }
     }
 
@@ -372,12 +399,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
+        directionMultiplier = tag.getInt("direction");
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+        tag.putInt("direction", directionMultiplier);
     }
 
     @Override

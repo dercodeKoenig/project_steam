@@ -1,0 +1,11 @@
+{
+  "motor": {
+    "sounds": [
+      {
+
+        "name": "projectsteam:motor",
+        "preload": true
+      }
+      ]
+  }
+}

@@ -239,7 +239,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 if (energyMaxProduced > 0) {
                     double actualTorqueProduced = maxWorkingResistance * energyProduced / energyMaxProduced;
                     currentResistance += actualTorqueProduced;
-                    torque = (int) -Math.round(Math.abs(actualTorqueProduced));
+                    torque = (int) Math.round(Math.abs(actualTorqueProduced));
                     currentHeat += Math.pow(actualTorqueProduced / K, 2) / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
                 }
 

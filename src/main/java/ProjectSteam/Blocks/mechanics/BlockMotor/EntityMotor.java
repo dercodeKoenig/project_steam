@@ -129,14 +129,14 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         RPMText = new guiModuleText(5, "RPM", guiHandler, 35, 50, 0xFF000000, false);
         guiHandler.registerModule(RPMText);
 
-        currentPowerText = new guiModuleText(6, String.valueOf(rfPerTick) + " RF/tick", guiHandler, 60, 72, 0xFF000000, false);
+        currentPowerText = new guiModuleText(6, rfPerTick + " RF/tick", guiHandler, 60, 74, 0xFF000000, false);
         guiHandler.registerModule(currentPowerText);
 
-        increasePower = new guiModuleButton(7, "+50", guiHandler, 130, 70, 20, 10, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        increasePower = new guiModuleButton(7, "+50", guiHandler, 130, 70, 30, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         increasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(increasePower);
 
-        decreasePower = new guiModuleButton(8, "-50", guiHandler, 20, 70, 20, 10, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
+        decreasePower = new guiModuleButton(8, "-50", guiHandler, 20, 70, 30, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         decreasePower.color = 0xFFFFFFFF;
         guiHandler.registerModule(decreasePower);
 
@@ -229,17 +229,19 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 efficiency = Math.abs(currentForceProduced * myMechanicalBlock.internalVelocity) / (rfPerTick+0.01);
             } else {
                 currentForceProduced = 0;
-                double workingResistance = Math.abs(-K * myMechanicalBlock.internalVelocity);
-                int energyProduced = (int) (Math.abs(myMechanicalBlock.internalVelocity) * workingResistance);
+                double maxWorkingResistance = Math.abs(-K * myMechanicalBlock.internalVelocity);
+                int energyMaxProduced = (int) (Math.abs(myMechanicalBlock.internalVelocity) * maxWorkingResistance);
                 int freeEnergyCapacity = getMaxEnergyStored() - getEnergyStored();
-                int toReceive = Math.min(freeEnergyCapacity, energyProduced);
-                energyStorage.setEnergy(getEnergyStored() + toReceive);
+                int energyProduced = Math.min(freeEnergyCapacity, energyMaxProduced);
+                energyStorage.setEnergy(getEnergyStored() + energyProduced);
                 currentResistance = MOTOR_BASE_FRICTION;
 
-                currentHeat += Math.pow(workingResistance / K, 2) / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
-                currentResistance += workingResistance;
-
-                torque = (int) -Math.round(Math.abs((workingResistance)));
+                if (energyMaxProduced > 0) {
+                    double actualTorqueProduced = maxWorkingResistance * energyProduced / energyMaxProduced;
+                    currentResistance += actualTorqueProduced;
+                    torque = (int) -Math.round(Math.abs(actualTorqueProduced));
+                    currentHeat += Math.pow(actualTorqueProduced / K, 2) / TPS / HEAT_CAPACITY_TIMES_ACTUAL_MASS_CONSTANT_FOR_HEAT_CALCULATIONS;
+                }
 
                 if (getEnergyStored() > 0) {
                     int toExtract = getEnergyStored();

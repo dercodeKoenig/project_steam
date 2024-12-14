@@ -94,7 +94,7 @@ public class ProjectSteam {
     private void loadShaders(RegisterShadersEvent e) {
         try {
             /// TODO make light coords as uniforms to avoid lag on light updates
-            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath("projectsteam", "shader_axle"),POSITION_COLOR_TEXTURE_NORMAL_LIGHT),(shader)->Static.ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL = shader);
+            e.registerShader(new ShaderInstance(e.getResourceProvider(), ResourceLocation.fromNamespaceAndPath("projectsteam", "shader_dynamic_normal"),POSITION_COLOR_TEXTURE_NORMAL_LIGHT),(shader)->Static.ENTITY_SOLID_SHADER_CLONE_WITH_DYNAMIC_NORMAL = shader);
         } catch (IOException ex) {
             throw new RuntimeException(ex);
         }

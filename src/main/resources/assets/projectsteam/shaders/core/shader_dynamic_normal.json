@@ -1,6 +1,6 @@
 {
-    "vertex": "projectsteam:shader_axle",
-    "fragment": "projectsteam:shader_axle",
+    "vertex": "projectsteam:shader_dynamic_normal",
+    "fragment": "projectsteam:shader_dynamic_normal",
     "samplers": [
         { "name": "Sampler0" },
         { "name": "Sampler1" },

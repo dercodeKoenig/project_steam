@@ -16,7 +16,7 @@ import java.util.*;
 
 import static ProjectSteam.Static.*;
 
-// look at the Example class and the EntityWoodenAxle to see how to use this
+// look at the Example class and the EntityFlyWheelBase to see how to use this
 public abstract class AbstractMechanicalBlock {
 
     public int id; // in case you have multiple mechanical blocks in one blockentity (for example the clutch)

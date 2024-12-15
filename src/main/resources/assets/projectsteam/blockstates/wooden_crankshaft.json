@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "axis=z": {
+            "model": "projectsteam:block/crankshaft"
+        },
+        "axis=x": {
+            "model": "projectsteam:block/crankshaft", "y": 90
+        }
+    }
+}

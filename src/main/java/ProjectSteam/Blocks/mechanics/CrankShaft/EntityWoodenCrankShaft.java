@@ -1,21 +1,21 @@
-package ProjectSteam.Blocks.mechanics.Axle;
+package ProjectSteam.Blocks.mechanics.CrankShaft;
 
+import ProjectSteam.Blocks.mechanics.Axle.EntityAxleBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.state.BlockState;
 
-import static ProjectSteam.Registry.ENTITY_WOODEN_AXLE;
+import static ProjectSteam.Registry.ENTITY_WOODEN_CRANKSHAFT;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
-public class EntityWoodenAxle extends EntityAxleBase{
-    public EntityWoodenAxle(BlockPos pos, BlockState blockState) {
-        super(ENTITY_WOODEN_AXLE.get(), pos, blockState);
+public class EntityWoodenCrankShaft extends EntityAxleBase {
 
-         myInertia = 1;
-         myFriction = 0.1;
-         maxStress = 500;
-
+    public EntityWoodenCrankShaft(BlockPos pos, BlockState blockState) {
+        super(ENTITY_WOODEN_CRANKSHAFT.get(), pos, blockState);
+        maxStress = 100;
+        myInertia = 1;
+        myFriction = 0.1;
     }
 
     public void tick(){

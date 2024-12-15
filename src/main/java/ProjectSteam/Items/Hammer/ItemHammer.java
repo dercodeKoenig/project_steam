@@ -1,10 +1,9 @@
 package ProjectSteam.Items.Hammer;
 
-import ProjectSteam.Blocks.mechanics.Axle.EntityWoodenAxleCrankShaft;
+import ProjectSteam.Blocks.mechanics.CrankShaft.EntityCrankShaftBase;
+import ProjectSteam.Blocks.mechanics.CrankShaft.EntityWoodenCrankShaft;
 import ProjectSteam.Blocks.mechanics.TJunction.BlockTJunction;
 import ProjectSteam.Blocks.mechanics.TJunction.EntityTJunction;
-import ProjectSteam.core.IMechanicalBlockProvider;
-import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
@@ -32,7 +31,7 @@ public class ItemHammer extends Item {
             return InteractionResult.SUCCESS_NO_ITEM_USED;
         }
 
-        if(tile instanceof EntityWoodenAxleCrankShaft i) {
+        if(tile instanceof EntityCrankShaftBase i) {
             if(!context.getLevel().isClientSide()) {
                 i.incRotationOffset();
                 i.myMechanicalBlock.propagateResetRotation(0, null, new HashSet<>());

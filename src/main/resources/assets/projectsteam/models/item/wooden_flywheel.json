@@ -1,7 +1,7 @@
 {
   "loader": "neoforge:obj",
-  "model": "projectsteam:models/item/axle.obj",
-  "mtl_override": "projectsteam:models/item/axle.mtl",
+  "model": "projectsteam:models/item/axle_flywheel.obj",
+  "mtl_override": "projectsteam:models/item/wooden_flywheel.mtl",
   "automatic_culling": false,
   "shade_quads": false,
   "flip_v": true,

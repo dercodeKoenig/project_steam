@@ -2,8 +2,8 @@
   "type": "minecraft:crafting_shaped",
   "pattern": [
     " I ",
-    " A ",
-    "   "
+    "IAI",
+    " I "
   ],
   "key": {
     "I": {
@@ -14,7 +14,7 @@
     }
   },
   "result": {
-    "id": "projectsteam:axle_crankshaft",
+    "id": "projectsteam:wooden_flywheel",
     "count": 1
   }
 }

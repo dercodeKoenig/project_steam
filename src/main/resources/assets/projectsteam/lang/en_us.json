@@ -1,12 +1,12 @@
 {
-  "block.projectsteam.axle": "Axle",
-  "item.projectsteam.axle": "Axle",
+  "block.projectsteam.wooden_axle": "Wooden Axle",
+  "item.projectsteam.wooden_axle": "Wooden Axle",
 
-  "block.projectsteam.axle_flywheel": "Flywheel Axle",
-  "item.projectsteam.axle_flywheel": "Flywheel Axle",
+  "block.projectsteam.wooden_flywheel": "Wooden Flywheel",
+  "item.projectsteam.wooden_flywheel": "Wooden Flywheel",
 
-  "block.projectsteam.axle_crankshaft": "Small Crankshaft Axle",
-  "item.projectsteam.axle_crankshaft": "Small Crankshaft Axle",
+  "block.projectsteam.wooden_crankshaft": "Small Wooden Crankshaft",
+  "item.projectsteam.wooden_crankshaft": "Small Wooden Crankshaft",
 
   "block.projectsteam.gearbox": "Gearbox",
   "item.projectsteam.gearbox": "Gearbox",

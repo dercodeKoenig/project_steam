@@ -6,8 +6,12 @@ import ProjectSteam.Blocks.mechanics.BlockMotor.BlockMotor;
 import ProjectSteam.Blocks.mechanics.BlockMotor.EntityMotor;
 import ProjectSteam.Blocks.mechanics.Clutch.BlockClutch;
 import ProjectSteam.Blocks.mechanics.Clutch.EntityClutch;
+import ProjectSteam.Blocks.mechanics.CrankShaft.BlockWoodenCrankShaft;
+import ProjectSteam.Blocks.mechanics.CrankShaft.EntityWoodenCrankShaft;
 import ProjectSteam.Blocks.mechanics.DistributorGearbox.BlockDistributorGearbox;
 import ProjectSteam.Blocks.mechanics.DistributorGearbox.EntityDistributorGearbox;
+import ProjectSteam.Blocks.mechanics.FlyWheel.BlockWoodenFlyWheel;
+import ProjectSteam.Blocks.mechanics.FlyWheel.EntityWoodenFlyWheel;
 import ProjectSteam.Blocks.mechanics.Gearbox.BlockGearbox;
 import ProjectSteam.Blocks.mechanics.Gearbox.EntityGearbox;
 import ProjectSteam.Blocks.mechanics.HandGenerator.BlockHandGenerator;
@@ -38,31 +42,31 @@ public class Registry {
         return ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
     }
 
-    public static final Supplier<Block> AXLE = BLOCKS.register(
-            "axle",
+    public static final Supplier<Block> WOODEN_AXLE = BLOCKS.register(
+            "wooden_axle",
             () -> new BlockWoodenAxle()
     );
-    public static final Supplier<BlockEntityType<EntityWoodenAxle>> ENTITY_AXLE = BLOCK_ENTITIES.register(
-            "entity_axle",
-            () -> BlockEntityType.Builder.of(EntityWoodenAxle::new, AXLE.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityWoodenAxle>> ENTITY_WOODEN_AXLE = BLOCK_ENTITIES.register(
+            "entity_wooden_axle",
+            () -> BlockEntityType.Builder.of(EntityWoodenAxle::new, WOODEN_AXLE.get()).build(null)
     );
 
-    public static final Supplier<Block> AXLE_FLYWHEEL = BLOCKS.register(
-            "axle_flywheel",
-            () -> new BlockWoodenAxleFlyWheel()
+    public static final Supplier<Block> WOODEN_FLYWHEEL = BLOCKS.register(
+            "wooden_flywheel",
+            () -> new BlockWoodenFlyWheel()
     );
-    public static final Supplier<BlockEntityType<EntityWoodenAxleFlyWheel>> ENTITY_AXLE_FLYWHEEL = BLOCK_ENTITIES.register(
-            "entity_axle_flywheel",
-            () -> BlockEntityType.Builder.of(EntityWoodenAxleFlyWheel::new, AXLE_FLYWHEEL.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityWoodenFlyWheel>> ENTITY_WOODEN_FLYWHEEL = BLOCK_ENTITIES.register(
+            "entity_wooden_flywheel",
+            () -> BlockEntityType.Builder.of(EntityWoodenFlyWheel::new, WOODEN_FLYWHEEL.get()).build(null)
     );
 
-    public static final Supplier<Block> AXLE_CRANKSHAFT = BLOCKS.register(
-            "axle_crankshaft",
-            () -> new BlockWoodenAxleCrankShaft()
+    public static final Supplier<Block> WOODEN_CRANKSHAFT = BLOCKS.register(
+            "wooden_crankshaft",
+            () -> new BlockWoodenCrankShaft()
     );
-    public static final Supplier<BlockEntityType<EntityWoodenAxleCrankShaft>> ENTITY_AXLE_CRANKSHAFT = BLOCK_ENTITIES.register(
-            "entity_axle_crankshaft",
-            () -> BlockEntityType.Builder.of(EntityWoodenAxleCrankShaft::new, AXLE_CRANKSHAFT.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityWoodenCrankShaft>> ENTITY_WOODEN_CRANKSHAFT = BLOCK_ENTITIES.register(
+            "entity_wooden_crankshaft",
+            () -> BlockEntityType.Builder.of(EntityWoodenCrankShaft::new, WOODEN_CRANKSHAFT.get()).build(null)
     );
 
     public static final Supplier<Block> DISTRIBUTOR_GEARBOX = BLOCKS.register(
@@ -141,9 +145,9 @@ public class Registry {
     );
 
     static {
-        registerBlockItem("axle", AXLE);
-        registerBlockItem("axle_flywheel", AXLE_FLYWHEEL);
-        registerBlockItem("axle_crankshaft", AXLE_CRANKSHAFT);
+        registerBlockItem("wooden_axle", WOODEN_AXLE);
+        registerBlockItem("wooden_flywheel", WOODEN_FLYWHEEL);
+        registerBlockItem("wooden_crankshaft", WOODEN_CRANKSHAFT);
         registerBlockItem("distributor_gearbox", DISTRIBUTOR_GEARBOX);
         registerBlockItem("gearbox", GEARBOX);
         registerBlockItem("motor", MOTOR);

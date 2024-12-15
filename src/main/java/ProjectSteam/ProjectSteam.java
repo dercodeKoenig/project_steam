@@ -1,8 +1,8 @@
 package ProjectSteam;
 
 import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxle;
-import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxleCrankShaft;
-import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxleFlyWheel;
+import ProjectSteam.Blocks.mechanics.CrankShaft.RenderWoodenCrankShaft;
+import ProjectSteam.Blocks.mechanics.FlyWheel.RenderWoodenFlyWheel;
 import ProjectSteam.Blocks.mechanics.BlockMotor.RenderMotor;
 import ProjectSteam.Blocks.mechanics.DistributorGearbox.RenderDistributorGearbox;
 import ProjectSteam.Blocks.mechanics.Gearbox.RenderGearbox;
@@ -11,8 +11,6 @@ import ProjectSteam.Blocks.mechanics.TJunction.RenderTJunction;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.data.DataGenerator;
-import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -23,8 +21,6 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
-import net.neoforged.neoforge.data.event.GatherDataEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
@@ -60,9 +56,9 @@ public class ProjectSteam {
 
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_AXLE.get(), RenderWoodenAxle::new);
-        event.registerBlockEntityRenderer(ENTITY_AXLE_FLYWHEEL.get(), RenderWoodenAxleFlyWheel::new);
-        event.registerBlockEntityRenderer(ENTITY_AXLE_CRANKSHAFT.get(), RenderWoodenAxleCrankShaft::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_AXLE.get(), RenderWoodenAxle::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_FLYWHEEL.get(), RenderWoodenFlyWheel::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_CRANKSHAFT.get(), RenderWoodenCrankShaft::new);
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
@@ -77,9 +73,9 @@ public class ProjectSteam {
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(PROJECTSTEAM_CREATIVETAB.get())) {
-            e.accept(AXLE.get());
-            e.accept(AXLE_FLYWHEEL.get());
-            e.accept(AXLE_CRANKSHAFT.get());
+            e.accept(WOODEN_AXLE.get());
+            e.accept(WOODEN_FLYWHEEL.get());
+            e.accept(WOODEN_CRANKSHAFT.get());
             e.accept(DISTRIBUTOR_GEARBOX.get());
             e.accept(GEARBOX.get());
             e.accept(MOTOR.get());

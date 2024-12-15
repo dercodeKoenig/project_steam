@@ -7,6 +7,7 @@ import ProjectSteam.Blocks.mechanics.BlockMotor.EntityMotor;
 import ProjectSteam.Blocks.mechanics.Clutch.BlockClutch;
 import ProjectSteam.Blocks.mechanics.Clutch.EntityClutch;
 import ProjectSteam.Blocks.mechanics.CrankShaft.BlockWoodenCrankShaft;
+import ProjectSteam.Blocks.mechanics.CrankShaft.EntityCrankShaftBase;
 import ProjectSteam.Blocks.mechanics.CrankShaft.EntityWoodenCrankShaft;
 import ProjectSteam.Blocks.mechanics.DistributorGearbox.BlockDistributorGearbox;
 import ProjectSteam.Blocks.mechanics.DistributorGearbox.EntityDistributorGearbox;

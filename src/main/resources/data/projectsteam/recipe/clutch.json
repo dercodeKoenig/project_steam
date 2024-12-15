@@ -13,7 +13,7 @@
             "item": "minecraft:stones"
         },
         "A": {
-            "item": "projectsteam:axle"
+            "tag": "c:axles"
         }
     },
     "result": {

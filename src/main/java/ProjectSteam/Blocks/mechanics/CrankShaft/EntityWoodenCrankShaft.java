@@ -9,7 +9,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import static ProjectSteam.Registry.ENTITY_WOODEN_CRANKSHAFT;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
-public class EntityWoodenCrankShaft extends EntityAxleBase {
+public class EntityWoodenCrankShaft extends EntityCrankShaftBase {
 
     public EntityWoodenCrankShaft(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_CRANKSHAFT.get(), pos, blockState);

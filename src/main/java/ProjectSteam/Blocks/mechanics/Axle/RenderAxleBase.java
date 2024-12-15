@@ -25,9 +25,7 @@ public class RenderAxleBase implements BlockEntityRenderer<EntityAxleBase> {
 
     public WavefrontObject model;
     public ResourceLocation tex;
-
-
-
+    
     public RenderAxleBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
         super();
         this.tex = texture;

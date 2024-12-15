@@ -57,11 +57,6 @@ public class EntityWoodenAxle extends BlockEntity implements IMechanicalBlockPro
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
-
-        @Override
-        public void onPropagatedTickEnd() {
-
-        }
     };
 
     public EntityWoodenAxle(BlockEntityType t, BlockPos pos, BlockState blockState) {

@@ -14,7 +14,7 @@ import ProjectSteam.Blocks.mechanics.HandGenerator.BlockHandGenerator;
 import ProjectSteam.Blocks.mechanics.HandGenerator.EntityHandGenerator;
 import ProjectSteam.Blocks.mechanics.TJunction.EntityTJunction;
 import ProjectSteam.Blocks.mechanics.TJunction.BlockTJunction;
-import ProjectSteam.Items.Hammer.WoodenHammer;
+import ProjectSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
@@ -128,7 +128,7 @@ public class Registry {
 
     public static final Supplier<Item> ITEM_WOODEN_HAMMER = ITEMS.register(
             "wooden_hammer",
-            () ->new WoodenHammer()
+            () ->new ItemHammer()
     );
     public static final Supplier<Item> ITEM_WOODEN_GEAR = ITEMS.register(
             "wooden_gear",

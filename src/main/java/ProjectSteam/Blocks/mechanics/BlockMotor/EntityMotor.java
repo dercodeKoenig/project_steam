@@ -206,11 +206,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
-
-        @Override
-        public void onPropagatedTickEnd() {
-
-        }
     };
 
     @Override

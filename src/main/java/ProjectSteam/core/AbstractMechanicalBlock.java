@@ -69,16 +69,13 @@ public abstract class AbstractMechanicalBlock {
     public abstract double getRotationMultiplierToInside(@Nullable Direction receivingFace);
 
 
-     // Everything you write in here will be executed for all parts in the network in the tick BEFORE rotation / velocity changes!
-    public abstract void onPropagatedTickEnd();
-
     public double getRotationMultiplierToOutside(@Nullable Direction outputFace) {
         return 1 / getRotationMultiplierToInside(outputFace);
     }
 
 
      // called at the start of the tick update
-    // notifies other parts in the network that the initial tick is done and calls the onPropagatedTickEnd() for every part in the network
+    // notifies other parts in the network that the initial tick is done
     public void propagateTickBeforeUpdate() {
         if (!hasReceivedUpdate) {
             hasReceivedUpdate = true;
@@ -87,8 +84,6 @@ public abstract class AbstractMechanicalBlock {
             for (AbstractMechanicalBlock i : connectedParts.values()) {
                 i.propagateTickBeforeUpdate();
             }
-
-            onPropagatedTickEnd();
         }
     }
 

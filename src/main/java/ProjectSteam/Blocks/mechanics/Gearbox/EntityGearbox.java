@@ -72,11 +72,6 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
             }
             return 1;
         }
-
-        @Override
-        public void onPropagatedTickEnd() {
-
-        }
     };
 
     @Override

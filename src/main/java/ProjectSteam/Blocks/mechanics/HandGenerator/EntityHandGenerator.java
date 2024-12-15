@@ -65,11 +65,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
-
-        @Override
-        public void onPropagatedTickEnd() {
-
-        }
     };
 
     @Override

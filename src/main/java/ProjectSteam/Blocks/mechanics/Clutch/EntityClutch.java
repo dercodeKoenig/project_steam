@@ -69,10 +69,6 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             return 1;
         }
 
-        @Override
-        public void onPropagatedTickEnd() {
-        }
-
         public void mechanicalTick() {
 
             BlockEntity myTile = me.getBlockEntity();
@@ -252,11 +248,6 @@ if(level.isClientSide)
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
             return 1;
         }
-
-        @Override
-        public void onPropagatedTickEnd() {
-        }
-
         public void mechanicalTick() {
 
             BlockEntity myTile = me.getBlockEntity();

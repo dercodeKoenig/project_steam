@@ -112,11 +112,6 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
                 }
             }
         }
-
-        @Override
-        public void onPropagatedTickEnd() {
-
-        }
     };
 
     @Override

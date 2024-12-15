@@ -1,6 +1,5 @@
-package ProjectSteam.Blocks.mechanics.BlockMotor;
+package ProjectSteam.Blocks.Mechanics.BlockMotor;
 
-import ProjectSteam.Blocks.mechanics.HandGenerator.EntityHandGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;

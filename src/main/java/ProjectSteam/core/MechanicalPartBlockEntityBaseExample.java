@@ -1,4 +1,4 @@
-package ProjectSteam.core;
+package ProjectSteam.Core;
 
 import ARLib.network.INetworkTagReceiver;
 import net.minecraft.core.BlockPos;

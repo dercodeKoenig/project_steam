@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.Axle;
+package ProjectSteam.Blocks.Mechanics.Axle;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;

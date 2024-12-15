@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.TJunction;
+package ProjectSteam.Blocks.Mechanics.TJunction;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;

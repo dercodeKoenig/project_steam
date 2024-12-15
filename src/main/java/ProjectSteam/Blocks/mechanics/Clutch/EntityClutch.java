@@ -1,10 +1,10 @@
-package ProjectSteam.Blocks.mechanics.Clutch;
+package ProjectSteam.Blocks.Mechanics.Clutch;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.core.AbstractMechanicalBlock;
-import ProjectSteam.core.IMechanicalBlockProvider;
-import ProjectSteam.core.MechanicalFlowData;
+import ProjectSteam.Core.AbstractMechanicalBlock;
+import ProjectSteam.Core.IMechanicalBlockProvider;
+import ProjectSteam.Core.MechanicalFlowData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

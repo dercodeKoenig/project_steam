@@ -1,6 +1,5 @@
-package ProjectSteam.Blocks.mechanics.FlyWheel;
+package ProjectSteam.Blocks.Mechanics.FlyWheel;
 
-import ProjectSteam.Blocks.mechanics.Axle.RenderAxleBase;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;
 

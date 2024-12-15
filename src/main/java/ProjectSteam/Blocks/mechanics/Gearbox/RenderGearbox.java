@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.Gearbox;
+package ProjectSteam.Blocks.Mechanics.Gearbox;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;

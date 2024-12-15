@@ -1,9 +1,8 @@
-package ProjectSteam.Blocks.mechanics.FlyWheel;
+package ProjectSteam.Blocks.Mechanics.FlyWheel;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
-import ProjectSteam.Blocks.mechanics.Axle.EntityAxleBase;
 import ProjectSteam.Static;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;

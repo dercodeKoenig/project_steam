@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.HandGenerator;
+package ProjectSteam.Blocks.Mechanics.HandGenerator;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

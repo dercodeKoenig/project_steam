@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.Axle;
+package ProjectSteam.Blocks.Mechanics.Axle;
 
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.resources.ResourceLocation;

@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.Gearbox;
+package ProjectSteam.Blocks.Mechanics.Gearbox;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

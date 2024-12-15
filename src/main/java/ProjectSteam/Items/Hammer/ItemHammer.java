@@ -1,9 +1,8 @@
 package ProjectSteam.Items.Hammer;
 
-import ProjectSteam.Blocks.mechanics.CrankShaft.EntityCrankShaftBase;
-import ProjectSteam.Blocks.mechanics.CrankShaft.EntityWoodenCrankShaft;
-import ProjectSteam.Blocks.mechanics.TJunction.BlockTJunction;
-import ProjectSteam.Blocks.mechanics.TJunction.EntityTJunction;
+import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
+import ProjectSteam.Blocks.Mechanics.TJunction.BlockTJunction;
+import ProjectSteam.Blocks.Mechanics.TJunction.EntityTJunction;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;

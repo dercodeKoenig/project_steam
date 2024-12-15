@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.DistributorGearbox;
+package ProjectSteam.Blocks.Mechanics.DistributorGearbox;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

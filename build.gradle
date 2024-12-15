@@ -121,8 +121,8 @@ dependencies {
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    // compileOnly "mezz.jei:jei-${mc_version}-common-core:${jei_version}"
-    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-core:${jei_version}"
+    // compileOnly "mezz.jei:jei-${mc_version}-common-Core:${jei_version}"
+    // compileOnly "mezz.jei:jei-${mc_version}-neoforge-Core:${jei_version}"
     // We add the full version to localRuntime, not runtimeOnly, so that we do not publish a dependency on it
     // localRuntime "mezz.jei:jei-${mc_version}-neoforge:${jei_version}"
 
@@ -193,4 +193,27 @@ idea {
         downloadSources = true
         downloadJavadoc = true
     }
+}
+
+
+
+tasks.register('deobfJar', Jar) {
+    group = 'build'
+    description = 'Generates a deobfuscated jar'
+
+    // Define the output jar name
+    archiveClassifier.set('deobf')
+
+    // Include only the compiled classes and resources from the main source set
+    from sourceSets.main.output
+
+    // Handle duplicate entries
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
+    // Enable ZIP64 in case the limit is still hit
+    zip64 = true
+}
+
+tasks.named('build') {
+    dependsOn tasks.named('deobfJar')
 }

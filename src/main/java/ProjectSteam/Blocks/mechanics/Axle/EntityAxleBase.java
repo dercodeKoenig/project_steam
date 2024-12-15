@@ -1,16 +1,14 @@
-package ProjectSteam.Blocks.mechanics.Axle;
+package ProjectSteam.Blocks.Mechanics.Axle;
 
 import ARLib.network.INetworkTagReceiver;
-import ProjectSteam.core.AbstractMechanicalBlock;
-import ProjectSteam.core.IMechanicalBlockProvider;
+import ProjectSteam.Core.AbstractMechanicalBlock;
+import ProjectSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -18,8 +16,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 
-import static ProjectSteam.Blocks.mechanics.Axle.BlockAxleBase.ROTATION_AXIS;
-import static ProjectSteam.Static.WOODEN_SOUNDS;
+import static ProjectSteam.Blocks.Mechanics.Axle.BlockAxleBase.ROTATION_AXIS;
 
 public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 

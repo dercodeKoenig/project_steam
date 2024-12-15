@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.BlockMotor;
+package ProjectSteam.Blocks.Mechanics.BlockMotor;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;

@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.Clutch;
+package ProjectSteam.Blocks.Mechanics.Clutch;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;

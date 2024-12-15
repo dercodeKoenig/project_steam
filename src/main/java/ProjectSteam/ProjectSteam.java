@@ -1,13 +1,13 @@
 package ProjectSteam;
 
-import ProjectSteam.Blocks.mechanics.Axle.RenderWoodenAxle;
-import ProjectSteam.Blocks.mechanics.CrankShaft.RenderWoodenCrankShaft;
-import ProjectSteam.Blocks.mechanics.FlyWheel.RenderWoodenFlyWheel;
-import ProjectSteam.Blocks.mechanics.BlockMotor.RenderMotor;
-import ProjectSteam.Blocks.mechanics.DistributorGearbox.RenderDistributorGearbox;
-import ProjectSteam.Blocks.mechanics.Gearbox.RenderGearbox;
-import ProjectSteam.Blocks.mechanics.HandGenerator.RenderHandGenerator;
-import ProjectSteam.Blocks.mechanics.TJunction.RenderTJunction;
+import ProjectSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
+import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderWoodenCrankShaft;
+import ProjectSteam.Blocks.Mechanics.FlyWheel.RenderWoodenFlyWheel;
+import ProjectSteam.Blocks.Mechanics.BlockMotor.RenderMotor;
+import ProjectSteam.Blocks.Mechanics.DistributorGearbox.RenderDistributorGearbox;
+import ProjectSteam.Blocks.Mechanics.Gearbox.RenderGearbox;
+import ProjectSteam.Blocks.Mechanics.HandGenerator.RenderHandGenerator;
+import ProjectSteam.Blocks.Mechanics.TJunction.RenderTJunction;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;

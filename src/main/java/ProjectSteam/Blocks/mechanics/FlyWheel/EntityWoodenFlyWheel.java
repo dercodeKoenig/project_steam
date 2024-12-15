@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.FlyWheel;
+package ProjectSteam.Blocks.Mechanics.FlyWheel;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;

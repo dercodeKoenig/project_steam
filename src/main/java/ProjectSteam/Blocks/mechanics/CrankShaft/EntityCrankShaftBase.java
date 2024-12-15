@@ -1,9 +1,9 @@
-package ProjectSteam.Blocks.mechanics.CrankShaft;
+package ProjectSteam.Blocks.Mechanics.CrankShaft;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.core.AbstractMechanicalBlock;
-import ProjectSteam.core.IMechanicalBlockProvider;
+import ProjectSteam.Core.AbstractMechanicalBlock;
+import ProjectSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -14,8 +14,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -26,12 +24,12 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import javax.annotation.Nullable;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
-import static ProjectSteam.Blocks.mechanics.CrankShaft.BlockCrankShaftBase.ROTATION_AXIS;
-import static ProjectSteam.Static.WOODEN_SOUNDS;
+import static ProjectSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase.ROTATION_AXIS;
 
 public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
@@ -196,5 +194,24 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
         tag.putInt("rotationOffset", rotationoffset);
+    }
+
+
+
+    public Map<Direction, AbstractMechanicalBlock> getConnectedParts(IMechanicalBlockProvider mechanicalBlockProvider, @Nullable AbstractMechanicalBlock MechanicalBlock) {
+        Map<Direction, AbstractMechanicalBlock> connectedBlocks = IMechanicalBlockProvider.super.getConnectedParts(mechanicalBlockProvider,MechanicalBlock);
+
+
+        AbstractMechanicalBlock mechanicalBlock = myMechanicalBlock;
+        for (Direction i : Direction.values()) {
+                BlockEntity otherBE = mechanicalBlock.me.getBlockEntity().getLevel().getBlockEntity(mechanicalBlock.me.getBlockEntity().getBlockPos().relative(i));
+                if (otherBE instanceof ICrankShaftConnector && otherBE instanceof IMechanicalBlockProvider p) {
+                    AbstractMechanicalBlock other = p.getMechanicalBlock(i.getOpposite());
+                    if (other instanceof AbstractMechanicalBlock otherMechBlock) {
+                        connectedBlocks.put(i, otherMechBlock);
+                    }
+                }
+        }
+        return connectedBlocks;
     }
 }

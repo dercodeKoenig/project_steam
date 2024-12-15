@@ -1,4 +1,4 @@
-package ProjectSteam.core;
+package ProjectSteam.Core;
 
 import ARLib.network.PacketBlockEntity;
 import net.minecraft.client.Minecraft;

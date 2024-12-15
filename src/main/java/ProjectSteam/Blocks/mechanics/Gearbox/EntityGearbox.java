@@ -1,8 +1,8 @@
-package ProjectSteam.Blocks.mechanics.Gearbox;
+package ProjectSteam.Blocks.Mechanics.Gearbox;
 
 import ARLib.network.INetworkTagReceiver;
-import ProjectSteam.core.AbstractMechanicalBlock;
-import ProjectSteam.core.IMechanicalBlockProvider;
+import ProjectSteam.Core.AbstractMechanicalBlock;
+import ProjectSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;

@@ -1,4 +1,4 @@
-package ProjectSteam.core;
+package ProjectSteam.Core;
 
 public class MechanicalFlowData {
 

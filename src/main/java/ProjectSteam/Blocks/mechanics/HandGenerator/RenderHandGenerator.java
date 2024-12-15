@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.HandGenerator;
+package ProjectSteam.Blocks.Mechanics.HandGenerator;
 
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;

@@ -1,4 +1,4 @@
-package ProjectSteam.Blocks.mechanics.Axle;
+package ProjectSteam.Blocks.Mechanics.Axle;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;

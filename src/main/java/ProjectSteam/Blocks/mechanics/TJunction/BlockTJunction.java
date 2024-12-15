@@ -1,6 +1,6 @@
-package ProjectSteam.Blocks.mechanics.TJunction;
+package ProjectSteam.Blocks.Mechanics.TJunction;
 
-import ProjectSteam.core.AbstractMechanicalBlock;
+import ProjectSteam.Core.AbstractMechanicalBlock;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;

@@ -1,9 +1,9 @@
-package ProjectSteam.Blocks.mechanics.FlyWheel;
+package ProjectSteam.Blocks.Mechanics.FlyWheel;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.core.AbstractMechanicalBlock;
-import ProjectSteam.core.IMechanicalBlockProvider;
+import ProjectSteam.Core.AbstractMechanicalBlock;
+import ProjectSteam.Core.IMechanicalBlockProvider;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -14,8 +14,6 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.sounds.SoundEvent;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -30,8 +28,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.UUID;
 
-import static ProjectSteam.Blocks.mechanics.FlyWheel.BlockFlyWheelBase.ROTATION_AXIS;
-import static ProjectSteam.Static.WOODEN_SOUNDS;
+import static ProjectSteam.Blocks.Mechanics.FlyWheel.BlockFlyWheelBase.ROTATION_AXIS;
 
 public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 

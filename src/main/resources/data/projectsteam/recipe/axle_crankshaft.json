@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " I ",
+    " A ",
+    "   "
+  ],
+  "key": {
+    "I": {
+      "tag": "minecraft:planks"
+    },
+    "A": {
+      "item": "projectsteam:axle"
+    }
+  },
+  "result": {
+    "id": "projectsteam:axle_crankshaft",
+    "count": 1
+  }
+}

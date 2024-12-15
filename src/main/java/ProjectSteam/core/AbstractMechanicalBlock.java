@@ -219,7 +219,7 @@ public abstract class AbstractMechanicalBlock {
     // will also compute the momentum and calculate new velocity
     public void mechanicalOnload() {
 
-        propagateResetRotation(0, null, new HashSet<>());
+        propagateResetRotation(currentRotation, null, new HashSet<>());
 
         if (!me.getBlockEntity().getLevel().isClientSide()) {
             MechanicalFlowData data = new MechanicalFlowData();
@@ -520,12 +520,14 @@ public abstract class AbstractMechanicalBlock {
     public void mechanicalLoadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         CompoundTag myTag = tag.getCompound("MechanicalBlock_" + this.id);
         internalVelocity = myTag.getDouble("internalVelocity");
+        currentRotation = myTag.getDouble("currentRotation");
     }
 
 
     public void mechanicalSaveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         CompoundTag myTag = new CompoundTag();
         myTag.putDouble("internalVelocity", internalVelocity);
+        myTag.putDouble("currentRotation", currentRotation);
 
         tag.put("MechanicalBlock_" + this.id, myTag);
     }

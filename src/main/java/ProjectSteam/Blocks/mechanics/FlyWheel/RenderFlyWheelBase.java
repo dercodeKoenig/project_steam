@@ -34,7 +34,7 @@ public class RenderFlyWheelBase implements BlockEntityRenderer<EntityFlyWheelBas
         super();
         this.tex = texture;
         try {
-            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/small_crankshaft.obj"));
+            model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_new.obj"));
             flywheel = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/flywheel.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);

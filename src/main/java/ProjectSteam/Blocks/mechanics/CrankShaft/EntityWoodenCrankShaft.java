@@ -12,7 +12,7 @@ public class EntityWoodenCrankShaft extends EntityCrankShaftBase {
 
     public EntityWoodenCrankShaft(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_CRANKSHAFT.get(), pos, blockState);
-        maxStress = 100;
+        maxStress = 300;
         myInertia = 1;
         myFriction = 0.1;
     }

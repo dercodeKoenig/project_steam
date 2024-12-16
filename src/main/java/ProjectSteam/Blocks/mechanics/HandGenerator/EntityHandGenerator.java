@@ -23,16 +23,10 @@ import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityHandGenerator extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
-    VertexBuffer vertexBuffer2;
-    MeshData mesh2;
     public double myForce = 0;
 
     public static double MAX_FORCE = 100;
     public static double MAX_SPEED = 20;
-
-    int lastLight = 0;
 
     int ticksRemainingForForce = 0;
 
@@ -80,13 +74,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-                vertexBuffer2.close();
-            });
-
-        }
         super.setRemoved();
     }
 
@@ -124,14 +111,6 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
     public EntityHandGenerator(BlockPos pos, BlockState blockState) {
         super(ENTITY_HAND_GENERATOR.get(), pos, blockState);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
-
     }
 
 

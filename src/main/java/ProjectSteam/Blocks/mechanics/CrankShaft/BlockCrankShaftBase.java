@@ -40,7 +40,11 @@ public abstract class BlockCrankShaftBase extends Block implements EntityBlock {
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
             Direction.Axis newAxis;
-            newAxis = placer.getDirection().getClockWise().getAxis();
+            if(!placer.isShiftKeyDown())
+                newAxis = placer.getDirection().getClockWise().getAxis();
+            else{
+                newAxis = placer.getDirection().getAxis();
+            }
             // Set the block state with the correct axis
             level.setBlock(pos, state.setValue(ROTATION_AXIS, newAxis), 3);
         }

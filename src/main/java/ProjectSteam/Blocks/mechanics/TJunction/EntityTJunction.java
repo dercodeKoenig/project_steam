@@ -27,13 +27,6 @@ import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityTJunction extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
-    VertexBuffer vertexBuffer2;
-    MeshData mesh2;
-    int lastLight = 0;
-
-
     double myInertia = 0.5;
     double myFriction = 10;
     double maxStress = 600;
@@ -162,24 +155,10 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
 
     public EntityTJunction(BlockPos pos, BlockState blockState) {
         super(ENTITY_TJUNCTION.get(), pos, blockState);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                vertexBuffer2 = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
     }
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-                vertexBuffer2.close();
-            });
-
-        }
         super.setRemoved();
     }
 

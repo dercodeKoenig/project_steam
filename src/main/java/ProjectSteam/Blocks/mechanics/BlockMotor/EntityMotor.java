@@ -89,11 +89,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     int clientRPMForVisualEffects;
 
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
-
-    int lastLight = 0;
-
     IGuiHandler guiHandler;
     BlockEntityBattery energyStorage;
 
@@ -117,12 +112,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         super(ENTITY_MOTOR.get(), pos, blockState);
 
         //System.out.println("max constant torque before overheat:" + maxConstantTorqueAllowedBeforeOverheat);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
 
         energyStorage = new BlockEntityBattery(this, 10000);
 
@@ -214,12 +203,6 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-
-        }
         super.setRemoved();
     }
 

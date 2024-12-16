@@ -25,6 +25,8 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
 
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
+    static VertexBuffer vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);;
+    static MeshData mesh;
 
     static {
         try {
@@ -32,25 +34,22 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
+
+
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("Cube").faces) {
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
+        }
+        mesh = b.build();
+        vertexBuffer.bind();
+        vertexBuffer.upload(mesh);
+        byteBuffer.close();
     }
 
 
     public RenderDistributorGearbox(BlockEntityRendererProvider.Context c) {
         super();
-    }
-
-
-    void renderModelWithLight(EntityDistributorGearbox tile, int light) {
-
-        tile.vertexBuffer.bind();
-        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("Cube").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        tile.mesh = b.build();
-        tile.vertexBuffer.upload(tile.mesh);
-        byteBuffer.close();
     }
 
     @Override
@@ -59,18 +58,6 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
         if (myState.getBlock() instanceof BlockDistributorGearbox) {
             Direction.Axis normalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
 
-            RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
-            LIGHTMAP.setupRenderState();
-            LEQUAL_DEPTH_TEST.setupRenderState();
-            NO_TRANSPARENCY.setupRenderState();
-            RenderSystem.setShaderTexture(0, tex);
-
-            if (packedLight != tile.lastLight) {
-                tile.lastLight = packedLight;
-                renderModelWithLight(tile, packedLight);
-            }
-
-            ShaderInstance shader = RenderSystem.getShader();
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
 
@@ -84,8 +71,15 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(1f, 0, 0, 90));
             }
 
+            RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
+            LIGHTMAP.setupRenderState();
+            LEQUAL_DEPTH_TEST.setupRenderState();
+            NO_TRANSPARENCY.setupRenderState();
+            RenderSystem.setShaderTexture(0, tex);
 
-            tile.vertexBuffer.bind();
+            ShaderInstance shader = RenderSystem.getShader();
+            vertexBuffer.bind();
+
             for (int i = 0; i < 4; i++) {
                 Matrix4f m2 = new Matrix4f(m1);
                 m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 1, 0f, (float) 90 * i));
@@ -101,9 +95,9 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
 
                 shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
                 shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-
+                shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
                 shader.apply();
-                tile.vertexBuffer.draw();
+                vertexBuffer.draw();
             }
             shader.clear();
             VertexBuffer.unbind();

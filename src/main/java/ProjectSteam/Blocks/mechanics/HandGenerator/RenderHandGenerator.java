@@ -26,45 +26,47 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
 
+    static VertexBuffer vertexBuffer= new VertexBuffer(VertexBuffer.Usage.STATIC);
+    static MeshData mesh;
+    static     VertexBuffer vertexBuffer2= new VertexBuffer(VertexBuffer.Usage.STATIC);
+    static MeshData mesh2;
+
     static {
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/handcranked_generator.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
-    }
-
-
-    public RenderHandGenerator(BlockEntityRendererProvider.Context c) {
-        super();
-    }
-
-
-    void renderModelWithLight(EntityHandGenerator tile, int light) {
 
 
         ByteBufferBuilder byteBuffer;
         BufferBuilder b;
 
-        tile.vertexBuffer2.bind();
         byteBuffer = new ByteBufferBuilder(1024);
         b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
         for (Face i : model.groupObjects.get("fly_wheel").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
         }
-        tile.mesh2 = b.build();
-        tile.vertexBuffer2.upload(tile.mesh2);
+        mesh2 = b.build();
+        vertexBuffer2.bind();
+        vertexBuffer2.upload(mesh2);
         byteBuffer.close();
 
-        tile.vertexBuffer.bind();
+
         byteBuffer = new ByteBufferBuilder(1024);
         b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
         for (Face i : model.groupObjects.get("hand_wheel").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
         }
-        tile.mesh = b.build();
-        tile.vertexBuffer.upload(tile.mesh);
+        mesh = b.build();
+        vertexBuffer.bind();
+        vertexBuffer.upload(mesh);
         byteBuffer.close();
+    }
+
+
+    public RenderHandGenerator(BlockEntityRendererProvider.Context c) {
+        super();
     }
 
     @Override
@@ -74,18 +76,6 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
         if (axleState.getBlock() instanceof BlockHandGenerator) {
             Direction facing = axleState.getValue(BlockHandGenerator.FACING);
 
-            RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
-            LIGHTMAP.setupRenderState();
-            LEQUAL_DEPTH_TEST.setupRenderState();
-            NO_TRANSPARENCY.setupRenderState();
-            RenderSystem.setShaderTexture(0, tex);
-
-            if (packedLight != tile.lastLight) {
-                tile.lastLight = packedLight;
-                renderModelWithLight(tile, packedLight);
-            }
-
-            ShaderInstance shader = RenderSystem.getShader();
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
             m1 = m1.translate(0.5f, 0.5f, 0.5f);
@@ -107,25 +97,36 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
                 //rotorRotationMultiplier = -1;
             }
 
+
+            RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
+            LIGHTMAP.setupRenderState();
+            LEQUAL_DEPTH_TEST.setupRenderState();
+            NO_TRANSPARENCY.setupRenderState();
+            RenderSystem.setShaderTexture(0, tex);
+
+            ShaderInstance shader = RenderSystem.getShader();
+
             Matrix4f m2 = new Matrix4f(m1);
             m2 = m2.translate(0.0f, 0.0f, -0.2f);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1.0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick))));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-
+            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
-            tile.vertexBuffer2.bind();
-            tile.vertexBuffer2.draw();
+
+            vertexBuffer2.bind();
+            vertexBuffer2.draw();
 
             m2 = new Matrix4f(m1);
             m2 = m2.translate(0.0f, 0.1f, 0.2f);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick))));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-
+            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
-            tile.vertexBuffer.bind();
-            tile.vertexBuffer.draw();
+
+            vertexBuffer.bind();
+            vertexBuffer.draw();
 
             shader.clear();
             VertexBuffer.unbind();

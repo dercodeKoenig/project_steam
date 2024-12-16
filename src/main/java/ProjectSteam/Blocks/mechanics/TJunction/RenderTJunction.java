@@ -25,13 +25,36 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
-
+    static VertexBuffer vertexBuffer= new VertexBuffer(VertexBuffer.Usage.STATIC);
+    static MeshData mesh;
+    static     VertexBuffer vertexBuffer2= new VertexBuffer(VertexBuffer.Usage.STATIC);
+    static MeshData mesh2;
     static {
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/t_junction.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
+
+        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(2048);
+        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("gear2").faces) {
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
+        }
+        mesh2 = b.build();
+        vertexBuffer2.bind();
+        vertexBuffer2.upload(mesh2);
+        byteBuffer.close();
+
+        byteBuffer = new ByteBufferBuilder(1024);
+        b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
+        for (Face i : model.groupObjects.get("gear1").faces) {
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
+        }
+        mesh = b.build();
+        vertexBuffer.bind();
+        vertexBuffer.upload(mesh);
+        byteBuffer.close();
     }
 
 
@@ -40,28 +63,6 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
     }
 
 
-    void renderModelWithLight(EntityTJunction tile, int light) {
-
-        tile.vertexBuffer2.bind();
-        ByteBufferBuilder byteBuffer = new ByteBufferBuilder(2048);
-        BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("gear2").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        tile.mesh2 = b.build();
-        tile.vertexBuffer2.upload(tile.mesh2);
-        byteBuffer.close();
-
-        tile.vertexBuffer.bind();
-         byteBuffer = new ByteBufferBuilder(1024);
-         b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
-        for (Face i : model.groupObjects.get("gear1").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
-        }
-        tile.mesh = b.build();
-        tile.vertexBuffer.upload(tile.mesh);
-        byteBuffer.close();
-    }
 
     @Override
     public void render(EntityTJunction tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
@@ -71,16 +72,13 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
             Direction.Axis axis = myState.getValue(BlockTJunction.AXIS);
             Direction facing = myState.getValue(BlockTJunction.FACING);
 
-            RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
+            RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
             LIGHTMAP.setupRenderState();
             LEQUAL_DEPTH_TEST.setupRenderState();
             NO_TRANSPARENCY.setupRenderState();
             RenderSystem.setShaderTexture(0, tex);
 
-            if (packedLight != tile.lastLight) {
-                tile.lastLight = packedLight;
-                renderModelWithLight(tile, packedLight);
-            }
+            ShaderInstance shader = RenderSystem.getShader();
 
             boolean isInverted = myState.getValue(BlockTJunction.INVERTED);
             float inversionMultiplier = isInverted ? -1f:1f;
@@ -116,13 +114,13 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, 1f, (float) (inversionMultiplier*14.7f+ (tile.myMechanicalBlock.currentRotation * rotationMultiplier + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick * rotationMultiplier))));
 
-            ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-
+            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
-            tile.vertexBuffer.bind();
-            tile.vertexBuffer.draw();
+            
+            vertexBuffer.bind();
+            vertexBuffer.draw();
 
 
             m2 = new Matrix4f(m1);
@@ -141,10 +139,11 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());
-
+            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
-            tile.vertexBuffer2.bind();
-            tile.vertexBuffer2.draw();
+
+            vertexBuffer2.bind();
+            vertexBuffer2.draw();
 
 
 

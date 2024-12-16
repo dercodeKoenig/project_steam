@@ -23,30 +23,35 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 
 public class RenderAxleBase implements BlockEntityRenderer<EntityAxleBase> {
 
-    public WavefrontObject model;
-    public ResourceLocation tex;
-    
-    public RenderAxleBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
-        super();
-        this.tex = texture;
+    static WavefrontObject model;
+    static ResourceLocation tex;
+     static VertexBuffer vertexBuffer =new VertexBuffer(VertexBuffer.Usage.STATIC);;
+     static MeshData mesh;
+
+    static {
         try {
             model = new WavefrontObject(ResourceLocation.fromNamespaceAndPath("projectsteam", "objmodels/rod_new.obj"));
         } catch (ModelFormatException ex) {
             throw new RuntimeException(ex);
         }
-    }
 
-
-    void renderModelWithLight(EntityAxleBase tile, int light) {
         ByteBufferBuilder byteBuffer = new ByteBufferBuilder(1024);
         BufferBuilder b = new BufferBuilder(byteBuffer, VertexFormat.Mode.TRIANGLES, POSITION_COLOR_TEXTURE_NORMAL_LIGHT);
         for (Face i : model.groupObjects.get("Cube").faces) {
-            i.addFaceForRender(new PoseStack(), b, light, 0, 0xffffffff);
+            i.addFaceForRender(new PoseStack(), b, 0, 0, 0xffffffff);
         }
-        tile.mesh = b.build();
-        tile.vertexBuffer.upload(tile.mesh);
+        mesh = b.build();
+        vertexBuffer.bind();
+        vertexBuffer.upload(mesh);
         byteBuffer.close();
     }
+
+
+    public RenderAxleBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
+        super();
+        this.tex = texture;
+    }
+
 
     @Override
     public void render(EntityAxleBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
@@ -55,21 +60,6 @@ public class RenderAxleBase implements BlockEntityRenderer<EntityAxleBase> {
         if (axleState.getBlock() instanceof BlockAxleBase) {
             Direction.Axis facingAxis = axleState.getValue(BlockAxleBase.ROTATION_AXIS);
 
-            tile.vertexBuffer.bind();
-
-
-            RenderSystem.setShader(Static::getEntitySolidDynamicNormalShader);
-            LIGHTMAP.setupRenderState();
-            LEQUAL_DEPTH_TEST.setupRenderState();
-            NO_TRANSPARENCY.setupRenderState();
-            RenderSystem.setShaderTexture(0, tex);
-
-            if (packedLight != tile.lastLight) {
-                tile.lastLight = packedLight;
-                renderModelWithLight(tile, packedLight);
-            }
-
-            ShaderInstance shader = RenderSystem.getShader();
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
 
@@ -86,11 +76,23 @@ public class RenderAxleBase implements BlockEntityRenderer<EntityAxleBase> {
             m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg((float) 0, (float) 0, 1.0f, (float) ( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick)));
             //System.out.println(tile.currentRotation);
 
+
+
+            RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
+            LIGHTMAP.setupRenderState();
+            LEQUAL_DEPTH_TEST.setupRenderState();
+            NO_TRANSPARENCY.setupRenderState();
+            RenderSystem.setShaderTexture(0, tex);
+
+            ShaderInstance shader = RenderSystem.getShader();
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m1, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m1).invert().transpose());
-
+            shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');
             shader.apply();
-            tile.vertexBuffer.draw();
+
+            vertexBuffer.bind();
+            vertexBuffer.draw();
+
             shader.clear();
             VertexBuffer.unbind();
 

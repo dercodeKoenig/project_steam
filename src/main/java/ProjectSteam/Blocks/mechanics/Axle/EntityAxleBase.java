@@ -20,10 +20,6 @@ import static ProjectSteam.Blocks.Mechanics.Axle.BlockAxleBase.ROTATION_AXIS;
 
 public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
-    int lastLight = 0;
-
     public double myInertia;
     public double myFriction;
     public double maxStress;
@@ -56,22 +52,10 @@ public class EntityAxleBase extends BlockEntity implements IMechanicalBlockProvi
 
     public EntityAxleBase(BlockEntityType t, BlockPos pos, BlockState blockState) {
         super(t, pos, blockState);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
     }
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-
-        }
         super.setRemoved();
     }
 

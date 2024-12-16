@@ -26,11 +26,6 @@ import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityDistributorGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    VertexBuffer vertexBuffer;
-    MeshData mesh;
-    int lastLight = 0;
-
-
     double myInertia = 0.5;
     double myFriction = 10;
     double maxStress = 600;
@@ -175,22 +170,10 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
 
     public EntityDistributorGearbox(BlockPos pos, BlockState blockState) {
         super(ENTITY_DISTRIBUTOR_GEARBOX.get(), pos, blockState);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
     }
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer.close();
-            });
-
-        }
         super.setRemoved();
     }
 

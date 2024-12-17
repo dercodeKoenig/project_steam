@@ -67,11 +67,6 @@ public abstract class BlockFlyWheelBase extends Block implements EntityBlock {
         return state;
     }
 
-    @Override
-    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
-        return Shapes.create(0, 0, 0, 1, 0.75, 1);
-    }
-
     
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {

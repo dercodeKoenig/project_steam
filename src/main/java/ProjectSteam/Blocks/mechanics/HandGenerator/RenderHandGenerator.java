@@ -118,7 +118,7 @@ public class RenderHandGenerator implements BlockEntityRenderer<EntityHandGenera
             vertexBuffer2.draw();
 
             m2 = new Matrix4f(m1);
-            m2 = m2.translate(0.0f, 0.1f, 0.2f);
+            m2 = m2.translate(0.0f, 0.08f, 0.205f);
             m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 1f, 0f, (float) (rotorRotationMultiplier*( tile.myMechanicalBlock.currentRotation+rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS*partialTick))));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set(new Matrix3f(m2).invert().transpose());

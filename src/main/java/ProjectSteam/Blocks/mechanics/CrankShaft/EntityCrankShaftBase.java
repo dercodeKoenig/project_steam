@@ -82,6 +82,8 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
 
                 for (Direction i : connections.keySet()) {
                     double rotationToOutside = (currentRotation - rotationoffset * 90) * getRotationMultiplierToOutside(i);
+                    if(connections.get(i).me.getBlockEntity() instanceof ICrankShaftConnector)
+                         rotationToOutside = (currentRotation) * getRotationMultiplierToOutside(i);
                     connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }

@@ -1,8 +1,8 @@
 {
   "type": "minecraft:crafting_shaped",
   "pattern": [
-    " I ",
     " A ",
+    "AIA",
     "   "
   ],
   "key": {
@@ -14,7 +14,7 @@
     }
   },
   "result": {
-    "id": "projectsteam:wooden_crankshaft",
+    "id": "projectsteam:wooden_crankshaft_big",
     "count": 1
   }
 }

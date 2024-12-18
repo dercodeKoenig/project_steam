@@ -1,7 +1,8 @@
 package ProjectSteam;
 
 import ProjectSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
-import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderWoodenCrankShaft;
+import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderBigWoodenCrankShaft;
+import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderSmallWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.RenderWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.RenderMotor;
 import ProjectSteam.Blocks.Mechanics.DistributorGearbox.RenderDistributorGearbox;
@@ -58,7 +59,8 @@ public class ProjectSteam {
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_WOODEN_AXLE.get(), RenderWoodenAxle::new);
         event.registerBlockEntityRenderer(ENTITY_WOODEN_FLYWHEEL.get(), RenderWoodenFlyWheel::new);
-        event.registerBlockEntityRenderer(ENTITY_WOODEN_CRANKSHAFT.get(), RenderWoodenCrankShaft::new);
+        event.registerBlockEntityRenderer(ENTITY_SMALL_WOODEN_CRANKSHAFT.get(), RenderSmallWoodenCrankShaft::new);
+        event.registerBlockEntityRenderer(ENTITY_BIG_WOODEN_CRANKSHAFT.get(), RenderBigWoodenCrankShaft::new);
         event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
@@ -75,7 +77,8 @@ public class ProjectSteam {
         if (e.getTab().equals(PROJECTSTEAM_CREATIVETAB.get())) {
             e.accept(WOODEN_AXLE.get());
             e.accept(WOODEN_FLYWHEEL.get());
-            e.accept(WOODEN_CRANKSHAFT.get());
+            e.accept(SMALL_WOODEN_CRANKSHAFT.get());
+            e.accept(BIG_WOODEN_CRANKSHAFT.get());
             e.accept(DISTRIBUTOR_GEARBOX.get());
             e.accept(GEARBOX.get());
             e.accept(MOTOR.get());

@@ -5,14 +5,15 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.state.BlockState;
 
-import static ProjectSteam.Registry.ENTITY_WOODEN_CRANKSHAFT;
+import static ProjectSteam.Registry.ENTITY_BIG_WOODEN_CRANKSHAFT;
+import static ProjectSteam.Registry.ENTITY_SMALL_WOODEN_CRANKSHAFT;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
-public class EntityWoodenCrankShaft extends EntityCrankShaftBase {
+public class EntityBigWoodenCrankShaft extends EntityCrankShaftBase {
 
-    public EntityWoodenCrankShaft(BlockPos pos, BlockState blockState) {
-        super(ENTITY_WOODEN_CRANKSHAFT.get(), pos, blockState);
-        maxStress = 300;
+    public EntityBigWoodenCrankShaft(BlockPos pos, BlockState blockState) {
+        super(ICrankShaftConnector.CrankShaftType.LARGE,ENTITY_BIG_WOODEN_CRANKSHAFT.get(), pos, blockState);
+        maxStress = 600;
         myInertia = 1;
         myFriction = 0.1;
     }

@@ -4,9 +4,6 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -19,8 +16,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
@@ -40,6 +35,8 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
     public double maxStress;
 
     int rotationoffset;
+
+    ICrankShaftConnector.CrankShaftType myType;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -90,8 +87,9 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
         }
     };
 
-    public EntityCrankShaftBase(BlockEntityType t, BlockPos pos, BlockState blockState) {
+    public EntityCrankShaftBase(ICrankShaftConnector.CrankShaftType myType, BlockEntityType t, BlockPos pos, BlockState blockState) {
         super(t, pos, blockState);
+        this.myType = myType;
     }
 
     @Override
@@ -193,7 +191,7 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
         AbstractMechanicalBlock mechanicalBlock = myMechanicalBlock;
         for (Direction i : Direction.values()) {
                 BlockEntity otherBE = mechanicalBlock.me.getBlockEntity().getLevel().getBlockEntity(mechanicalBlock.me.getBlockEntity().getBlockPos().relative(i));
-                if (otherBE instanceof ICrankShaftConnector && otherBE instanceof IMechanicalBlockProvider p) {
+                if (otherBE instanceof ICrankShaftConnector icc &&  icc.getConnectableCrankshafts().contains(myType) && otherBE instanceof IMechanicalBlockProvider p) {
                     AbstractMechanicalBlock other = p.getMechanicalBlock(i.getOpposite());
                     if (other instanceof AbstractMechanicalBlock otherMechBlock) {
                         connectedBlocks.put(i, otherMechBlock);

@@ -1,7 +1,7 @@
-# Blender 4.2.3 LTS MTL File: 'small_crankshaft.blend'
+# Blender 4.2.3 LTS MTL File: 'big_crankshaft.blend'
 # www.blender.org
 
-newmtl Material_casing
+newmtl Material.001
 Ns 0.000000
 Ka 1.000000 1.000000 1.000000
 Ks 0.000000 0.000000 0.000000

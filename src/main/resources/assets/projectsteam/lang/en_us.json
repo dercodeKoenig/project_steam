@@ -5,8 +5,11 @@
   "block.projectsteam.wooden_flywheel": "Wooden Flywheel",
   "item.projectsteam.wooden_flywheel": "Wooden Flywheel",
 
-  "block.projectsteam.wooden_crankshaft": "Small Wooden Crankshaft",
-  "item.projectsteam.wooden_crankshaft": "Small Wooden Crankshaft",
+  "block.projectsteam.wooden_crankshaft_small": "Small Wooden Crankshaft",
+  "item.projectsteam.wooden_crankshaft_small": "Small Wooden Crankshaft",
+
+  "block.projectsteam.wooden_crankshaft_big": "Big Wooden Crankshaft",
+  "item.projectsteam.wooden_crankshaft_big": "Big Wooden Crankshaft",
 
   "block.projectsteam.gearbox": "Gearbox",
   "item.projectsteam.gearbox": "Gearbox",

@@ -21,7 +21,7 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderCrankShaftBase implements BlockEntityRenderer<EntityCrankShaftBase> {
+public class RenderSmallCrankShaftBase implements BlockEntityRenderer<EntityCrankShaftBase> {
 
     static WavefrontObject model;
     static ResourceLocation tex;
@@ -45,7 +45,7 @@ static{
     byteBuffer.close();
 }
 
-    public RenderCrankShaftBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
+    public RenderSmallCrankShaftBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
         super();
         this.tex = texture;
     }
@@ -54,9 +54,9 @@ static{
     @Override
     public void render(EntityCrankShaftBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
-        BlockState axleState = tile.getBlockState();
-        if (axleState.getBlock() instanceof BlockCrankShaftBase) {
-            Direction.Axis facingAxis = axleState.getValue(BlockCrankShaftBase.ROTATION_AXIS);
+        BlockState state = tile.getBlockState();
+        if (state.getBlock() instanceof BlockCrankShaftBase) {
+            Direction.Axis facingAxis = state.getValue(BlockCrankShaftBase.ROTATION_AXIS);
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());

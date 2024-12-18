@@ -34,9 +34,9 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
     public double myFriction;
     public double maxStress;
 
-    int rotationoffset;
+    public int rotationoffset;
 
-    ICrankShaftConnector.CrankShaftType myType;
+    public ICrankShaftConnector.CrankShaftType myType;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override

@@ -1,0 +1,8 @@
+{
+  "parent": "block/slab",
+  "textures": {
+    "bottom": "projectsteam:block/andesite_casing",
+    "side": "projectsteam:block/andesite_casing_half",
+    "top": "projectsteam:block/andesite_casing"
+  }
+}

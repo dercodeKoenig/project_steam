@@ -87,6 +87,7 @@ public class ProjectSteam {
             e.accept(TJUNCTION.get());
 
             e.accept(CASING.get());
+            e.accept(CASING_SLAB.get());
             e.accept(ITEM_WOODEN_HAMMER.get());
             e.accept(ITEM_WOODEN_GEAR.get());
         }

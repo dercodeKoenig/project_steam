@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "CCC",
+    "   "
+  ],
+  "key": {
+    "C": {
+      "item": "projectsteam:casing"
+    }
+  },
+  "result": {
+    "id": "projectsteam:casing_slab",
+    "count": 3
+  }
+}

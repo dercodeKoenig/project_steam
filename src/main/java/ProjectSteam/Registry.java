@@ -20,6 +20,7 @@ import ProjectSteam.Blocks.Mechanics.HandGenerator.BlockHandGenerator;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.EntityHandGenerator;
 import ProjectSteam.Blocks.Mechanics.TJunction.EntityTJunction;
 import ProjectSteam.Blocks.Mechanics.TJunction.BlockTJunction;
+import ProjectSteam.Blocks.SimpleBlocks.BlockCasingSlab;
 import ProjectSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.sounds.SoundEvent;
@@ -139,6 +140,10 @@ public class Registry {
             "casing",
             () -> new BlockCasing()
     );
+    public static final Supplier<Block> CASING_SLAB = BLOCKS.register(
+            "casing_slab",
+            () -> new BlockCasingSlab()
+    );
 
 
     public static final Supplier<Item> ITEM_WOODEN_HAMMER = ITEMS.register(
@@ -176,6 +181,7 @@ public class Registry {
         registerBlockItem("tjunction", TJUNCTION);
 
         registerBlockItem("casing", CASING);
+        registerBlockItem("casing_slab", CASING_SLAB);
     }
 
     public static final DeferredRegister<SoundEvent> SOUND_EVENTS =

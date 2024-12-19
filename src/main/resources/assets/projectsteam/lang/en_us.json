@@ -31,6 +31,8 @@
 
   "block.projectsteam.casing": "Casing",
   "item.projectsteam.casing": "Casing",
+  "block.projectsteam.casing_slab": "Casing Slab",
+  "item.projectsteam.casing_slab": "Casing Slab",
 
   "item.projectsteam.wooden_hammer": "Wooden Hammer",
   "item.projectsteam.wooden_gear": "Wooden Gear"

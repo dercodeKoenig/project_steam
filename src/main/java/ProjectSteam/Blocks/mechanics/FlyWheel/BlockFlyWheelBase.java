@@ -66,6 +66,17 @@ public abstract class BlockFlyWheelBase extends Block implements EntityBlock {
         }
         return state;
     }
+    @Override
+    public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
+        if (state.getValue(ROTATION_AXIS) == Direction.Axis.Y)
+            return Shapes.create(0.25, 0, 0.25, 0.75, 1, 0.75);
+        else if (state.getValue(ROTATION_AXIS) == Direction.Axis.X)
+            return Shapes.create(0, 0.25, 0.25, 1, 0.75, 0.75);
+        else if (state.getValue(ROTATION_AXIS) == Direction.Axis.Z)
+            return Shapes.create(0.25, 0.25, 0, 0.75, 0.75, 1);
+
+        else return Shapes.create(0.25, 0.25, 0.25, 0.75, 0.75, 0.75);
+    }
 
     
     @Override

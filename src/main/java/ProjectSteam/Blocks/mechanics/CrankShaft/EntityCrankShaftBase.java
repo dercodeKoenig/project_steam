@@ -113,6 +113,8 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
             Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
             if (side.getAxis() == blockAxis) {
                 return myMechanicalBlock;
+            } else if (level.getBlockEntity(getBlockPos().relative(side)) instanceof ICrankShaftConnector icc) {
+                return myMechanicalBlock;
             }
         }
         return null;
@@ -180,24 +182,5 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
         tag.putInt("rotationOffset", rotationoffset);
-    }
-
-
-
-    public Map<Direction, AbstractMechanicalBlock> getConnectedParts(IMechanicalBlockProvider mechanicalBlockProvider, @Nullable AbstractMechanicalBlock MechanicalBlock) {
-        Map<Direction, AbstractMechanicalBlock> connectedBlocks = IMechanicalBlockProvider.super.getConnectedParts(mechanicalBlockProvider,MechanicalBlock);
-
-
-        AbstractMechanicalBlock mechanicalBlock = myMechanicalBlock;
-        for (Direction i : Direction.values()) {
-                BlockEntity otherBE = mechanicalBlock.me.getBlockEntity().getLevel().getBlockEntity(mechanicalBlock.me.getBlockEntity().getBlockPos().relative(i));
-                if (otherBE instanceof ICrankShaftConnector icc &&  icc.getConnectableCrankshafts().contains(myType) && otherBE instanceof IMechanicalBlockProvider p) {
-                    AbstractMechanicalBlock other = p.getMechanicalBlock(i.getOpposite());
-                    if (other instanceof AbstractMechanicalBlock otherMechBlock) {
-                        connectedBlocks.put(i, otherMechBlock);
-                    }
-                }
-        }
-        return connectedBlocks;
     }
 }

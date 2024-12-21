@@ -128,7 +128,7 @@ public abstract class AbstractMechanicalBlock {
 
     public void applyRotations() {
         currentRotation += rad_to_degree(internalVelocity) / TPS;
-        double eqs = 2 * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9;
+        double eqs = 2 * 2 * 3 * 3; // add this to fix parts with different gear ratios bug around
         if (currentRotation > 360 * eqs) currentRotation -= 360 * eqs;
         if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
     }

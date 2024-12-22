@@ -37,7 +37,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
     Map<Direction, Double> current_force = new HashMap<>();
 
     double massPerSide = 1;
-    double baseFrictionPerSide = 5;
+    double baseFrictionPerSide = 1;
 
     public AbstractMechanicalBlock myMechanicalBlockA = new AbstractMechanicalBlock(0, this) {
         @Override

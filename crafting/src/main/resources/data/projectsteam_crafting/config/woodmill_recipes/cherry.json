@@ -1,5 +1,5 @@
 {
   "inputItem": { "id": "minecraft:cherry_log", "amount": 1 },
   "outputItems": [{ "id": "minecraft:cherry_planks", "amount": 8 }],
-  "additionalResistance": 50.0
+  "additionalResistance": 20.0
 }

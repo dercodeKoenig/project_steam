@@ -1,5 +1,6 @@
-package ProjectSteamAW2Generators.WaterWheel;
+package ProjectSteamAW2Generators.WindMill;
 
+import ProjectSteamAW2Generators.WaterWheel.EntityWaterWheelGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
@@ -16,11 +17,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
+import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 
 
-public class BlockWaterWheelGenerator extends Block implements EntityBlock {
+public class BlockWindMillGenerator extends Block implements EntityBlock {
 
-    public BlockWaterWheelGenerator() {
+    public BlockWindMillGenerator() {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
@@ -35,7 +37,7 @@ public class BlockWaterWheelGenerator extends Block implements EntityBlock {
 
     @Override
     public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_WATERWHEEL_GENERATOR.get().create(blockPos, blockState);
+        return ENTITY_WINDMILL_GENERATOR.get().create(blockPos, blockState);
     }
 
     @Override
@@ -48,10 +50,8 @@ public class BlockWaterWheelGenerator extends Block implements EntityBlock {
         }
     }
 
-
-
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityWaterWheelGenerator::tick;
+        return EntityWindMillGenerator::tick;
     }
 }

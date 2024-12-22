@@ -28,7 +28,7 @@ import static ProjectSteam.Static.WOODEN_SOUNDS;
 public class EntityTJunction extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     double myInertia = 0.5;
-    double myFriction = 10;
+    double myFriction = 2;
     double maxStress = 600;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {

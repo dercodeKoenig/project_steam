@@ -20,11 +20,11 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
     public static double defaultFriction = 1;
-    public static double maxForceMultiplier = 100;
-    public static double k = 100;
+    public static double maxForceMultiplier = 180;
+    public static double k = 180;
 
     double myFriction = 1;
-    double myInertia = 10;
+    double myInertia = 50;
     double maxStress = 600;
     double myForce = 0;
 

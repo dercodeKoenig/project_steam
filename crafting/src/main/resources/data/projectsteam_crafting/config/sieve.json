@@ -4,11 +4,11 @@
   "_comment_inventorySizeHopper": "the max stack size that the hopper upgrade can hold in its inventory",
   "inventorySizeHopper": 64,
   "_comment_baseResistance": "the base resistance the sieve will put on the network",
-  "baseResistance": 10.0,
+  "baseResistance": 5.0,
   "_comment_k": "decrease k to make it work faster in manual mode. very low values(<1) may cause some problems in acceleration calculations",
-  "k": 4.0,
+  "k": 1.0,
   "_comment_clickForce": "The Force that the player will apply to the sieve for 5 ticks after click in manual mode",
-  "clickForce": 100,
+  "clickForce": 50,
 
 
   "_comment_recipe1": "This config file will load first. You can define recipes and the time/resistance for every mesh-input pair",
@@ -24,7 +24,7 @@
         "id": "minecraft:dirt"
       },
       "timeRequired": 3.0,
-      "additionalResistance": 20.0
+      "additionalResistance": 15.0
     },
 
     {
@@ -33,7 +33,7 @@
         "id": "minecraft:sand"
       },
       "timeRequired": 3.0,
-      "additionalResistance": 10.0
+      "additionalResistance": 5.0
     },
 
     {
@@ -42,7 +42,7 @@
         "id": "minecraft:gravel"
       },
       "timeRequired": 3.0,
-      "additionalResistance": 15.0
+      "additionalResistance": 10.0
     }
   ]
 }

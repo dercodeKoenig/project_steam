@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "projectsteam_aw2_generators:block/windmill_blade_cube"
+  }
+}

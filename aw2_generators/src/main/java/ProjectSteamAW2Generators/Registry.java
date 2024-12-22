@@ -2,6 +2,9 @@ package ProjectSteamAW2Generators;
 
 import ProjectSteamAW2Generators.WaterWheel.BlockWaterWheelGenerator;
 import ProjectSteamAW2Generators.WaterWheel.EntityWaterWheelGenerator;
+import ProjectSteamAW2Generators.WindMill.BlockWindMillBlade;
+import ProjectSteamAW2Generators.WindMill.BlockWindMillGenerator;
+import ProjectSteamAW2Generators.WindMill.EntityWindMillGenerator;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -29,9 +32,25 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityWaterWheelGenerator::new, WATERWHEEL_GENERATOR.get()).build(null)
     );
 
+    public static final Supplier<Block> WINDMILL_GENERATOR = BLOCKS.register(
+            "windmill_generator",
+            () -> new BlockWindMillGenerator()
+    );
+    public static final Supplier<BlockEntityType<EntityWindMillGenerator>> ENTITY_WINDMILL_GENERATOR = BLOCK_ENTITIES.register(
+            "entity_windmill_generator",
+            () -> BlockEntityType.Builder.of(EntityWindMillGenerator::new, WINDMILL_GENERATOR.get()).build(null)
+    );
+    public static final Supplier<Block> WINDMILL_BLADE = BLOCKS.register(
+            "windmill_blade",
+            () -> new BlockWindMillBlade()
+    );
+
 
     static {
         registerBlockItem("waterwheel_generator", WATERWHEEL_GENERATOR);
+        registerBlockItem("windmill_generator", WINDMILL_GENERATOR);
+        registerBlockItem("windmill_blade", WINDMILL_BLADE);
+
     }
 
     public static void register(IEventBus modBus) {

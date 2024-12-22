@@ -12,9 +12,9 @@ public class EntityWoodenFlyWheel extends EntityFlyWheelBase {
 
     public EntityWoodenFlyWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_FLYWHEEL.get(), pos, blockState);
-        myInertia = 10;
+        myInertia = 20;
         myFriction = 0.1;
-        maxStress = 500;
+        maxStress = 600;
     }
 
     public void tick(){

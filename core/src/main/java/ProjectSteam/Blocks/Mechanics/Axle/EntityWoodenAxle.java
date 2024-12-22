@@ -14,7 +14,7 @@ public class EntityWoodenAxle extends EntityAxleBase{
 
          myInertia = 1;
          myFriction = 0.1;
-         maxStress = 500;
+         maxStress = 600;
 
     }
 

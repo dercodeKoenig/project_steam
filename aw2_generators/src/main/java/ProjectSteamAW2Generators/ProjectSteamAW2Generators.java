@@ -15,9 +15,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import java.io.IOException;
 
 import static ProjectSteam.Registry.PROJECTSTEAM_CREATIVETAB;
-import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
-import static ProjectSteamAW2Generators.Registry.WATERWHEEL_GENERATOR;
-
+import static ProjectSteamAW2Generators.Registry.*;
 
 
 @Mod("projectsteam_aw2_generators")
@@ -49,6 +47,8 @@ public class ProjectSteamAW2Generators {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(PROJECTSTEAM_CREATIVETAB.get())) {
             e.accept(WATERWHEEL_GENERATOR.get());
+            e.accept(WINDMILL_GENERATOR.get());
+            e.accept(WINDMILL_BLADE.get());
         }
     }
 

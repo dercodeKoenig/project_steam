@@ -34,9 +34,10 @@ public abstract class AbstractMechanicalBlock {
     public Map<UUID, Integer> clientsTrackingThisAsMaster = new HashMap<>();
     public int cttam_timeout = 100;
     public int lastPing = 999999;
-    public int timeWithImpossibleSmoothSync = 0; // only a safety thing that should never be used if all runs good
     public double serverRotation;
+    public double serverVelocity;
     public double last_internalVelocity;
+    public double last_currentRotation;
 
     // only one part of the network will be master during a tick, all the others will skip update
     public boolean hasReceivedUpdate;
@@ -128,9 +129,8 @@ public abstract class AbstractMechanicalBlock {
 
     public void applyRotations() {
         currentRotation += rad_to_degree(internalVelocity) / TPS;
-        double eqs = 2 * 2 * 3 * 3; // add this to fix parts with different gear ratios bug around
-        if (currentRotation > 360 * eqs) currentRotation -= 360 * eqs;
-        if (currentRotation < -360 * eqs) currentRotation += 360 * eqs;
+        if (currentRotation > 360 ) currentRotation -= 360 ;
+        if (currentRotation < -360) currentRotation += 360 ;
     }
 
 // will recursively apply the velocity update to the entire network
@@ -254,13 +254,13 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
-    public void aggregateConnectedParts(Direction receivingFace, Set<AbstractMechanicalBlock> parts) {
+    public void collectConnectedParts(Direction receivingFace, Set<AbstractMechanicalBlock> parts) {
         if (!parts.contains(this)) {
             parts.add(this);
             for (Direction i : connectedParts.keySet()) {
                 if (receivingFace != null && receivingFace == i) continue;
                 AbstractMechanicalBlock b = connectedParts.get(i);
-                b.aggregateConnectedParts(i.getOpposite(), parts);
+                b.collectConnectedParts(i.getOpposite(), parts);
             }
         }
     }
@@ -357,30 +357,28 @@ public abstract class AbstractMechanicalBlock {
     // this should be called in the tick method of the blockentity.
     // I recommend to call it at the start directly so it will make sure that the entire network
     // will perform its tick on the same state of the network.
-    // use the onPropagatedTickEnd() to make calculations before the velocity update if you need to
-    // but usually you can just make your calculations after the mechanicalTick
     public void mechanicalTick() {
 
         BlockEntity myTile = me.getBlockEntity();
         if (myTile.getLevel().isClientSide()) {
             if (!hasReceivedUpdate) {
                 propagateTickBeforeUpdate();
-                HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                propagateVelocityUpdate(internalVelocity, null, workedPositions, false, false);
 
-                double rotationDiff = serverRotation - currentRotation;
-                if (Math.abs(rotationDiff) < 3600) {
-                    // to avoid precision errors, the rotation will not always increase.
-                    // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
-                    // in this case, ignore and wait until the client had reset itself and continue with sync
-                    propagateResetRotation(currentRotation + rotationDiff * 0.01, null, new HashSet<AbstractMechanicalBlock>());
-                    timeWithImpossibleSmoothSync = 0;
-                } else {
-                    timeWithImpossibleSmoothSync++;
-                    if (timeWithImpossibleSmoothSync > 200) {
-                        propagateResetRotation(serverRotation, null, new HashSet<AbstractMechanicalBlock>());
-                    }
-                }
+                double rotationDiff1 = serverRotation - currentRotation;
+                double rotationDiff2 = serverRotation+360 - currentRotation;
+                double rotationDiff3 = serverRotation-360 - currentRotation;
+                double rotationDiff =rotationDiff1;
+                if(Math.abs(rotationDiff2) < Math.abs(rotationDiff))
+                    rotationDiff = rotationDiff2;
+                if(Math.abs(rotationDiff3) < Math.abs(rotationDiff))
+                    rotationDiff = rotationDiff3;
+
+
+
+                internalVelocity = serverVelocity;
+                    internalVelocity += rotationDiff * 0.001;
+
+                propagateVelocityUpdate(internalVelocity, null, new HashSet<>(), false, false);
 
                 if (lastPing > cttam_timeout / 2) {
                     lastPing = 0;
@@ -428,7 +426,7 @@ public abstract class AbstractMechanicalBlock {
                 if (resetStress) {
                     lastTickHadForceToDistribute = true;
                     Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                    aggregateConnectedParts(null, connectedBlocks);
+                    collectConnectedParts(null, connectedBlocks);
                     for (AbstractMechanicalBlock i : connectedBlocks) {
                         if (i.lastAddedForce != 0) {
                             forceDistributionNode n = new forceDistributionNode(i);
@@ -443,7 +441,7 @@ public abstract class AbstractMechanicalBlock {
                 if (lastTickHadForceToDistribute) {
                     lastTickHadForceToDistribute = false;
                     Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                    aggregateConnectedParts(null, connectedBlocks);
+                    collectConnectedParts(null, connectedBlocks);
                     for (AbstractMechanicalBlock i : connectedBlocks) {
                         if (!i.forceDistributionDeq.isEmpty()) {
                             nodeInfo info = i.forceDistributionDeq.removeFirst();
@@ -458,7 +456,10 @@ public abstract class AbstractMechanicalBlock {
         applyRotations();
 
         if(me.getBlockEntity(). getLevel().isClientSide) {
-            serverRotation += rad_to_degree(internalVelocity) / TPS ;
+            serverRotation += rad_to_degree(serverVelocity) / TPS ;
+            if (serverRotation > 360 ) serverRotation -= 360 ;
+            if (serverRotation < -360) serverRotation += 360 ;
+
             if( lastPing < cttam_timeout)
                 lastPing++;
         }
@@ -471,6 +472,10 @@ public abstract class AbstractMechanicalBlock {
                     clientsTrackingThisAsMaster.remove(i);
                     break; // break to prevent concurrent modification bs
                 }
+            }
+            if (last_currentRotation != currentRotation) {
+                last_currentRotation = currentRotation;
+                me.getBlockEntity().setChanged();
             }
             if (last_internalVelocity != internalVelocity) {
                 last_internalVelocity = internalVelocity;
@@ -510,7 +515,7 @@ public abstract class AbstractMechanicalBlock {
     public void mechanicalReadClient(CompoundTag tag) {
         if (tag.contains("velocity") && tag.contains("id"))
             if (tag.getInt("id") == this.id)
-                internalVelocity = tag.getDouble("velocity");
+                serverVelocity = tag.getDouble("velocity");
         if (tag.contains("rotation") && tag.contains("id"))
             if (tag.getInt("id") == this.id)
                 serverRotation = tag.getDouble("rotation");

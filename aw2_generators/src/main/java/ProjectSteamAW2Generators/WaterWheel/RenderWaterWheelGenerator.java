@@ -104,7 +104,7 @@ public class RenderWaterWheelGenerator implements BlockEntityRenderer<EntityWate
 
             Matrix4f m2 = new Matrix4f(m1);
             m2 = m2.translate(0,0,-0.2f);
-            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, (float) (tile.myMechanicalBlock.currentRotation + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
+            m2 = m2.rotate(new Quaternionf().fromAxisAngleDeg(0f, 0f, rotationMultiplier, (float) ((tile.myMechanicalBlock.currentRotation%360) + rad_to_degree(tile.myMechanicalBlock.internalVelocity) / TPS * partialTick)));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set((new Matrix3f(m2)).invert().transpose());
             shader.getUniform("UV2").set(packedLight & '\uffff', packedLight >> 16 & '\uffff');

@@ -75,24 +75,23 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             if (myTile.getLevel().isClientSide()) {
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
-                    HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, false);
 
-                    double rotationDiff = serverRotation - currentRotation;
-                    if (Math.abs(rotationDiff) < 3600) {
-                        // to avoid precision errors, the rotation will not always increase.
-                        // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
-                        // in this case, ignore and wait until the client had reset itself and continue with sync
-                        propagateResetRotation(currentRotation + rotationDiff * 0.01, getBlockState().getValue(BlockClutch.FACING), new HashSet<AbstractMechanicalBlock>());
-                        timeWithImpossibleSmoothSync = 0;
-                    } else {
-                        timeWithImpossibleSmoothSync++;
-                        if (timeWithImpossibleSmoothSync > 200) {
-                            propagateResetRotation(serverRotation, getBlockState().getValue(BlockClutch.FACING), new HashSet<AbstractMechanicalBlock>());
-                        }
-                    }
+                    double rotationDiff1 = serverRotation - currentRotation;
+                    double rotationDiff2 = serverRotation+360 - currentRotation;
+                    double rotationDiff3 = serverRotation-360 - currentRotation;
+                    double rotationDiff =rotationDiff1;
+                    if(Math.abs(rotationDiff2) < Math.abs(rotationDiff))
+                        rotationDiff = rotationDiff2;
+                    if(Math.abs(rotationDiff3) < Math.abs(rotationDiff))
+                        rotationDiff = rotationDiff3;
 
-                    lastPing++;
+
+
+                    internalVelocity = serverVelocity;
+                    internalVelocity += rotationDiff * 0.001;
+
+                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING), new HashSet<>(), false, false);
+
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
                         CompoundTag tag = new CompoundTag();
@@ -103,9 +102,8 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                 }
             }
 
-            if (!hasReceivedUpdate) {
-                if (!myTile.getLevel().isClientSide()) {
-
+            if (!myTile.getLevel().isClientSide()) {
+                if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
 
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
@@ -116,6 +114,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     double t = (double) 1 / TPS;
 
                     data.combinedTransformedInertia = Math.max(data.combinedTransformedInertia, 0.01);
+                    //System.out.println(data.combinedTransformedMass+":"+data.combinedTransformedForce+":"+data.combinedTransformedResistanceForce+":"+internalVelocity);
                     double newVelocity = internalVelocity;
                     newVelocity += data.combinedTransformedForce / data.combinedTransformedInertia * t;
                     float signBefore = (float) Math.signum(newVelocity);
@@ -130,17 +129,16 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     if (newVelocity < internalVelocity - 90)
                         newVelocity = internalVelocity - 90;
 
-                    //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
+                    //System.out.println(t+":"+newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
-
-                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0 && !lastTickHadForceToDistribute;
+                    boolean resetStress = (me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0) && !lastTickHadForceToDistribute;
 
                     propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, resetStress);
 
                     if (resetStress) {
                         lastTickHadForceToDistribute = true;
                         Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                        aggregateConnectedParts(null, connectedBlocks);
+                        collectConnectedParts(null, connectedBlocks);
                         for (AbstractMechanicalBlock i : connectedBlocks) {
                             if (i.lastAddedForce != 0) {
                                 forceDistributionNode n = new forceDistributionNode(i);
@@ -155,7 +153,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     if (lastTickHadForceToDistribute) {
                         lastTickHadForceToDistribute = false;
                         Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                        aggregateConnectedParts(null, connectedBlocks);
+                        collectConnectedParts(null, connectedBlocks);
                         for (AbstractMechanicalBlock i : connectedBlocks) {
                             if (!i.forceDistributionDeq.isEmpty()) {
                                 nodeInfo info = i.forceDistributionDeq.removeFirst();
@@ -168,8 +166,15 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
             }
             hasReceivedUpdate = false;
             applyRotations();
-if(level.isClientSide)
-            serverRotation+=rad_to_degree(internalVelocity) / TPS ;
+
+            if(me.getBlockEntity(). getLevel().isClientSide) {
+                serverRotation += rad_to_degree(serverVelocity) / TPS ;
+                if (serverRotation > 360 ) serverRotation -= 360 ;
+                if (serverRotation < -360) serverRotation += 360 ;
+
+                if( lastPing < cttam_timeout)
+                    lastPing++;
+            }
 
             if (!myTile.getLevel().isClientSide()) {
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
@@ -180,11 +185,16 @@ if(level.isClientSide)
                         break; // break to prevent concurrent modification bs
                     }
                 }
+                if (last_currentRotation != currentRotation) {
+                    last_currentRotation = currentRotation;
+                    me.getBlockEntity().setChanged();
+                }
                 if (last_internalVelocity != internalVelocity) {
                     last_internalVelocity = internalVelocity;
                     me.getBlockEntity().setChanged();
                     CompoundTag updateTag = new CompoundTag();
                     updateTag.putDouble("velocity", internalVelocity);
+                    updateTag.putDouble("rotation", currentRotation);
                     updateTag.putInt("id", id);
                     for (UUID i : clientsTrackingThisAsMaster.keySet()) {
                         ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
@@ -192,12 +202,11 @@ if(level.isClientSide)
                     }
                 }
                 if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
-                    System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
+                    System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos()+":"+internalVelocity);
                     me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
                 }
             }
         }
-
         public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
             // keep the current rotationdiff
             double d = myMechanicalBlockA.currentRotation - myMechanicalBlockB.currentRotation;
@@ -254,24 +263,23 @@ if(level.isClientSide)
             if (myTile.getLevel().isClientSide()) {
                 if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
-                    HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
-                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, false);
 
-                    double rotationDiff = serverRotation - currentRotation;
-                    if (Math.abs(rotationDiff) < 3600) {
-                        // to avoid precision errors, the rotation will not always increase.
-                        // at some point it will reset and this will create a large gap between the rotations for up to a few ticks
-                        // in this case, ignore and wait until the client had reset itself and continue with sync
-                        propagateResetRotation(currentRotation + rotationDiff * 0.01, getBlockState().getValue(BlockClutch.FACING).getOpposite(), new HashSet<AbstractMechanicalBlock>());
-                        timeWithImpossibleSmoothSync = 0;
-                    } else {
-                        timeWithImpossibleSmoothSync++;
-                        if (timeWithImpossibleSmoothSync > 200) {
-                            propagateResetRotation(serverRotation, getBlockState().getValue(BlockClutch.FACING).getOpposite(), new HashSet<AbstractMechanicalBlock>());
-                        }
-                    }
+                    double rotationDiff1 = serverRotation - currentRotation;
+                    double rotationDiff2 = serverRotation+360 - currentRotation;
+                    double rotationDiff3 = serverRotation-360 - currentRotation;
+                    double rotationDiff =rotationDiff1;
+                    if(Math.abs(rotationDiff2) < Math.abs(rotationDiff))
+                        rotationDiff = rotationDiff2;
+                    if(Math.abs(rotationDiff3) < Math.abs(rotationDiff))
+                        rotationDiff = rotationDiff3;
 
-                    lastPing++;
+
+
+                    internalVelocity = serverVelocity;
+                    internalVelocity += rotationDiff * 0.001;
+
+                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), new HashSet<>(), false, false);
+
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
                         CompoundTag tag = new CompoundTag();
@@ -282,9 +290,8 @@ if(level.isClientSide)
                 }
             }
 
-            if (!hasReceivedUpdate) {
-                if (!myTile.getLevel().isClientSide()) {
-
+            if (!myTile.getLevel().isClientSide()) {
+                if (!hasReceivedUpdate) {
                     propagateTickBeforeUpdate();
 
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
@@ -295,6 +302,7 @@ if(level.isClientSide)
                     double t = (double) 1 / TPS;
 
                     data.combinedTransformedInertia = Math.max(data.combinedTransformedInertia, 0.01);
+                    //System.out.println(data.combinedTransformedMass+":"+data.combinedTransformedForce+":"+data.combinedTransformedResistanceForce+":"+internalVelocity);
                     double newVelocity = internalVelocity;
                     newVelocity += data.combinedTransformedForce / data.combinedTransformedInertia * t;
                     float signBefore = (float) Math.signum(newVelocity);
@@ -309,18 +317,16 @@ if(level.isClientSide)
                     if (newVelocity < internalVelocity - 90)
                         newVelocity = internalVelocity - 90;
 
-                    //System.out.println(newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
+                    //System.out.println(t+":"+newVelocity + ":" + myTile.getBlockPos() + ":" + data.combinedTransformedForce + ":" + data.combinedTransformedMass + ":" + data.combinedTransformedResistanceForce);
 
-
-                    boolean resetStress = me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0 && !lastTickHadForceToDistribute;
+                    boolean resetStress = (me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0) && !lastTickHadForceToDistribute;
 
                     propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, resetStress);
-
 
                     if (resetStress) {
                         lastTickHadForceToDistribute = true;
                         Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                        aggregateConnectedParts(null, connectedBlocks);
+                        collectConnectedParts(null, connectedBlocks);
                         for (AbstractMechanicalBlock i : connectedBlocks) {
                             if (i.lastAddedForce != 0) {
                                 forceDistributionNode n = new forceDistributionNode(i);
@@ -335,7 +341,7 @@ if(level.isClientSide)
                     if (lastTickHadForceToDistribute) {
                         lastTickHadForceToDistribute = false;
                         Set<AbstractMechanicalBlock> connectedBlocks = new HashSet<>();
-                        aggregateConnectedParts(null, connectedBlocks);
+                        collectConnectedParts(null, connectedBlocks);
                         for (AbstractMechanicalBlock i : connectedBlocks) {
                             if (!i.forceDistributionDeq.isEmpty()) {
                                 nodeInfo info = i.forceDistributionDeq.removeFirst();
@@ -348,8 +354,15 @@ if(level.isClientSide)
             }
             hasReceivedUpdate = false;
             applyRotations();
-            if(level.isClientSide)
-                serverRotation+=rad_to_degree(internalVelocity) / TPS ;
+
+            if(me.getBlockEntity(). getLevel().isClientSide) {
+                serverRotation += rad_to_degree(serverVelocity) / TPS ;
+                if (serverRotation > 360 ) serverRotation -= 360 ;
+                if (serverRotation < -360) serverRotation += 360 ;
+
+                if( lastPing < cttam_timeout)
+                    lastPing++;
+            }
 
             if (!myTile.getLevel().isClientSide()) {
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
@@ -360,11 +373,16 @@ if(level.isClientSide)
                         break; // break to prevent concurrent modification bs
                     }
                 }
+                if (last_currentRotation != currentRotation) {
+                    last_currentRotation = currentRotation;
+                    me.getBlockEntity().setChanged();
+                }
                 if (last_internalVelocity != internalVelocity) {
                     last_internalVelocity = internalVelocity;
                     me.getBlockEntity().setChanged();
                     CompoundTag updateTag = new CompoundTag();
                     updateTag.putDouble("velocity", internalVelocity);
+                    updateTag.putDouble("rotation", currentRotation);
                     updateTag.putInt("id", id);
                     for (UUID i : clientsTrackingThisAsMaster.keySet()) {
                         ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
@@ -372,11 +390,12 @@ if(level.isClientSide)
                     }
                 }
                 if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
-                    System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos());
+                    System.out.println("set block to air because velocity is way too high!  " + me.getBlockEntity().getBlockPos()+":"+internalVelocity);
                     me.getBlockEntity().getLevel().destroyBlock(me.getBlockEntity().getBlockPos(), true);
                 }
             }
         }
+
         public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
             // keep the current rotationdiff
             double d = myMechanicalBlockB.currentRotation - myMechanicalBlockA.currentRotation;

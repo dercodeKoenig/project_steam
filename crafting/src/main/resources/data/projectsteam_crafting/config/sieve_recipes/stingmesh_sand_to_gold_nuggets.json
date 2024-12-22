@@ -1,0 +1,15 @@
+{
+      "requiredMesh": "projectsteam_crafting:string_mesh",
+      "inputItem": {
+        "id": "minecraft:sand"
+      },
+      "outputItems": [
+        {
+          "id": "minecraft:gold_nugget",
+          "amount": 2,
+          "p": 0.1
+        }
+      ],
+      "timeRequired": 3.0,
+      "additionalResistance": 20.0
+    }

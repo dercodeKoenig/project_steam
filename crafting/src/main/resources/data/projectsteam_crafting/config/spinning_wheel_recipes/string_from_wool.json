@@ -1,0 +1,5 @@
+{
+  "inputItem": { "id": "minecraft:wool", "amount": 1 },
+  "outputItems": [{ "id": "minecraft:string", "amount": 1 }],
+  "additionalResistance": 2.0
+}

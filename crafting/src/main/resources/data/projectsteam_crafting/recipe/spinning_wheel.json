@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " F ",
+    "GCG",
+    "   "
+  ],
+  "key": {
+    "F": {
+      "tag": "projectsteam:wooden_flywheel"
+    },
+    "C": {
+      "item": "projectsteam:casing"
+    },
+    "G": {
+      "item": "projectsteam:wooden_gear"
+    }
+  },
+  "result": {
+    "id": "projectsteam_crafting:spinning_wheel",
+    "count": 1
+  }
+}

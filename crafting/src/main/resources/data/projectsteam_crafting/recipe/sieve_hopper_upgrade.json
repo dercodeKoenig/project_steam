@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "GHG",
+    "P P"
+  ],
+  "key": {
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "H": {
+      "item": "minecraft:hopper"
+    },
+    "G": {
+      "item": "projectsteam:wooden_gear"
+    }
+  },
+  "result": {
+    "id": "projectsteam_crafting:sieve_hopper_upgrade",
+    "count": 1
+  }
+}

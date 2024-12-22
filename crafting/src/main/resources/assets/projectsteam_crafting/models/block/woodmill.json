@@ -1,0 +1,11 @@
+{
+    "loader": "neoforge:obj",
+    "model": "projectsteam_crafting:models/block/woodmill.obj",
+    "mtl_override": "projectsteam_crafting:models/block/woodmill.mtl",
+    "automatic_culling": false,
+    "flip_v": true,
+    "emissive_ambient": false,
+    "textures": {
+        "particle": "projectsteam:block/andesite_casing"
+    }
+}

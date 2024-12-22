@@ -1,0 +1,97 @@
+{
+  "loader": "neoforge:obj",
+  "model": "projectsteam_aw2_generators:models/item/waterwheel_generator.obj",
+  "mtl_override": "projectsteam_aw2_generators:models/item/waterwheel_generator.mtl",
+  "automatic_culling": false,
+  "shade_quads": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "display": {
+    "gui": {
+      "rotation": [
+        0,
+        -40,
+        20
+      ],
+      "translation": [
+        1,
+        0,
+        0
+      ],
+      "scale": [
+        0.4,
+        0.4,
+        0.4
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        0,
+        4,
+        4
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        -4,
+        4,
+        4
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        90,
+        0,
+        0
+      ],
+      "translation": [
+        8,
+        0,
+        8
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+
+    "thirdperson_righthand": {
+      "rotation": [
+        90,
+        0,
+        0
+      ],
+      "translation": [
+        8,
+        0,
+        8
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

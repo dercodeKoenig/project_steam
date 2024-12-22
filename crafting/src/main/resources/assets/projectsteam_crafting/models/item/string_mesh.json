@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "projectsteam_crafting:item/string_mesh"
+  }
+}

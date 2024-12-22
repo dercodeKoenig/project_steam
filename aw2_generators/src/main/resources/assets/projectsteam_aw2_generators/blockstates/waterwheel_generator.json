@@ -1,0 +1,20 @@
+{
+    "multipart": [
+        {
+            "when": { "facing": "north" },
+            "apply": { "model": "projectsteam_aw2_generators:block/waterwheel_generator", "y": 0 }
+        },
+        {
+            "when": { "facing": "south" },
+            "apply": { "model": "projectsteam_aw2_generators:block/waterwheel_generator", "y": 180 }
+        },
+        {
+            "when": { "facing": "west" },
+            "apply": { "model": "projectsteam_aw2_generators:block/waterwheel_generator", "y": 270 }
+        },
+        {
+            "when": { "facing": "east" },
+            "apply": { "model": "projectsteam_aw2_generators:block/waterwheel_generator", "y": 90 }
+        }
+    ]
+}

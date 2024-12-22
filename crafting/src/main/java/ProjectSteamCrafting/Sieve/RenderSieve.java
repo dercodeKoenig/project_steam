@@ -176,7 +176,7 @@ public class RenderSieve implements BlockEntityRenderer<EntitySieve> {
                     (facing.getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1)
                     *(facing.getAxis() == Direction.Axis.X ? 1 : -1);
 
-            double a = (tile.myMechanicalBlock.currentRotation%360) / 180 * Math.PI + tile.myMechanicalBlock.internalVelocity/TPS*partialTick;
+            double a = tile.myMechanicalBlock.currentRotation / 180 * Math.PI + tile.myMechanicalBlock.internalVelocity/TPS*partialTick;
             float translationX =  -1f+(float) Math.sin(a) * crankshaftR * XRotationMultiplier;
             float translationY =  (float) Math.cos(a) * crankshaftR;
             double b = Math.asin((translationY-targetHeight) / armLength);

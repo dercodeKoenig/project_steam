@@ -134,7 +134,7 @@ public class RenderWoodMill implements BlockEntityRenderer<EntityWoodMill> {
                     *(facing.getAxis() == Direction.Axis.X ? 1 : -1);
 
 
-            double a = (tile.myMechanicalBlock.currentRotation%360) / 180 * Math.PI + tile.myMechanicalBlock.internalVelocity/TPS*partialTick;
+            double a = tile.myMechanicalBlock.currentRotation / 180 * Math.PI + tile.myMechanicalBlock.internalVelocity/TPS*partialTick;
             float translationX =  (float) Math.sin(a) * crankshaftR * XRotationMultiplier;
             float translationY =  -1f+(float) Math.cos(a) * crankshaftR;
             double b = Math.asin((translationX-targetX) / armLength);

@@ -112,6 +112,10 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
 
     public EntityGearbox(BlockPos pos, BlockState blockState) {
         super(ENTITY_GEARBOX.get(), pos, blockState);
+        // because the input/output do not rotate with the same speed, reset only when they all made a full rotation
+        // I think the gearbox should have a ratio of 2:3 for both sides to a total of 4:9 or 9:4
+        // if we reset after 6 rotations, the high rpm part should have completed 9 rotations and the low rpm part should completed 4 rotations
+        myMechanicalBlock.resetRotationAfterX = 360*6;
     }
 
     @Override

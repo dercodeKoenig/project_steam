@@ -40,6 +40,7 @@ public abstract class AbstractMechanicalBlock {
     public double last_internalVelocity;
     public double last_currentRotation;
 
+    public double resetRotationAfterX = 360;
     // only one part of the network will be master during a tick, all the others will skip update
     public boolean hasReceivedUpdate;
     public Map<Direction, AbstractMechanicalBlock> connectedParts = new HashMap<>();
@@ -130,8 +131,8 @@ public abstract class AbstractMechanicalBlock {
 
     public void applyRotations() {
         currentRotation += rad_to_degree(internalVelocity) / TPS;
-        if (currentRotation > 360 ) currentRotation -= 360 ;
-        if (currentRotation < -360) currentRotation += 360 ;
+        if (currentRotation > resetRotationAfterX ) currentRotation -= resetRotationAfterX ;
+        if (currentRotation < -resetRotationAfterX) currentRotation += resetRotationAfterX ;
     }
 
 // will recursively apply the velocity update to the entire network
@@ -366,8 +367,8 @@ public abstract class AbstractMechanicalBlock {
                 propagateTickBeforeUpdate();
 
                 double rotationDiff1 = serverRotation - currentRotation;
-                double rotationDiff2 = serverRotation+360 - currentRotation;
-                double rotationDiff3 = serverRotation-360 - currentRotation;
+                double rotationDiff2 = serverRotation+resetRotationAfterX - currentRotation;
+                double rotationDiff3 = serverRotation-resetRotationAfterX - currentRotation;
                 double rotationDiff =rotationDiff1;
                 if(Math.abs(rotationDiff2) < Math.abs(rotationDiff))
                     rotationDiff = rotationDiff2;
@@ -458,8 +459,8 @@ public abstract class AbstractMechanicalBlock {
 
         if(me.getBlockEntity(). getLevel().isClientSide) {
             serverRotation += rad_to_degree(serverVelocity) / TPS ;
-            if (serverRotation > 360 ) serverRotation -= 360 ;
-            if (serverRotation < -360) serverRotation += 360 ;
+            if (serverRotation > resetRotationAfterX ) serverRotation -= resetRotationAfterX ;
+            if (serverRotation < -resetRotationAfterX) serverRotation += resetRotationAfterX ;
 
             if( lastPing < cttam_timeout)
                 lastPing++;

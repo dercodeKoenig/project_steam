@@ -23,8 +23,8 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
     public static double maxForceMultiplier = 180;
     public static double k = 180;
 
-    double myFriction = 1;
-    double myInertia = 50;
+    double myFriction = 10;
+    double myInertia = 100;
     double maxStress = 600;
     double myForce = 0;
 

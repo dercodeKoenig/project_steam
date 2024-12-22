@@ -28,6 +28,7 @@ import net.minecraft.world.level.block.WoolCarpetBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.model.data.ModelData;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -83,6 +84,10 @@ public class RenderWoodMill implements BlockEntityRenderer<EntityWoodMill> {
 
     public RenderWoodMill(BlockEntityRendererProvider.Context c) {
         super();
+    }
+
+    public AABB getRenderBoundingBox(EntityWoodMill tile) {
+        return new AABB(tile.getBlockPos()).inflate(1);
     }
 
     @Override

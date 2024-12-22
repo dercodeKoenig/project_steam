@@ -24,7 +24,7 @@ public class EntityWoodenAxle extends EntityAxleBase{
             int randomIndex = level.random.nextInt(WOODEN_SOUNDS.length);
             SoundEvent randomEvent = WOODEN_SOUNDS[randomIndex];
             level.playSound(null, getBlockPos(), randomEvent,
-                    SoundSource.BLOCKS, 0.002f*(float)Math.abs(myMechanicalBlock.internalVelocity), 1.0f);  //
+                    SoundSource.BLOCKS, 0.005f*(float)Math.abs(myMechanicalBlock.internalVelocity), 1.0f);  //
         }
     }
 }

@@ -2,6 +2,7 @@ package ProjectSteam.Core;
 
 import ARLib.network.PacketBlockEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -376,7 +377,7 @@ public abstract class AbstractMechanicalBlock {
 
 
                 internalVelocity = serverVelocity;
-                    internalVelocity += rotationDiff * 0.001;
+                    internalVelocity += rotationDiff * 0.01;
 
                 propagateVelocityUpdate(internalVelocity, null, new HashSet<>(), false, false);
 

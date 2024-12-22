@@ -59,7 +59,6 @@ public class RenderWaterWheelGenerator implements BlockEntityRenderer<EntityWate
     }
 
     public AABB getRenderBoundingBox(EntityWaterWheelGenerator tile) {
-
         return new AABB(tile.getBlockPos()).inflate(1);
     }
 

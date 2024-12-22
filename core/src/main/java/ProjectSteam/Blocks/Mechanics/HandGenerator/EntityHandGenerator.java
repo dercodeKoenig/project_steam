@@ -25,8 +25,8 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
     public double myForce = 0;
 
-    public static double MAX_FORCE = 100;
-    public static double MAX_SPEED = 20;
+    public static double MAX_FORCE = 50;
+    public static double MAX_SPEED = 10;
 
     int ticksRemainingForForce = 0;
 

@@ -134,7 +134,7 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
         if(!canRun)myFriction = 3000;
         else myFriction = defaultFriction;
 
-        myForce =  outputForce* maxForceMultiplier - k*Math.abs(outputForce) * myMechanicalBlock.internalVelocity;
+        myForce =  outputForce* maxForceMultiplier - k*Math.abs(outputForce) * Math.signum(myMechanicalBlock.internalVelocity) * Math.pow(Math.abs(myMechanicalBlock.internalVelocity),2);
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {

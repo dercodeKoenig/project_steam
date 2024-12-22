@@ -125,14 +125,17 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
     }
 
     @Override
-    public void onLoad() {
-        super.onLoad();
-
-        structure = new Object[][][]{
-                {{'C'}, {'c'}, {'C'}}
-        };
-
+    public void onStructureComplete() {
+        System.out.println("on structure complete");
+        if(level.isClientSide)
+            // this is executed before minecraft updates the blockstate on client
+            // but resetRotation (to make it sync to the rotation) checks for connected mechanical blocks and it only connects to other mechanical blocks when the multiblock is formed
+            // so i update it directly here
+            level.setBlock(getBlockPos(),getBlockState().setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED,true),3);
         myMechanicalBlock.mechanicalOnload();
+    }
+    @Override
+    public void onLoad() {
         if (level.isClientSide) {
             CompoundTag myOnloadTag = new CompoundTag();
             myOnloadTag.putUUID("ClientWoodMillOnload", Minecraft.getInstance().player.getUUID());
@@ -143,6 +146,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
             });
         }
+        super.onLoad();
     }
 
     @Override
@@ -261,7 +265,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
     }
 
     void completeRecipe(workingRecipe r) {
-        for(ItemStack output : r.outputStacks) {
+        for (ItemStack output : r.outputStacks) {
             if (!output.isEmpty()) {
                 Vec3 op = getBlockPos().relative(getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getOpposite()).getCenter();
                 ItemEntity ie = new ItemEntity(level, op.x, op.y, op.z, output);
@@ -378,18 +382,19 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
             }
 
             double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS)) * config.speedMultiplier;
-            if (progressMade > 0.0001 && getRecipeAtSawblade() != null) {
+            workingRecipe recipeAtSawBlade = getRecipeAtSawblade();
+            if (progressMade > 0.0001 && recipeAtSawBlade != null) {
                 //if(level.random.nextFloat() < progressMade) {
                 //if (level.getGameTime() % 5 == 0) {
                 float maxOffset = 0.25f;
                 float maxSpeedForNoOffset = 0.2f;
-                float offset = 0.25f+(float) (maxOffset - (progressMade / maxSpeedForNoOffset)*maxOffset);
+                float offset = (float) (maxOffset - (progressMade / maxSpeedForNoOffset) * maxOffset);
 
-                for (workingRecipe i : currentWorkingRecipes) {
-                    if ((i.progress - (int) i.progress > offset && i.progress - progressMade - (int) i.progress < offset)||(i.progress - (int) i.progress > offset+0.5 && i.progress - progressMade - (int) i.progress < offset+0.5)) {
-                        level.playSound(null, getBlockPos(), SoundEvents.FENCE_GATE_OPEN, SoundSource.BLOCKS, 0.2f, 0.5f);
-                    }
+
+                if ((recipeAtSawBlade.progress - (int) recipeAtSawBlade.progress > offset && recipeAtSawBlade.progress - progressMade - (int) recipeAtSawBlade.progress < offset) || (recipeAtSawBlade.progress - (int) recipeAtSawBlade.progress > offset + 0.5 && recipeAtSawBlade.progress - progressMade - (int) recipeAtSawBlade.progress < offset + 0.5)) {
+                    level.playSound(null, getBlockPos(), SoundEvents.FENCE_GATE_OPEN, SoundSource.BLOCKS, 0.2f, 0.5f);
                 }
+
             }
         }
     }

@@ -71,7 +71,7 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
                 Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
 
 
-                if (receivingFace != null) {
+                if (receivingFace != null && !(level.getBlockEntity(getBlockPos().relative(receivingFace)) instanceof ICrankShaftConnector)) {
                     rotation += rotationoffset * 90;
                 }
 

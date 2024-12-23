@@ -168,8 +168,12 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             }
         }
         if (tag.contains("inputs")) {
+            ItemStack oldStack = myInputs.copy();
             myInputs = ItemStack.parse(level.registryAccess(), tag.getCompound("inputs")).get();
-            currentProgress = 0;
+            if (oldStack.getItem().equals(myInputs.getItem()) && myInputs.getCount() + 1 == oldStack.getCount()) {
+                // this was an update that the recipe was processed so myStack decreased by one, update the progress
+                currentProgress = 0;
+            }
         }
         if (tag.contains("timeRequired")) {
             client_syncedCurrentRecipeTime = tag.getDouble("timeRequired");

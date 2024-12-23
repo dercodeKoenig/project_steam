@@ -21,10 +21,10 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
+public abstract class RenderTJunctionBase implements BlockEntityRenderer<EntityTJunctionBase> {
 
     static WavefrontObject model;
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
+    static ResourceLocation tex;
     static VertexBuffer vertexBuffer= new VertexBuffer(VertexBuffer.Usage.STATIC);
     static MeshData mesh;
     static     VertexBuffer vertexBuffer2= new VertexBuffer(VertexBuffer.Usage.STATIC);
@@ -58,19 +58,20 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
     }
 
 
-    public RenderTJunction(BlockEntityRendererProvider.Context c) {
+    public RenderTJunctionBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
         super();
+        this.tex = texture;
     }
 
 
 
     @Override
-    public void render(EntityTJunction tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(EntityTJunctionBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
 
         BlockState myState = tile.getBlockState();
-        if (myState.getBlock() instanceof BlockTJunction) {
-            Direction.Axis axis = myState.getValue(BlockTJunction.AXIS);
-            Direction facing = myState.getValue(BlockTJunction.FACING);
+        if (myState.getBlock() instanceof BlockTJunctionBase) {
+            Direction.Axis axis = myState.getValue(BlockTJunctionBase.AXIS);
+            Direction facing = myState.getValue(BlockTJunctionBase.FACING);
 
             RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
             LIGHTMAP.setupRenderState();
@@ -80,7 +81,7 @@ public class RenderTJunction implements BlockEntityRenderer<EntityTJunction> {
 
             ShaderInstance shader = RenderSystem.getShader();
 
-            boolean isInverted = myState.getValue(BlockTJunction.INVERTED);
+            boolean isInverted = myState.getValue(BlockTJunctionBase.INVERTED);
             float inversionMultiplier = isInverted ? -1f:1f;
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());

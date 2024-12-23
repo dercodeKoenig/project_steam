@@ -3,9 +3,6 @@ package ProjectSteam.Blocks.Mechanics.TJunction;
 import ARLib.network.INetworkTagReceiver;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -14,22 +11,20 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
 import java.util.Map;
 
-import static ProjectSteam.Registry.ENTITY_TJUNCTION;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
-public class EntityTJunction extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public abstract class EntityTJunctionBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    double myInertia = 0.5;
-    double myFriction = 2;
-    double maxStress = 600;
+    double myInertia;
+    double myFriction;
+    double maxStress;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -57,15 +52,15 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
             if (receivingFace == null) return 1;
             BlockState myState = getBlockState();
 
-            if (myState.getBlock() instanceof BlockTJunction) {
-                Direction.Axis myAxis = myState.getValue(BlockTJunction.AXIS);
+            if (myState.getBlock() instanceof BlockTJunctionBase) {
+                Direction.Axis myAxis = myState.getValue(BlockTJunctionBase.AXIS);
                 if(myAxis == receivingFace.getAxis()){
                     return 1;
                 }
             }
 
-            double inversionMultiplier =myState.getValue(BlockTJunction.INVERTED) ? -1:1;
-            if(receivingFace == myState.getValue(BlockTJunction.FACING)){
+            double inversionMultiplier =myState.getValue(BlockTJunctionBase.INVERTED) ? -1:1;
+            if(receivingFace == myState.getValue(BlockTJunctionBase.FACING)){
                 if(receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE)
                     return -1*inversionMultiplier;
                 else
@@ -79,7 +74,7 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
             if(face == null)return 0;
 
             BlockState myState = getBlockState();
-            if(myState.getValue(BlockTJunction.FACING) == face) {
+            if(myState.getValue(BlockTJunctionBase.FACING) == face) {
                     return 14.7f;
             }
 
@@ -153,8 +148,8 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
     }
 
 
-    public EntityTJunction(BlockPos pos, BlockState blockState) {
-        super(ENTITY_TJUNCTION.get(), pos, blockState);
+    public EntityTJunctionBase(BlockEntityType type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
     }
 
     @Override
@@ -166,13 +161,13 @@ public class EntityTJunction extends BlockEntity implements IMechanicalBlockProv
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if (side.getAxis() == myState.getValue(BlockTJunction.AXIS) || side == myState.getValue(BlockTJunction.FACING))
+        if (side.getAxis() == myState.getValue(BlockTJunctionBase.AXIS) || side == myState.getValue(BlockTJunctionBase.FACING))
             return myMechanicalBlock;
         return null;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityTJunction) t).tick();
+        ((EntityTJunctionBase) t).tick();
     }
 }

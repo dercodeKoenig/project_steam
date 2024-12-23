@@ -6,11 +6,10 @@ import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderSmallWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.DistributorGearbox.RenderWoodenDistributorGearbox;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.RenderWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.RenderMotor;
-import ProjectSteam.Blocks.Mechanics.Gearbox.RenderGearboxBase;
 import ProjectSteam.Blocks.Mechanics.Gearbox.RenderWoodenGearbox;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.RenderHandGenerator;
-import ProjectSteam.Blocks.Mechanics.TJunction.RenderTJunction;
 
+import ProjectSteam.Blocks.Mechanics.TJunction.RenderWoodenTJunction;
 import ProjectSteam.Config.Config;
 import ProjectSteam.Config.PacketConfigSync;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
@@ -70,7 +69,7 @@ public class ProjectSteam {
     public void onClientSetup(FMLClientSetupEvent event) {
         ItemBlockRenderTypes.setRenderLayer(WOODEN_DISTRIBUTOR_GEARBOX.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(WOODEN_GEARBOX.get(), RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(TJUNCTION.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(WOODEN_TJUNCTION.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(WOODEN_AXLE_ENCASED.get(), RenderType.cutout());
     }
 
@@ -85,7 +84,7 @@ public class ProjectSteam {
         event.registerBlockEntityRenderer(ENTITY_WOODEN_GEARBOX.get(), RenderWoodenGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
         event.registerBlockEntityRenderer(ENTITY_HAND_GENERATOR.get(), RenderHandGenerator::new);
-        event.registerBlockEntityRenderer(ENTITY_TJUNCTION.get(), RenderTJunction::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_TJUNCTION.get(), RenderWoodenTJunction::new);
 
     }
 
@@ -106,7 +105,7 @@ public class ProjectSteam {
             e.accept(MOTOR.get());
             e.accept(CLUTCH.get());
             e.accept(HAND_GENERATOR.get());
-            e.accept(TJUNCTION.get());
+            e.accept(WOODEN_TJUNCTION.get());
 
             e.accept(CASING.get());
             e.accept(CASING_SLAB.get());

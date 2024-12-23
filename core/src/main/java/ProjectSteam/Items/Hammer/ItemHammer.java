@@ -1,8 +1,8 @@
 package ProjectSteam.Items.Hammer;
 
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
-import ProjectSteam.Blocks.Mechanics.TJunction.BlockTJunction;
-import ProjectSteam.Blocks.Mechanics.TJunction.EntityTJunction;
+import ProjectSteam.Blocks.Mechanics.TJunction.BlockTJunctionBase;
+import ProjectSteam.Blocks.Mechanics.TJunction.EntityTJunctionBase;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
@@ -21,10 +21,10 @@ public class ItemHammer extends Item {
 
         BlockEntity tile =context.getLevel().getBlockEntity(context.getClickedPos());
 
-        if(tile instanceof EntityTJunction i){
+        if(tile instanceof EntityTJunctionBase i){
             BlockState s  = i.getBlockState();
             if(!context.getLevel().isClientSide()) {
-                s = s.setValue(BlockTJunction.INVERTED, !s.getValue(BlockTJunction.INVERTED));
+                s = s.setValue(BlockTJunctionBase.INVERTED, !s.getValue(BlockTJunctionBase.INVERTED));
                 context.getLevel().setBlock(context.getClickedPos(), s, 3);
             }
             return InteractionResult.SUCCESS_NO_ITEM_USED;

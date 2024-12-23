@@ -26,9 +26,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import static ProjectSteam.Registry.ENTITY_TJUNCTION;
-
-public class BlockTJunction extends Block implements EntityBlock {
+public abstract class BlockTJunctionBase extends Block implements EntityBlock {
 
     public static EnumProperty<Direction.Axis> AXIS = EnumProperty.create("axis", Direction.Axis.class);
     public static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
@@ -43,7 +41,7 @@ public class BlockTJunction extends Block implements EntityBlock {
         }
     }
 
-    public BlockTJunction() {
+    public BlockTJunctionBase() {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(AXIS, Direction.Axis.X);
@@ -69,7 +67,7 @@ public class BlockTJunction extends Block implements EntityBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         if(player.isShiftKeyDown() && player.getMainHandItem().isEmpty()) {
             BlockEntity tile = level.getBlockEntity(pos);
-            if (tile instanceof EntityTJunction tj) {
+            if (tile instanceof EntityTJunctionBase tj) {
                 Direction cf = state.getValue(FACING);
                 Direction nf = cf;
                 Direction.Axis ca = state.getValue(AXIS);
@@ -123,10 +121,6 @@ public class BlockTJunction extends Block implements EntityBlock {
 
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
     }
-        @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ENTITY_TJUNCTION.get().create(pos, state);
-    }
 
 
     @Override
@@ -142,6 +136,6 @@ public class BlockTJunction extends Block implements EntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityTJunction::tick;
+        return EntityTJunctionBase::tick;
     }
 }

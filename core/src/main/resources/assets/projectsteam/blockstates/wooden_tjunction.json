@@ -2,39 +2,39 @@
     "multipart": [
         {
             "when": { "axis": "y" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x" :  90, "y":  0}
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x" :  90, "y":  0}
         },
         {
             "when": { "axis": "x", "facing": "south" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 0, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 0, "y": 0 }
         },
         {
             "when": { "axis": "x", "facing": "north" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 0, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 0, "y": 0 }
         },
         {
             "when": { "axis": "x", "facing": "up" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 90, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 90, "y": 0 }
         },
         {
             "when": { "axis": "x", "facing": "down" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 90, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 90, "y": 0 }
         },
         {
             "when": { "axis": "z", "facing": "east" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 0, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 0, "y": 90 }
         },
         {
             "when": { "axis": "z", "facing": "west" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 0, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 0, "y": 90 }
         },
         {
             "when": { "axis": "z", "facing": "up" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 90, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 90, "y": 90 }
         },
         {
             "when": { "axis": "z", "facing": "down" },
-            "apply": { "model": "projectsteam:block/tjunction_side", "x": 90, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_side", "x": 90, "y": 90 }
         },
 
 
@@ -56,7 +56,7 @@
         },
         {
             "when": { "axis": "z", "facing": "west" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 0, "y": 270 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 0, "y": 270 }
         },
 
         {
@@ -77,7 +77,7 @@
         },
         {
             "when": { "axis": "z", "facing": "east" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 0, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 0, "y": 90 }
         },
 
         {
@@ -98,7 +98,7 @@
         },
         {
             "when": { "axis": "z", "facing": "up" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 270, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 270, "y": 90 }
         },
 
         {
@@ -119,7 +119,7 @@
         },
         {
             "when": { "axis": "z", "facing": "down" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 90, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 90, "y": 90 }
         },
 
 
@@ -143,7 +143,7 @@
         },
         {
             "when": { "axis": "x", "facing": "north" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 0, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 0, "y": 0 }
         },
 
 
@@ -165,7 +165,7 @@
         },
         {
             "when": { "axis": "x", "facing": "south" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 0, "y": 180 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 0, "y": 180 }
         },
 
         {
@@ -186,7 +186,7 @@
         },
         {
             "when": { "axis": "x", "facing": "up" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 270, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 270, "y": 0 }
         },
 
         {
@@ -207,7 +207,7 @@
         },
         {
             "when": { "axis": "x", "facing": "down" },
-            "apply": { "model": "projectsteam:block/tjunction_back_front", "x": 90, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_tjunction_back_front", "x": 90, "y": 0 }
         }
     ]
 }

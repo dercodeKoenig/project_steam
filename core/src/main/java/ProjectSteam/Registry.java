@@ -9,6 +9,8 @@ import ProjectSteam.Blocks.Mechanics.DistributorGearbox.BlockWoodenDistributorGe
 import ProjectSteam.Blocks.Mechanics.DistributorGearbox.EntityWoodenDistributorGearbox;
 import ProjectSteam.Blocks.Mechanics.Gearbox.BlockWoodenGearbox;
 import ProjectSteam.Blocks.Mechanics.Gearbox.EntityWoodenGearbox;
+import ProjectSteam.Blocks.Mechanics.TJunction.BlockWoodenTJunction;
+import ProjectSteam.Blocks.Mechanics.TJunction.EntityWoodenTJuntion;
 import ProjectSteam.Blocks.SimpleBlocks.BlockCasing;
 import ProjectSteam.Blocks.Mechanics.Axle.*;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.BlockMotor;
@@ -18,8 +20,6 @@ import ProjectSteam.Blocks.Mechanics.FlyWheel.BlockWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.EntityWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.BlockHandGenerator;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.EntityHandGenerator;
-import ProjectSteam.Blocks.Mechanics.TJunction.EntityTJunction;
-import ProjectSteam.Blocks.Mechanics.TJunction.BlockTJunction;
 import ProjectSteam.Blocks.SimpleBlocks.BlockCasingSlab;
 import ProjectSteam.Items.Hammer.ItemHammer;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -134,13 +134,13 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityHandGenerator::new, HAND_GENERATOR.get()).build(null)
     );
 
-    public static final Supplier<Block> TJUNCTION = BLOCKS.register(
-            "tjunction",
-            () -> new BlockTJunction()
+    public static final Supplier<Block> WOODEN_TJUNCTION = BLOCKS.register(
+            "wooden_tjunction",
+            () -> new BlockWoodenTJunction()
     );
-    public static final Supplier<BlockEntityType<EntityTJunction>> ENTITY_TJUNCTION = BLOCK_ENTITIES.register(
-            "entity_tjunction",
-            () -> BlockEntityType.Builder.of(EntityTJunction::new, TJUNCTION.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityWoodenTJuntion>> ENTITY_WOODEN_TJUNCTION = BLOCK_ENTITIES.register(
+            "entity_wooden_tjunction",
+            () -> BlockEntityType.Builder.of(EntityWoodenTJuntion::new, WOODEN_TJUNCTION.get()).build(null)
     );
 
 
@@ -187,7 +187,7 @@ public class Registry {
 
         registerBlockItem("hand_generator", HAND_GENERATOR);
 
-        registerBlockItem("tjunction", TJUNCTION);
+        registerBlockItem("wooden_tjunction", WOODEN_TJUNCTION);
 
         registerBlockItem("casing", CASING);
         registerBlockItem("casing_slab", CASING_SLAB);

@@ -1,6 +1,7 @@
 package ProjectSteam.Config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.loading.FMLPaths;
@@ -51,6 +52,19 @@ public class Config {
     public double WOODEN_GEARBOX_MAX_STRESS = 900;
 
 
+    public double WOODEN_T_JUNCTION_FRICTION = 2;
+    public double WOODEN_T_JUNCTION_INERTIA = 1;
+    public double WOODEN_T_JUNCTION_MAX_STRESS = 600;
+
+
+    public double HAND_GENERATOR_FRICTION = 0.1;
+    public double HAND_GENERATOR_INERTIA = 5;
+    public double HAND_GENERATOR_MAX_STRESS = 600;
+    public double HAND_GENERATOR_MAX_FORCE = 50;
+    public double HAND_GENERATOR_MAX_SPEED = 10;
+
+
+
     public void SyncConfig(ServerPlayer p) {
         PacketDistributor.sendToPlayer(p, new PacketConfigSync(new Gson().toJson(this)));
     }
@@ -68,7 +82,7 @@ public class Config {
             // Create the config directory if it doesn't exist
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
-                Files.write(filePath, new Gson().toJson(new Config()).getBytes(StandardCharsets.UTF_8));
+                Files.write(filePath, new GsonBuilder().setPrettyPrinting().create().toJson(new Config()).getBytes(StandardCharsets.UTF_8));
             }
             // Load JSON from the file
             String jsonContent = Files.readString(filePath);

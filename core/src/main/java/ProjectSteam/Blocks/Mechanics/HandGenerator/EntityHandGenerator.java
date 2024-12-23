@@ -1,11 +1,9 @@
 package ProjectSteam.Blocks.Mechanics.HandGenerator;
 
 import ARLib.network.INetworkTagReceiver;
+import ProjectSteam.Config.Config;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -15,8 +13,6 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 
 import static ProjectSteam.Registry.ENTITY_HAND_GENERATOR;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
@@ -25,14 +21,13 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
     public double myForce = 0;
 
-    public static double MAX_FORCE = 50;
-    public static double MAX_SPEED = 10;
+    public  double maxForce = Config.INSTANCE.HAND_GENERATOR_MAX_FORCE;
+    public  double maxSpeed = Config.INSTANCE.HAND_GENERATOR_MAX_SPEED;
+    double myFriction = Config.INSTANCE.HAND_GENERATOR_FRICTION;
+    double myInertia = Config.INSTANCE.HAND_GENERATOR_INERTIA;
+    double maxStress = Config.INSTANCE.HAND_GENERATOR_MAX_STRESS;
 
     int ticksRemainingForForce = 0;
-
-    double myFriction = 2;
-    double myInertia = 5;
-    double maxStress = 10000;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -51,7 +46,7 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
         @Override
         public double getTorqueProduced(Direction face) {
-            double actualForce = myForce * Math.max(0, (1 - Math.abs(internalVelocity) / MAX_SPEED));
+            double actualForce = myForce * Math.max(0, (1 - Math.abs(internalVelocity) / maxSpeed));
             return actualForce;
         }
 
@@ -134,10 +129,10 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
         if (ticksRemainingForForce > 0) {
             ticksRemainingForForce--;
-            myForce = MAX_FORCE;
+            myForce = maxForce;
         } else if (ticksRemainingForForce < 0) {
             ticksRemainingForForce++;
-            myForce = -MAX_FORCE;
+            myForce = -maxForce;
         } else {
             myForce = 0;
         }

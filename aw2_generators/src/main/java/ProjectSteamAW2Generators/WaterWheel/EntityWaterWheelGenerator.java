@@ -25,7 +25,7 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
 
     double myFriction = 10;
     double myInertia = 100;
-    double maxStress = 600;
+    double maxStress = 2000;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {

@@ -10,6 +10,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
+import net.minecraft.world.phys.shapes.CollisionContext;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 import javax.annotation.Nullable;
 import java.util.HashMap;
@@ -70,11 +73,6 @@ public class BlockWindMillBlade extends Block {
     }
 
     @Override
-    public int getLightBlock(BlockState state, BlockGetter world, BlockPos pos) {
-        return 0;
-    }
-
-    @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED); // Define the state property
     }
@@ -88,12 +86,13 @@ public class BlockWindMillBlade extends Block {
                 if (level.getBlockState(other).getBlock() instanceof BlockWindMillGenerator g) {
                     if (level.getBlockEntity(other) instanceof EntityWindMillGenerator e) {
                         e.scanStructure();
-                        return true;
+                        //return true;
                     }
                 }
                 if (level.getBlockState(other).getBlock() instanceof BlockWindMillBlade b) {
-                    if (b.propagatePlacementToMasterForScanUpdate(level, other, workedPositions))
-                        return true;
+                    if (b.propagatePlacementToMasterForScanUpdate(level, other, workedPositions)) {
+                        //return true;
+                    }
                 }
             }
         }
@@ -108,7 +107,30 @@ public class BlockWindMillBlade extends Block {
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
+        BlockPos masterPos =multiblockMasterPositions.get(new BlockIdentifier(DimensionUtils.getLevelId(level),pos));
+        if(masterPos != null && level.getBlockEntity(masterPos) instanceof EntityWindMillGenerator e){
+            e.scanStructure();
+        }
         multiblockMasterPositions.remove(new BlockIdentifier(DimensionUtils.getLevelId(level), pos));
-        propagatePlacementToMasterForScanUpdate(level, pos, new HashSet<>());
     }
+
+
+    @Override
+    public int getLightBlock(BlockState state, BlockGetter world, BlockPos pos) {
+        return 0;
+    }
+
+    @Override
+    protected boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
+        return state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED);
+    }
+@Override
+    protected float getShadeBrightness(BlockState p_308911_, BlockGetter p_308952_, BlockPos p_308918_) {
+        return 1.0F;
+    }
+    @Override
+    protected boolean propagatesSkylightDown(BlockState p_309084_, BlockGetter p_309133_, BlockPos p_309097_) {
+        return true;
+    }
+
 }

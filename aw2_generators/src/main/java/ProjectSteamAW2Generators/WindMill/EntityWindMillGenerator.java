@@ -20,6 +20,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -35,18 +36,21 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public static double maxForceMultiplier = 200;
-    public static double k = 200;
+    public double forcePerBlock = 1;
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
 
+    PerlinSimplexNoise noise;
+
+
     int size;
+    int last_size_for_meshUpdate;
     int max_size = 9;
 
     double myFriction = 1;
     double myInertia = 10;
-    double maxStress = 600;
+    double maxStress = 2000;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
@@ -78,12 +82,9 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
     public EntityWindMillGenerator(BlockPos pos, BlockState blockState) {
         super(ENTITY_WINDMILL_GENERATOR.get(), pos, blockState);
-    }
-
-    void setNeedsMeshUpdate() {
         if (FMLEnvironment.dist == Dist.CLIENT) {
             RenderSystem.recordRenderCall(() -> {
-                RenderWindMillGenerator.updateWindmillMesh(this, this.size);
+                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
             });
         }
     }
@@ -91,17 +92,15 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     @Override
     public void onLoad() {
         super.onLoad();
+        noise = new PerlinSimplexNoise(level.random,List.of(-2, -1, 0, 1, 2));
         myMechanicalBlock.mechanicalOnload();
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                vertexBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
         if (level.isClientSide) {
             CompoundTag request = new CompoundTag();
             request.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, request));
+        }
+        if(!level.isClientSide){
+            scanStructure();
         }
     }
 
@@ -112,6 +111,15 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 vertexBuffer.close();
             });
         }
+        if(!level.isClientSide){
+            Direction myFacing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+            BlockPos center = getBlockPos().relative(myFacing.getOpposite());
+
+            int zMultiplier = myFacing.getAxis() == Direction.Axis.X ? 1 : 0;
+            int xMultiplier = myFacing.getAxis() == Direction.Axis.Z ? 1 : 0;
+            resetInvalidBlocks(center,new ArrayList<>(),xMultiplier,zMultiplier);
+        }
+        super.setRemoved();
     }
 
     boolean isBlockValidAt(BlockPos p) {
@@ -121,7 +129,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 return true;
             } else {
                 BlockPos masterPos = BlockWindMillBlade.getMasterPos(new BlockWindMillBlade.BlockIdentifier(DimensionUtils.getLevelId(level), p));
-                if (masterPos != null && masterPos.equals(getBlockPos())) {
+                if (masterPos == null || masterPos.equals(getBlockPos())) {
                     return true;
                 }
             }
@@ -130,9 +138,38 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         return false;
     }
 
+    void resetInvalidBlocks(BlockPos center, List<BlockPos> validBlocks, int xMultiplier, int zMultiplier){
+        // now reset all blocks that could have been modified by this generator, except for the valid blocks
+        // if the block has a different master, do not reset it, it belongs to another controller
+        for (int x = -max_size; x <= max_size; x++) {
+            for (int y = -max_size; y <= max_size; y++) {
+                BlockPos targetBlock = center.offset(x * xMultiplier, y, x * zMultiplier);
+                if(!validBlocks.contains(targetBlock) ) {
+                    BlockState state = level.getBlockState(targetBlock);
+                    if (state.getBlock() instanceof BlockWindMillBlade) {
+                        if(state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
+                            BlockPos masterPos = BlockWindMillBlade.getMasterPos(new BlockWindMillBlade.BlockIdentifier(DimensionUtils.getLevelId(level), targetBlock));
+
+                            if(masterPos==null){
+                                // this should never print if i did all correct
+                                System.out.println("error: master pos should not be null!");
+                            }
+
+                            if (masterPos==null || masterPos.equals(getBlockPos())) {
+                                // this should call onRemove for the block and remove it from the master block map
+                                level.setBlock(targetBlock, state.setValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED, false), 3);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
     boolean isScanning = false;
     public void scanStructure() {
         if (level.isClientSide) return;
+        // I use setBlock to update the state of the blade and the blade will call scanStructure when it was removed.
+        // So I make sure it can not re-scan while it is already scanning
         if (isScanning) return;
         isScanning = true;
 
@@ -143,19 +180,18 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         int xMultiplier = myFacing.getAxis() == Direction.Axis.Z ? 1 : 0;
 
 
-        boolean isSizeValid = true;
+        boolean doScan = true;
         int maxValidSize = 0;
         int s = 0;
         List<BlockPos> validBlocks = new ArrayList<>();
-        do {
-            A:
-            {
+        while (doScan) {
+            A:{
                 List<BlockPos> validBlocks_tmp = new ArrayList<>();
                 for (int x = -s; x <= s; x++) {
                     for (int y = -s; y <= s; y++) {
                         BlockPos targetBlock = center.offset(x * xMultiplier, y, x * zMultiplier);
                         if (!isBlockValidAt(targetBlock)) {
-                            isSizeValid = false;
+                            doScan = false;
                             break A;
                         } else {
                             validBlocks_tmp.add(targetBlock);
@@ -166,40 +202,62 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 validBlocks.addAll(validBlocks_tmp);
                 s++;
             }
-        } while (isSizeValid);
-        maxValidSize -= 1; // size 0 is the axle, size 1 is the axle connection, blades starting at size 2
-        this.size = maxValidSize;
+        }
+        this.size = maxValidSize - 1; // size 0 is the axle, size 1 is the axle connection, blades starting at size 2
+
         if (size > 0) {
+            // the structure is valid, update the client with the new size and set state to true
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
             level.setBlock(getBlockPos(), getBlockState().setValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED, true), 3);
+
+            // now for all valid blocks set the state to true and set this as master pos
             for (BlockPos i : validBlocks) {
                 if (level.getBlockState(i).getBlock() instanceof BlockWindMillBlade b) {
-                    // first chaneg blockstate and after this set master because onRemove will clear master pos again
+                    // first change blockstate and after this set master because onRemove will clear master pos again
                     level.setBlock(i, level.getBlockState(i).setValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED, true), 3);
                     BlockWindMillBlade.setMaster(new BlockWindMillBlade.BlockIdentifier(DimensionUtils.getLevelId(level), i), getBlockPos());
                 }
             }
         }else {
+            // structure is not valid, set state t0 false
             level.setBlock(getBlockPos(), getBlockState().setValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED, false), 3);
+            // also clear all valid blocks because it can still have some from s0 and s1
             validBlocks.clear();
         }
-            for (int x = -max_size; x <= max_size; x++) {
-                for (int y = -max_size; y <= max_size; y++) {
-                    BlockPos targetBlock = center.offset(x * xMultiplier, y, x * zMultiplier);
-                    if(!validBlocks.contains(targetBlock) ) {
-                        if (level.getBlockState(targetBlock).getBlock() instanceof BlockWindMillBlade) {
-                            // this should call onRemove for the block
-                            level.setBlock(targetBlock, level.getBlockState(targetBlock).setValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED, false), 3);
-                        }
-                    }
-                }
-            }
+
+        resetInvalidBlocks(center,validBlocks,xMultiplier,zMultiplier);
 
         isScanning = false;
     }
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+
+        if(getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)){
+            double v = noise.getValue((double)level.getGameTime() / 10000,getBlockPos().getX()*getBlockPos().getZ(),false);
+            System.out.println(v);
+
+            double windSpeed = 2;
+            double actualForce = 0;
+            for (int i = 0; i < size; i++) {
+                int r = i + 2;
+                int bladeNumOnThisRadius = r * 8;
+                double bladeSpeed = myMechanicalBlock.internalVelocity * r;
+                actualForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
+            }
+
+            int numberOfBlocks = (int) Math.pow((size+2)*2 + 1,2);
+
+myForce = actualForce;
+myFriction = 0.02*numberOfBlocks;
+myInertia = numberOfBlocks;
+            //System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+
+        }else{
+            myForce = 0;
+            myFriction = 1;
+            myInertia = 1;
+        }
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
@@ -227,7 +285,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         myMechanicalBlock.mechanicalReadClient(compoundTag);
         if (compoundTag.contains("size")) {
             this.size = compoundTag.getInt("size");
-            setNeedsMeshUpdate();
         }
     }
 

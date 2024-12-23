@@ -100,7 +100,7 @@ public class RenderWindMillGenerator implements BlockEntityRenderer<EntityWindMi
     }
 
     public AABB getRenderBoundingBox(EntityWindMillGenerator tile) {
-        return new AABB(tile.getBlockPos()).inflate(1);
+        return new AABB(tile.getBlockPos()).inflate(tile.size+2);
     }
 
 
@@ -157,10 +157,15 @@ public class RenderWindMillGenerator implements BlockEntityRenderer<EntityWindMi
                 vertexBuffer_axle.bind();
                 vertexBuffer_axle.draw();
 
-                //updateWindmillMesh(tile, 9);
+                if(tile.size != tile.last_size_for_meshUpdate) {
+                    updateWindmillMesh(tile, tile.size);
+                    tile.last_size_for_meshUpdate = tile.size;
+                }
 
-                tile.vertexBuffer.bind();
-                tile.vertexBuffer.draw();
+                if(tile.size > 0) {
+                    tile.vertexBuffer.bind();
+                    tile.vertexBuffer.draw();
+                }
             }
 
             shader.clear();

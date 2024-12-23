@@ -14,14 +14,14 @@
   "block.projectsteam.wooden_crankshaft_big": "Big Wooden Crankshaft",
   "item.projectsteam.wooden_crankshaft_big": "Big Wooden Crankshaft",
 
-  "block.projectsteam.gearbox": "Gearbox",
-  "item.projectsteam.gearbox": "Gearbox",
+  "block.projectsteam.wooden_gearbox": "Wooden Gearbox",
+  "item.projectsteam.wooden_gearbox": "Wooden Gearbox",
 
-  "block.projectsteam.tjunction": "3 sided Gearbox",
-  "item.projectsteam.tjunction": "3 sided Gearbox",
+  "block.projectsteam.wooden_tjunction": "Wooden T Junction",
+  "item.projectsteam.wooden_tjunction": "Wooden T Junction",
 
-  "block.projectsteam.distributor_gearbox": "4 sided Gearbox",
-  "item.projectsteam.distributor_gearbox": "4 sided Gearbox",
+  "block.projectsteam.wooden_distributor_gearbox": "4 sided Gearbox Wooden",
+  "item.projectsteam.wooden_distributor_gearbox": "4 sided Gearbox Wooden",
 
   "block.projectsteam.motor": "Electric Motor",
   "item.projectsteam.motor": "Electric Motor",

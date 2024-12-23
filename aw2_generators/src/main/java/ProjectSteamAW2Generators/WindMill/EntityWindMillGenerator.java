@@ -233,30 +233,33 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     public void tick() {
         myMechanicalBlock.mechanicalTick();
 
-        if(getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)){
-            double v = noise.getValue((double)level.getGameTime() / 10000,getBlockPos().getX()*getBlockPos().getZ(),false);
-            System.out.println(v);
+        if(!level.isClientSide) {
+            if (getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
 
-            double windSpeed = 2;
-            double actualForce = 0;
-            for (int i = 0; i < size; i++) {
-                int r = i + 2;
-                int bladeNumOnThisRadius = r * 8;
-                double bladeSpeed = myMechanicalBlock.internalVelocity * r;
-                actualForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
+                double v = noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
+                
+double windSpeedMultiplier = 5;
+                double windSpeed = windSpeedMultiplier*v;
+                double actualForce = 0;
+                for (int i = 0; i < size; i++) {
+                    int r = i + 2;
+                    int bladeNumOnThisRadius = r * 8;
+                    double bladeSpeed = myMechanicalBlock.internalVelocity * r;
+                    actualForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
+                }
+
+                int numberOfBlocks = (int) Math.pow((size + 2) * 2 + 1, 2);
+
+                myForce = actualForce;
+                myFriction = 0.02 * numberOfBlocks;
+                myInertia = numberOfBlocks;
+                //System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+
+            } else {
+                myForce = 0;
+                myFriction = 1;
+                myInertia = 1;
             }
-
-            int numberOfBlocks = (int) Math.pow((size+2)*2 + 1,2);
-
-myForce = actualForce;
-myFriction = 0.02*numberOfBlocks;
-myInertia = numberOfBlocks;
-            //System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
-
-        }else{
-            myForce = 0;
-            myFriction = 1;
-            myInertia = 1;
         }
     }
 

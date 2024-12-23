@@ -168,13 +168,8 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             }
         }
         if (tag.contains("inputs")) {
-            ItemStack oldStack = myInputs.copy();
             myInputs = ItemStack.parse(level.registryAccess(), tag.getCompound("inputs")).get();
-
-            if (oldStack.getItem().equals(myInputs.getItem()) && myInputs.getCount() + 1 == oldStack.getCount()) {
-                // this was an update that the recipe was processed so myStack decreased by one, update the progress
-                currentProgress = 0;
-            }
+            currentProgress = 0;
         }
         if (tag.contains("timeRequired")) {
             client_syncedCurrentRecipeTime = tag.getDouble("timeRequired");
@@ -194,6 +189,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             UUID from = tag.getUUID("ClientSieveOnload");
             ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
             CompoundTag info = getMeshUpdateTag();
+            // this should only be synced once and saved as static variables but I just make it here because it is easy to add it here
             info.putInt("syncMaxStackSize", maxStackSizeForSieve);
             info.putInt("syncMaxHopperStackSize", maxStackSizeForSieveHopper);
             PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
@@ -364,7 +360,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
         myFriction = config.baseResistance;
     }
 
-    boolean tryAddElementToSieveInventory(ItemStack stack) {
+    public  boolean tryAddElementToSieveInventory(ItemStack stack) {
         if (stack.isEmpty()) return false;
         if (myInputs.isEmpty()) {
             if (getRecipeForInputs(stack) != null) {
@@ -386,7 +382,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
         return false;
     }
 
-    boolean tryAddElementToHopperInventory(ItemStack stack) {
+    public boolean tryAddElementToHopperInventory(ItemStack stack) {
         if (stack.isEmpty()) return false;
         if (!getBlockState().getValue(BlockSieve.HOPPER_UPGRADE)) return false;
         if (myHopperInputs.isEmpty()) {

@@ -479,14 +479,6 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
             }else timeSinceConnectStart = 0;
         }
 
-
-        if(level.random.nextFloat() < 0.005*(Math.abs(myMechanicalBlockA.internalVelocity)+Math.abs(myMechanicalBlockB.internalVelocity))) {
-            int randomIndex = level.random.nextInt(WOODEN_SOUNDS.length);
-            SoundEvent randomEvent = WOODEN_SOUNDS[randomIndex];
-            level.playSound(null, getBlockPos(), randomEvent,
-                    SoundSource.BLOCKS, 0.005f*(float)((Math.abs(myMechanicalBlockA.internalVelocity)+Math.abs(myMechanicalBlockB.internalVelocity))), 1.0f);  //
-        }
-
         if(level.hasNeighborSignal(getBlockPos()) && Math.abs(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity) > 0.5) {
             for (int i = 0; i < 2; i++) {
                 SoundEvent[] clutch_sounds = {

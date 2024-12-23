@@ -5,6 +5,6 @@ import net.minecraft.world.item.Item;
 
 public abstract class ItemMesh extends Item implements IMesh {
     public ItemMesh() {
-        super(new Properties().stacksTo(1));
+        super(new Properties().stacksTo(64));
     }
 }

@@ -23,6 +23,8 @@ public class SieveConfigLoader {
 
     public static SieveConfig loadConfig() {
 
+        if(ServerLifecycleHooks.getCurrentServer() == null)return new SieveConfig();
+
         String filename = "sieve.json";
         String recipesDirName = "sieve_recipes";
         Class<SieveConfig.MachineRecipe> recipeClass = SieveConfig.MachineRecipe.class;

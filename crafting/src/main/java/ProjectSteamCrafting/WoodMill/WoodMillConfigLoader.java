@@ -18,6 +18,8 @@ public class WoodMillConfigLoader {
 
     public static WoodMillConfig loadConfig() {
 
+        if(ServerLifecycleHooks.getCurrentServer() == null)return new WoodMillConfig();
+
         String filename = "woodmill.json";
         String recipesDirName = "woodmill_recipes";
         Class<WoodMillConfig.MachineRecipe> recipeClass = WoodMillConfig.MachineRecipe.class;

@@ -72,7 +72,6 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
 
     double click_force = config.clickForce;
     double k = config.k;
-    double max_speed = 20;
     int maxStackSizeForSieve = config.inventorySize;
     int maxStackSizeForSieveHopper = config.inventorySizeHopper;
 
@@ -411,6 +410,8 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
     }
 
     public InteractionResult use(Player player) {
+        if(level.isClientSide)return InteractionResult.SUCCESS_NO_ITEM_USED;
+
         if (!player.isShiftKeyDown()) {
             if (player.getMainHandItem().getItem() instanceof IMesh) {
                 removeMyMesh();

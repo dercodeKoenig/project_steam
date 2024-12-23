@@ -36,7 +36,15 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public double forcePerBlock = 3;
+    public static double forcePerBlock = 3;
+    public static double windSpeedMultiplier = 10;
+
+    // usually, changes in wind are slowly with noise. but on server start or entity load,
+    // it will just start at a random starting value and this can cause a huge sudden change in force.
+    // this change in force will overstress the network and cause it to break.
+    // this is why we have to slowly increase wind speed so that it does not have this big spikes in force
+    double windSpeedSteps = 0.01;
+    double currentWindSpeedMultiplier = 0;
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
@@ -233,9 +241,15 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     public void tick() {
         myMechanicalBlock.mechanicalTick();
 
+        if(currentWindSpeedMultiplier < windSpeedMultiplier){
+            currentWindSpeedMultiplier += windSpeedSteps;
+        }else{
+            currentWindSpeedMultiplier = windSpeedMultiplier;
+        }
+
         if(!level.isClientSide) {
             if (getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
-                double windSpeed = noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
+                double windSpeed = currentWindSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
                 myForce = 0;
                 myInertia = 0;
                 for (int i = 0; i < size; i++) {
@@ -243,11 +257,11 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                     int bladeNumOnThisRadius = r * 8;
                     double bladeSpeed = myMechanicalBlock.internalVelocity * r;
                     myForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
-                    myInertia += bladeNumOnThisRadius * r;
+                    myInertia += 1*bladeNumOnThisRadius * r;
                 }
                 int numberOfBlocks = (int) Math.pow((size + 2) * 2 + 1, 2);
 
-                myFriction = 0.02 * numberOfBlocks;
+                myFriction = 0.005 * numberOfBlocks;
                 //System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {

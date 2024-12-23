@@ -1,5 +1,6 @@
 package ProjectSteamCrafting.SpinningWheel;
 
+import ProjectSteamCrafting.Sieve.SieveConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 import net.minecraft.resources.ResourceLocation;
@@ -15,6 +16,8 @@ import java.util.Map;
 public class SpinningWheelConfigLoader {
 
     public static SpinningWheelConfig loadConfig() {
+
+        if(ServerLifecycleHooks.getCurrentServer() == null)return new SpinningWheelConfig();
 
         String filename = "spinning_wheel.json";
         String recipesDirName = "spinning_wheel_recipes";

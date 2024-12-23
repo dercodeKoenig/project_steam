@@ -21,7 +21,7 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistributorGearbox> {
+public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistributorGearboxBase> {
 
     static WavefrontObject model;
     static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
@@ -53,10 +53,10 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
     }
 
     @Override
-    public void render(EntityDistributorGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(EntityDistributorGearboxBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState myState = tile.getBlockState();
-        if (myState.getBlock() instanceof BlockDistributorGearbox) {
-            Direction.Axis normalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
+        if (myState.getBlock() instanceof BlockDistributorGearboxbase) {
+            Direction.Axis normalAxis = myState.getValue(BlockDistributorGearboxbase.ROTATION_AXIS);
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());

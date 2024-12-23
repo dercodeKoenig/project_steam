@@ -140,6 +140,7 @@ public class RenderWindMillGenerator implements BlockEntityRenderer<EntityWindMi
 
             RenderSystem.setShader(Static::getEntitySolidDynamicNormalDynamicLightShader);
             ShaderInstance shader = RenderSystem.getShader();
+
             RenderSystem.setShaderTexture(0, tex);
 
             Matrix4f m2 = new Matrix4f(m1);

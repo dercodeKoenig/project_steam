@@ -3,9 +3,6 @@ package ProjectSteam.Blocks.Mechanics.DistributorGearbox;
 import ARLib.network.INetworkTagReceiver;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -14,9 +11,8 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.util.HashSet;
 import java.util.Map;
@@ -24,11 +20,11 @@ import java.util.Map;
 import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
-public class EntityDistributorGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public class EntityDistributorGearboxBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    double myInertia = 0.5;
-    double myFriction = 2;
-    double maxStress = 600;
+    double myInertia;
+    double myFriction;
+    double maxStress;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -56,8 +52,8 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
             if (receivingFace == null) return 1;
             BlockState myState = getBlockState();
 
-            if (myState.getBlock() instanceof BlockDistributorGearbox) {
-                Direction.Axis myNormalAxis = myState.getValue(BlockDistributorGearbox.ROTATION_AXIS);
+            if (myState.getBlock() instanceof BlockDistributorGearboxbase) {
+                Direction.Axis myNormalAxis = myState.getValue(BlockDistributorGearboxbase.ROTATION_AXIS);
 
                 if (myNormalAxis == Direction.Axis.Y) {
                     if (receivingFace == Direction.NORTH) return 1;
@@ -85,15 +81,15 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
             if(face == null)return 0;
 
             BlockState myState = getBlockState();
-            if(myState.getValue(BlockDistributorGearbox.ROTATION_AXIS) == Direction.Axis.Y) {
+            if(myState.getValue(BlockDistributorGearboxbase.ROTATION_AXIS) == Direction.Axis.Y) {
                 if(face.getAxis() == Direction.Axis.X)
                     return 14.7f;
             }
-            if(myState.getValue(BlockDistributorGearbox.ROTATION_AXIS) == Direction.Axis.X) {
+            if(myState.getValue(BlockDistributorGearboxbase.ROTATION_AXIS) == Direction.Axis.X) {
                 if(face.getAxis() == Direction.Axis.Y)
                     return 14.7f;
             }
-            if(myState.getValue(BlockDistributorGearbox.ROTATION_AXIS) == Direction.Axis.Z) {
+            if(myState.getValue(BlockDistributorGearboxbase.ROTATION_AXIS) == Direction.Axis.Z) {
                 if(face.getAxis() == Direction.Axis.Y)
                     return 14.7f;
             }
@@ -121,6 +117,10 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
             }
         }
     };
+
+    public EntityDistributorGearboxBase(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
+    }
 
     @Override
     public BlockEntity getBlockEntity() {
@@ -167,27 +167,20 @@ public class EntityDistributorGearbox extends BlockEntity implements IMechanical
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
     }
 
-
-    public EntityDistributorGearbox(BlockPos pos, BlockState blockState) {
-        super(ENTITY_DISTRIBUTOR_GEARBOX.get(), pos, blockState);
-    }
-
     @Override
     public void setRemoved() {
         super.setRemoved();
     }
 
-
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if (side.getAxis() != myState.getValue(BlockDistributorGearbox.ROTATION_AXIS))
+        if (side.getAxis() != myState.getValue(BlockDistributorGearboxbase.ROTATION_AXIS))
             return myMechanicalBlock;
         return null;
     }
 
-
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityDistributorGearbox) t).tick();
+        ((EntityDistributorGearboxBase) t).tick();
     }
 }

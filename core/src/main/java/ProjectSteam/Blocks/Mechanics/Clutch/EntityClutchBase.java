@@ -17,6 +17,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -27,33 +28,32 @@ import java.util.*;
 import static ProjectSteam.Registry.ENTITY_CLUTCH;
 import static ProjectSteam.Static.*;
 
-public class EntityClutch extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public abstract class EntityClutchBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
+    public double inertiaPerSide;
+    public  double baseFrictionPerSide;
+    public  double maxStress;
 
     boolean shouldConnect;
     int timeSinceConnectStart;
     boolean isFullyConnected;
     public boolean last_wasPowered = false;
     Map<Direction, Double> current_force = new HashMap<>();
-
-    double massPerSide = 3;
-    double baseFrictionPerSide = 1;
     double lastRotationDiff = 0;
 
     public AbstractMechanicalBlock myMechanicalBlockA = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return 100000;
+            return maxStress;
         }
         @Override
         public double getInertia(Direction face) {
-            return massPerSide;
+            return inertiaPerSide;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            double resistance = baseFrictionPerSide;
-            return resistance;
+            return baseFrictionPerSide;
         }
 
         @Override
@@ -91,7 +91,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     internalVelocity = serverVelocity;
                     internalVelocity += rotationDiff * 0.01;
 
-                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING), new HashSet<>(), false, false);
+                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutchBase.FACING), new HashSet<>(), false, false);
 
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
@@ -109,7 +109,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     MechanicalFlowData data = new MechanicalFlowData();
-                    getPropagatedData(data, getBlockState().getValue(BlockClutch.FACING), workedPositions);
+                    getPropagatedData(data, getBlockState().getValue(BlockClutchBase.FACING), workedPositions);
                     workedPositions.clear();
 
                     double t = (double) 1 / TPS;
@@ -134,7 +134,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     boolean resetStress = (me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0) && !lastTickHadForceToDistribute;
 
-                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING), workedPositions, false, resetStress);
+                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutchBase.FACING), workedPositions, false, resetStress);
 
                     if (resetStress) {
                         lastTickHadForceToDistribute = true;
@@ -214,17 +214,16 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
     public AbstractMechanicalBlock myMechanicalBlockB = new AbstractMechanicalBlock(1, this) {
         @Override
         public double getMaxStress() {
-            return 100000;
+            return maxStress;
         }
         @Override
         public double getInertia(Direction face) {
-            return massPerSide;
+            return inertiaPerSide;
         }
 
         @Override
         public double getTorqueResistance(Direction face) {
-            double resistance = baseFrictionPerSide;
-            return resistance;
+            return baseFrictionPerSide;
         }
 
         @Override
@@ -261,7 +260,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
                     internalVelocity = serverVelocity;
                     internalVelocity += rotationDiff * 0.01;
 
-                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), new HashSet<>(), false, false);
+                    propagateVelocityUpdate(internalVelocity, getBlockState().getValue(BlockClutchBase.FACING).getOpposite(), new HashSet<>(), false, false);
 
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
@@ -279,7 +278,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     HashSet<AbstractMechanicalBlock> workedPositions = new HashSet<>();
                     MechanicalFlowData data = new MechanicalFlowData();
-                    getPropagatedData(data, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions);
+                    getPropagatedData(data, getBlockState().getValue(BlockClutchBase.FACING).getOpposite(), workedPositions);
                     workedPositions.clear();
 
                     double t = (double) 1 / TPS;
@@ -304,7 +303,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
                     boolean resetStress = (me.getBlockEntity().getLevel().random.nextInt(CALC_STRESS_EVERY_X_TICKS) == 0) && !lastTickHadForceToDistribute;
 
-                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutch.FACING).getOpposite(), workedPositions, false, resetStress);
+                    propagateVelocityUpdate(newVelocity, getBlockState().getValue(BlockClutchBase.FACING).getOpposite(), workedPositions, false, resetStress);
 
                     if (resetStress) {
                         lastTickHadForceToDistribute = true;
@@ -380,10 +379,8 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
         }
     };
 
-
-    public EntityClutch(BlockPos pos, BlockState blockState) {
-        super(ENTITY_CLUTCH.get(), pos, blockState);
-
+    public EntityClutchBase(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
         for (Direction i : Direction.values()) {
             current_force.put(i, 0.0);
         }
@@ -392,8 +389,8 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
     void updateForce(BlockState state) {
         if (state == null) state = getBlockState();
-        if (state.getBlock() instanceof BlockClutch) {
-            Direction myFacing = state.getValue(BlockClutch.FACING);
+        if (state.getBlock() instanceof BlockClutchBase) {
+            Direction myFacing = state.getValue(BlockClutchBase.FACING);
 
             double rotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;
             double forceConstant = 2;
@@ -419,10 +416,10 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if (myState.getBlock() instanceof BlockClutch) {
-            if (side == myState.getValue(BlockClutch.FACING))
+        if (myState.getBlock() instanceof BlockClutchBase) {
+            if (side == myState.getValue(BlockClutchBase.FACING))
                 return myMechanicalBlockA;
-            if (side == myState.getValue(BlockClutch.FACING).getOpposite())
+            if (side == myState.getValue(BlockClutchBase.FACING).getOpposite())
                 return myMechanicalBlockB;
         }
         return null;
@@ -435,7 +432,7 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityClutch) t).tick();
+        ((EntityClutchBase) t).tick();
     }
 
 
@@ -510,28 +507,28 @@ public class EntityClutch extends BlockEntity implements IMechanicalBlockProvide
 
         if(isFullyConnected) {
             if(MechanicalBlock == myMechanicalBlockB) {
-                connectedBlocks.put(getBlockState().getValue(BlockClutch.FACING), myMechanicalBlockA);
+                connectedBlocks.put(getBlockState().getValue(BlockClutchBase.FACING), myMechanicalBlockA);
             }
             if(MechanicalBlock == myMechanicalBlockA) {
-                connectedBlocks.put(getBlockState().getValue(BlockClutch.FACING).getOpposite(), myMechanicalBlockB);
+                connectedBlocks.put(getBlockState().getValue(BlockClutchBase.FACING).getOpposite(), myMechanicalBlockB);
             }
         }
 
         if(MechanicalBlock == myMechanicalBlockB) {
-            BlockEntity otherBE = level.getBlockEntity(getBlockPos().relative(getBlockState().getValue(BlockClutch.FACING).getOpposite()));
+            BlockEntity otherBE = level.getBlockEntity(getBlockPos().relative(getBlockState().getValue(BlockClutchBase.FACING).getOpposite()));
             if (otherBE instanceof IMechanicalBlockProvider p) {
-                AbstractMechanicalBlock other = p.getMechanicalBlock(getBlockState().getValue(BlockClutch.FACING));
+                AbstractMechanicalBlock other = p.getMechanicalBlock(getBlockState().getValue(BlockClutchBase.FACING));
                 if (other instanceof AbstractMechanicalBlock otherMechBlock) {
-                    connectedBlocks.put(getBlockState().getValue(BlockClutch.FACING).getOpposite(), otherMechBlock);
+                    connectedBlocks.put(getBlockState().getValue(BlockClutchBase.FACING).getOpposite(), otherMechBlock);
                 }
             }
         }
         if(MechanicalBlock == myMechanicalBlockA) {
-            BlockEntity otherBE = level.getBlockEntity(getBlockPos().relative(getBlockState().getValue(BlockClutch.FACING)));
+            BlockEntity otherBE = level.getBlockEntity(getBlockPos().relative(getBlockState().getValue(BlockClutchBase.FACING)));
             if (otherBE instanceof IMechanicalBlockProvider p) {
-                AbstractMechanicalBlock other = p.getMechanicalBlock(getBlockState().getValue(BlockClutch.FACING).getOpposite());
+                AbstractMechanicalBlock other = p.getMechanicalBlock(getBlockState().getValue(BlockClutchBase.FACING).getOpposite());
                 if (other instanceof AbstractMechanicalBlock otherMechBlock) {
-                    connectedBlocks.put(getBlockState().getValue(BlockClutch.FACING), otherMechBlock);
+                    connectedBlocks.put(getBlockState().getValue(BlockClutchBase.FACING), otherMechBlock);
                 }
             }
         }

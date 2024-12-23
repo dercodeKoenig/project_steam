@@ -9,10 +9,14 @@ import ProjectSteam.Blocks.Mechanics.DistributorGearbox.RenderDistributorGearbox
 import ProjectSteam.Blocks.Mechanics.Gearbox.RenderGearbox;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.RenderHandGenerator;
 import ProjectSteam.Blocks.Mechanics.TJunction.RenderTJunction;
+
+import ProjectSteam.Config.Config;
+import ProjectSteam.Config.PacketConfigSync;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -20,9 +24,12 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
@@ -35,9 +42,12 @@ import static ProjectSteam.Static.POSITION_COLOR_TEXTURE_NORMAL_LIGHT;
 @Mod("projectsteam")
 public class ProjectSteam {
 
+
+
     public ProjectSteam(IEventBus modEventBus, ModContainer modContaine) throws IOException {
         //modEventBus.register(this);
 
+        NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
@@ -47,6 +57,14 @@ public class ProjectSteam {
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::registerNetworkStuff);
         Registry.register(modEventBus);
+
+
+    }
+
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
+        if(login.getEntity() instanceof ServerPlayer p){
+            Config.INSTANCE.SyncConfig(p);
+        }
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
@@ -73,6 +91,7 @@ public class ProjectSteam {
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
+        PacketConfigSync.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

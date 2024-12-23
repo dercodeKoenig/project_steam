@@ -173,35 +173,34 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
-        if(!level.isClientSide)
+        if (!level.isClientSide) {
             IGuiHandler.serverTick(guiHandler);
 
-        if (currentRecipe == null) {
-            scanFornewRecipe();
-        }else {
-            if (InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new recipePart(currentRecipe.inputItem.id, currentRecipe.inputItem.amount, 1)))) {
-                double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS));
-                currentProgress += progressMade;
-                if (currentProgress >= currentRecipe.timeRequired) {
-                    List<recipePart> myOutputPartsForUtilsLib = new ArrayList<>();
-                    for (SpinningWheelConfig.MachineRecipe.Item i : currentRecipe.outputItems) {
-                        myOutputPartsForUtilsLib.add(new recipePart(i.id, i.amount, i.p));
-                    }
-                    if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(), myOutputPartsForUtilsLib)) {
-                        completeCurrentRecipe();
-                    }
-                }
+            if (currentRecipe == null) {
+                scanFornewRecipe();
             } else {
-                resetRecipe();
+                if (InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new recipePart(currentRecipe.inputItem.id, currentRecipe.inputItem.amount, 1)))) {
+                    double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS));
+                    currentProgress += progressMade;
+                    if (currentProgress >= currentRecipe.timeRequired) {
+                        List<recipePart> myOutputPartsForUtilsLib = new ArrayList<>();
+                        for (SpinningWheelConfig.MachineRecipe.Item i : currentRecipe.outputItems) {
+                            myOutputPartsForUtilsLib.add(new recipePart(i.id, i.amount, i.p));
+                        }
+                        if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(), myOutputPartsForUtilsLib)) {
+                            completeCurrentRecipe();
+                        }
+                    }
+                } else {
+                    resetRecipe();
+                }
             }
-        }
-        if(currentRecipe == null){
-            myFriction = config.baseResistance;
-        }else{
-            myFriction = config.baseResistance + currentRecipe.additionalResistance;
-        }
+            if (currentRecipe == null) {
+                myFriction = config.baseResistance;
+            } else {
+                myFriction = config.baseResistance + currentRecipe.additionalResistance;
+            }
 
-        if (!level.isClientSide) {
             if (ticksRemainingForForce > 0) {
                 ticksRemainingForForce--;
                 myForce = config.clickForce - config.k * myMechanicalBlock.internalVelocity;

@@ -119,7 +119,6 @@ public class BlockWindMillBlade extends Block {
     public int getLightBlock(BlockState state, BlockGetter world, BlockPos pos) {
         return 0;
     }
-
     @Override
     protected boolean skipRendering(BlockState state, BlockState adjacentBlockState, Direction side) {
         return state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED);
@@ -131,6 +130,14 @@ public class BlockWindMillBlade extends Block {
     @Override
     protected boolean propagatesSkylightDown(BlockState p_309084_, BlockGetter p_309133_, BlockPos p_309097_) {
         return true;
+    }
+    @Override
+    protected VoxelShape getCollisionShape(BlockState state, BlockGetter level, BlockPos pos, CollisionContext context) {
+        if(state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)){
+            return Shapes.empty();
+        }else{
+            return Shapes.block();
+        }
     }
 
 }

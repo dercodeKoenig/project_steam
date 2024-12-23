@@ -1,5 +1,6 @@
 package ProjectSteam.Blocks.Mechanics.CrankShaft;
 
+import ProjectSteam.Config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -13,9 +14,9 @@ public class EntityBigWoodenCrankShaft extends EntityCrankShaftBase {
 
     public EntityBigWoodenCrankShaft(BlockPos pos, BlockState blockState) {
         super(ICrankShaftConnector.CrankShaftType.LARGE,ENTITY_BIG_WOODEN_CRANKSHAFT.get(), pos, blockState);
-        maxStress = 600;
-        myInertia = 1;
-        myFriction = 0.1;
+        maxStress = Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_MAX_STRESS;
+        myInertia = Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_INERTIA;
+        myFriction = Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_FRICTION;
     }
 
     public void tick(){

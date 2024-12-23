@@ -1,5 +1,7 @@
 package ProjectSteam;
 
+import ProjectSteam.Blocks.Mechanics.Clutch.BlockWoodenClutch;
+import ProjectSteam.Blocks.Mechanics.Clutch.EntityWoodenClutch;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockBigWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityBigWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntitySmallWoodenCrankShaft;
@@ -7,11 +9,9 @@ import ProjectSteam.Blocks.SimpleBlocks.BlockCasing;
 import ProjectSteam.Blocks.Mechanics.Axle.*;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.BlockMotor;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.EntityMotor;
-import ProjectSteam.Blocks.Mechanics.Clutch.BlockClutch;
-import ProjectSteam.Blocks.Mechanics.Clutch.EntityClutch;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockSmallWoodenCrankShaft;
-import ProjectSteam.Blocks.Mechanics.DistributorGearbox.BlockDistributorGearbox;
-import ProjectSteam.Blocks.Mechanics.DistributorGearbox.EntityDistributorGearbox;
+import ProjectSteam.Blocks.Mechanics.DistributorGearbox.BlockDistributorGearboxbase;
+import ProjectSteam.Blocks.Mechanics.DistributorGearbox.EntityDistributorGearboxBase;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.BlockWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.EntityWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.Gearbox.BlockGearbox;
@@ -27,7 +27,6 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -92,11 +91,11 @@ public class Registry {
 
     public static final Supplier<Block> DISTRIBUTOR_GEARBOX = BLOCKS.register(
             "distributor_gearbox",
-            () -> new BlockDistributorGearbox()
+            () -> new BlockDistributorGearboxbase()
     );
-    public static final Supplier<BlockEntityType<EntityDistributorGearbox>> ENTITY_DISTRIBUTOR_GEARBOX = BLOCK_ENTITIES.register(
+    public static final Supplier<BlockEntityType<EntityDistributorGearboxBase>> ENTITY_DISTRIBUTOR_GEARBOX = BLOCK_ENTITIES.register(
             "entity_distributor_gearbox",
-            () -> BlockEntityType.Builder.of(EntityDistributorGearbox::new, DISTRIBUTOR_GEARBOX.get()).build(null)
+            () -> BlockEntityType.Builder.of(EntityDistributorGearboxBase::new, DISTRIBUTOR_GEARBOX.get()).build(null)
     );
 
     public static final Supplier<Block> GEARBOX = BLOCKS.register(
@@ -119,11 +118,11 @@ public class Registry {
 
     public static final Supplier<Block> CLUTCH = BLOCKS.register(
             "clutch",
-            () -> new BlockClutch()
+            () -> new BlockWoodenClutch()
     );
-    public static final Supplier<BlockEntityType<EntityClutch>> ENTITY_CLUTCH = BLOCK_ENTITIES.register(
+    public static final Supplier<BlockEntityType<EntityWoodenClutch>> ENTITY_CLUTCH = BLOCK_ENTITIES.register(
             "entity_clutch",
-            () -> BlockEntityType.Builder.of(EntityClutch::new, CLUTCH.get()).build(null)
+            () -> BlockEntityType.Builder.of(EntityWoodenClutch::new, CLUTCH.get()).build(null)
     );
 
     public static final Supplier<Block> HAND_GENERATOR = BLOCKS.register(

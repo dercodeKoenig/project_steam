@@ -22,9 +22,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
-
-public class BlockDistributorGearbox extends Block implements EntityBlock {
+public abstract class BlockDistributorGearboxbase extends Block implements EntityBlock {
 
     public static EnumProperty<Direction.Axis> ROTATION_AXIS = EnumProperty.create("axis", Direction.Axis.class);
     public static Map<Direction, BooleanProperty> solidBlockConnections = new HashMap<>();
@@ -35,7 +33,7 @@ public class BlockDistributorGearbox extends Block implements EntityBlock {
         }
     }
 
-    public BlockDistributorGearbox() {
+    public BlockDistributorGearboxbase() {
         super(BlockBehaviour.Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(ROTATION_AXIS, Direction.Axis.Y);
@@ -73,10 +71,6 @@ public class BlockDistributorGearbox extends Block implements EntityBlock {
 
         super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
     }
-        @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ENTITY_DISTRIBUTOR_GEARBOX.get().create(pos, state);
-    }
 
 
     @Override
@@ -92,6 +86,6 @@ public class BlockDistributorGearbox extends Block implements EntityBlock {
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityDistributorGearbox::tick;
+        return EntityDistributorGearboxBase::tick;
     }
 }

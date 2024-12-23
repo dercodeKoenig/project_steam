@@ -1,5 +1,7 @@
 package ProjectSteamCrafting.Sieve;
 
+import com.google.gson.Gson;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,5 +41,16 @@ public class SieveConfig {
             public int amount = 1;
             public float p = 1;
         }
+    }
+
+
+    public String toJson(){
+        Gson gson = new Gson();
+        return gson.toJson(this);
+    }
+
+    public static SieveConfig fromJson(String json){
+        Gson gson = new Gson();
+        return gson.fromJson(json, SieveConfig.class);
     }
 }

@@ -63,7 +63,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
     double myFriction = config.baseResistance;
     double myInertia = 1;
-    double maxStress = 500;
+    double maxStress = 600;
 
     double timeRequired = 50;
 

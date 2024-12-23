@@ -1,5 +1,6 @@
 package ProjectSteam.Blocks.Mechanics.Axle;
 
+import ProjectSteam.Config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -9,13 +10,12 @@ import static ProjectSteam.Registry.ENTITY_WOODEN_AXLE;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityWoodenAxle extends EntityAxleBase{
+
     public EntityWoodenAxle(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_AXLE.get(), pos, blockState);
-
-         myInertia = 1;
-         myFriction = 0.1;
-         maxStress = 600;
-
+        super.myInertia = Config.INSTANCE.WOODEN_AXLE_INERTIA;
+        super.myFriction = Config.INSTANCE.WOODEN_AXLE_FRICTION;
+        super.maxStress = Config.INSTANCE.WOODEN_AXLE_MAX_STRESS;
     }
 
     public void tick(){

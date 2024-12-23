@@ -119,19 +119,6 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
     public BlockEntity getBlockEntity(){return this;}
 
 
-    public void incRotationOffset() {
-        if (!level.isClientSide) {
-            rotationoffset++;
-            if (rotationoffset > 3) rotationoffset = 0;
-            CompoundTag i = new CompoundTag();
-            i.putInt("rotationOffset", rotationoffset);
-            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, i));
-            myMechanicalBlock.propagateResetRotation(myMechanicalBlock.currentRotation + 90, null, new HashSet<>());
-            setChanged();
-        }
-    }
-
-
     @Override
     public void onLoad() {
         super.onLoad();

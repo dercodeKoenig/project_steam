@@ -21,10 +21,10 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistributorGearboxBase> {
+public abstract class RenderDistributorGearboxBase implements BlockEntityRenderer<EntityDistributorGearboxBase> {
 
     static WavefrontObject model;
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
+    static ResourceLocation tex;
     static VertexBuffer vertexBuffer = new VertexBuffer(VertexBuffer.Usage.STATIC);;
     static MeshData mesh;
 
@@ -48,8 +48,9 @@ public class RenderDistributorGearbox implements BlockEntityRenderer<EntityDistr
     }
 
 
-    public RenderDistributorGearbox(BlockEntityRendererProvider.Context c) {
+    public RenderDistributorGearboxBase(BlockEntityRendererProvider.Context c, ResourceLocation texture) {
         super();
+        this.tex = texture;
     }
 
     @Override

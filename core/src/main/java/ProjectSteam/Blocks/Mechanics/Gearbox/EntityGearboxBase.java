@@ -3,9 +3,6 @@ package ProjectSteam.Blocks.Mechanics.Gearbox;
 import ARLib.network.INetworkTagReceiver;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.MeshData;
-import com.mojang.blaze3d.vertex.VertexBuffer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -14,18 +11,16 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 
-import static ProjectSteam.Registry.ENTITY_GEARBOX;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
-public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public class EntityGearboxBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    double myInertia = 0.5;
-    double myFriction = 2;
-    double maxStress = 900;
+    double myInertia;
+    double myFriction;
+    double maxStress;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -53,8 +48,8 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
             if (receivingFace == null) return 1;
             BlockState myState = getBlockState();
 
-            if (myState.getBlock() instanceof BlockGearbox) {
-                Direction facing = myState.getValue(BlockGearbox.FACING);
+            if (myState.getBlock() instanceof BlockGearboxBase) {
+                Direction facing = myState.getValue(BlockGearboxBase.FACING);
 
                 if (receivingFace == facing.getOpposite())
                     return (double) -3 / 2;
@@ -110,8 +105,8 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
     }
 
-    public EntityGearbox(BlockPos pos, BlockState blockState) {
-        super(ENTITY_GEARBOX.get(), pos, blockState);
+    public EntityGearboxBase(BlockEntityType type, BlockPos pos, BlockState blockState) {
+        super(type,pos,blockState);
         // because the input/output do not rotate with the same speed, reset only when they all made a full rotation
         // I think the gearbox should have a ratio of 2:3 for both sides to a total of 4:9 or 9:4
         // if we reset after 6 rotations, the high rpm part should have completed 9 rotations and the low rpm part should completed 4 rotations
@@ -127,13 +122,13 @@ public class EntityGearbox extends BlockEntity implements IMechanicalBlockProvid
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
         BlockState myState = getBlockState();
-        if (side.getAxis() == myState.getValue(BlockGearbox.FACING).getAxis())
+        if (side.getAxis() == myState.getValue(BlockGearboxBase.FACING).getAxis())
             return myMechanicalBlock;
         return null;
     }
 
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityGearbox) t).tick();
+        ((EntityGearboxBase) t).tick();
     }
 }

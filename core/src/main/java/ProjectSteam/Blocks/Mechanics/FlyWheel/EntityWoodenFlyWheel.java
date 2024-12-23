@@ -1,5 +1,6 @@
 package ProjectSteam.Blocks.Mechanics.FlyWheel;
 
+import ProjectSteam.Config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
@@ -12,9 +13,9 @@ public class EntityWoodenFlyWheel extends EntityFlyWheelBase {
 
     public EntityWoodenFlyWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_FLYWHEEL.get(), pos, blockState);
-        myInertia = 20;
-        myFriction = 0.1;
-        maxStress = 600;
+        myInertia = Config.INSTANCE.WOODEN_FLYWHEEL_INERTIA;
+        myFriction = Config.INSTANCE.WOODEN_FLYWHEEL_FRICTION;
+        maxStress = Config.INSTANCE.WOODEN_FLYWHEEL_MAX_STRESS;
     }
 
     public void tick(){

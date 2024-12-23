@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.HashSet;
 import java.util.Map;
 
-import static ProjectSteam.Registry.ENTITY_DISTRIBUTOR_GEARBOX;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityDistributorGearboxBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {

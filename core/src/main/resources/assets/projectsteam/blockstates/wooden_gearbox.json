@@ -2,19 +2,19 @@
     "multipart": [
         {
             "when": { "facing": "north" },
-            "apply": { "model": "projectsteam:block/gearbox", "y": 180 }
+            "apply": { "model": "projectsteam:block/wooden_gearbox", "y": 180 }
         },
         {
             "when": { "facing": "south" },
-            "apply": { "model": "projectsteam:block/gearbox", "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_gearbox", "y": 0 }
         },
         {
             "when": { "facing": "east" },
-            "apply": { "model": "projectsteam:block/gearbox", "y": 270 }
+            "apply": { "model": "projectsteam:block/wooden_gearbox", "y": 270 }
         },
         {
             "when": { "facing": "west" },
-            "apply": { "model": "projectsteam:block/gearbox", "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_gearbox", "y": 90 }
         },
 
         {

@@ -21,6 +21,11 @@ public class Config {
     public double WOODEN_AXLE_MAX_STRESS = 600;
 
 
+    public double WOODEN_FLYWHEEL_FRICTION = 0.1;
+    public double WOODEN_FLYWHEEL_INERTIA = 20;
+    public double WOODEN_FLYWHEEL_MAX_STRESS = 600;
+
+
     public double WOODEN_CLUTCH_FRICTION_PER_SIDE = 0.1;
     public double WOODEN_CLUTCH_INERTIA_PER_SIDE = 3;
     public double WOODEN_CLUTCH_MAX_STRESS = 900;
@@ -39,6 +44,11 @@ public class Config {
     public double WOODEN_DISTRIBUTOR_GEARBOX_FRICTION = 2;
     public double WOODEN_DISTRIBUTOR_GEARBOX_INERTIA = 1;
     public double WOODEN_DISTRIBUTOR_GEARBOX_MAX_STRESS = 600;
+
+
+    public double WOODEN_GEARBOX_FRICTION = 2;
+    public double WOODEN_GEARBOX_INERTIA = 1;
+    public double WOODEN_GEARBOX_MAX_STRESS = 900;
 
 
     public void SyncConfig(ServerPlayer p) {

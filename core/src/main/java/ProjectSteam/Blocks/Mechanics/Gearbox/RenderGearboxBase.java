@@ -21,10 +21,10 @@ import org.joml.Quaternionf;
 import static ProjectSteam.Static.*;
 import static net.minecraft.client.renderer.RenderStateShard.*;
 
-public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
+public abstract class RenderGearboxBase implements BlockEntityRenderer<EntityGearboxBase> {
 
     static WavefrontObject model;
-    static ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
+    static ResourceLocation tex;
 
     static VertexBuffer vertexBuffer_in= new VertexBuffer(VertexBuffer.Usage.STATIC);
     static VertexBuffer vertexBuffer_out= new VertexBuffer(VertexBuffer.Usage.STATIC);
@@ -75,16 +75,17 @@ public class RenderGearbox implements BlockEntityRenderer<EntityGearbox> {
     }
 
 
-    public RenderGearbox(BlockEntityRendererProvider.Context c) {
+    public RenderGearboxBase(BlockEntityRendererProvider.Context c, ResourceLocation texture)  {
         super();
+        this.tex = texture;
     }
 
 
     @Override
-    public void render(EntityGearbox tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
+    public void render(EntityGearboxBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
         BlockState myState = tile.getBlockState();
-        if (myState.getBlock() instanceof BlockGearbox) {
-            Direction facing = myState.getValue(BlockGearbox.FACING);
+        if (myState.getBlock() instanceof BlockGearboxBase) {
+            Direction facing = myState.getValue(BlockGearboxBase.FACING);
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());

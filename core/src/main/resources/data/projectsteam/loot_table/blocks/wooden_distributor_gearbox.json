@@ -6,7 +6,7 @@
             "entries": [
                 {
                     "type": "minecraft:item",
-                    "name": "projectsteam:gearbox"
+                    "name": "projectsteam:wooden_distributor_gearbox"
                 }
             ]
         }

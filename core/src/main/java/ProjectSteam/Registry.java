@@ -5,17 +5,17 @@ import ProjectSteam.Blocks.Mechanics.Clutch.EntityWoodenClutch;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockBigWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityBigWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntitySmallWoodenCrankShaft;
+import ProjectSteam.Blocks.Mechanics.DistributorGearbox.BlockWoodenDistributorGearbox;
+import ProjectSteam.Blocks.Mechanics.DistributorGearbox.EntityWoodenDistributorGearbox;
+import ProjectSteam.Blocks.Mechanics.Gearbox.BlockWoodenGearbox;
+import ProjectSteam.Blocks.Mechanics.Gearbox.EntityWoodenGearbox;
 import ProjectSteam.Blocks.SimpleBlocks.BlockCasing;
 import ProjectSteam.Blocks.Mechanics.Axle.*;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.BlockMotor;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.EntityMotor;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockSmallWoodenCrankShaft;
-import ProjectSteam.Blocks.Mechanics.DistributorGearbox.BlockDistributorGearboxbase;
-import ProjectSteam.Blocks.Mechanics.DistributorGearbox.EntityDistributorGearboxBase;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.BlockWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.EntityWoodenFlyWheel;
-import ProjectSteam.Blocks.Mechanics.Gearbox.BlockGearbox;
-import ProjectSteam.Blocks.Mechanics.Gearbox.EntityGearbox;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.BlockHandGenerator;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.EntityHandGenerator;
 import ProjectSteam.Blocks.Mechanics.TJunction.EntityTJunction;
@@ -89,22 +89,22 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityBigWoodenCrankShaft::new, BIG_WOODEN_CRANKSHAFT.get()).build(null)
     );
 
-    public static final Supplier<Block> DISTRIBUTOR_GEARBOX = BLOCKS.register(
-            "distributor_gearbox",
-            () -> new BlockDistributorGearboxbase()
+    public static final Supplier<Block> WOODEN_DISTRIBUTOR_GEARBOX = BLOCKS.register(
+            "wooden_distributor_gearbox",
+            () -> new BlockWoodenDistributorGearbox()
     );
-    public static final Supplier<BlockEntityType<EntityDistributorGearboxBase>> ENTITY_DISTRIBUTOR_GEARBOX = BLOCK_ENTITIES.register(
-            "entity_distributor_gearbox",
-            () -> BlockEntityType.Builder.of(EntityDistributorGearboxBase::new, DISTRIBUTOR_GEARBOX.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityWoodenDistributorGearbox>> ENTITY_WOODEN_DISTRIBUTOR_GEARBOX = BLOCK_ENTITIES.register(
+            "entity_wooden_distributor_gearbox",
+            () -> BlockEntityType.Builder.of(EntityWoodenDistributorGearbox::new, WOODEN_DISTRIBUTOR_GEARBOX.get()).build(null)
     );
 
-    public static final Supplier<Block> GEARBOX = BLOCKS.register(
-            "gearbox",
-            () -> new BlockGearbox()
+    public static final Supplier<Block> WOODEN_GEARBOX = BLOCKS.register(
+            "wooden_gearbox",
+            () -> new BlockWoodenGearbox()
     );
-    public static final Supplier<BlockEntityType<EntityGearbox>> ENTITY_GEARBOX = BLOCK_ENTITIES.register(
-            "entity_gearbox",
-            () -> BlockEntityType.Builder.of(EntityGearbox::new, GEARBOX.get()).build(null)
+    public static final Supplier<BlockEntityType<EntityWoodenGearbox>> ENTITY_WOODEN_GEARBOX = BLOCK_ENTITIES.register(
+            "entity_wooden_gearbox",
+            () -> BlockEntityType.Builder.of(EntityWoodenGearbox::new, WOODEN_GEARBOX.get()).build(null)
     );
 
     public static final Supplier<Block> MOTOR = BLOCKS.register(
@@ -177,9 +177,9 @@ public class Registry {
         registerBlockItem("wooden_crankshaft_small", SMALL_WOODEN_CRANKSHAFT);
         registerBlockItem("wooden_crankshaft_big", BIG_WOODEN_CRANKSHAFT);
 
-        registerBlockItem("distributor_gearbox", DISTRIBUTOR_GEARBOX);
+        registerBlockItem("wooden_distributor_gearbox", WOODEN_DISTRIBUTOR_GEARBOX);
 
-        registerBlockItem("gearbox", GEARBOX);
+        registerBlockItem("wooden_gearbox", WOODEN_GEARBOX);
 
         registerBlockItem("motor", MOTOR);
 

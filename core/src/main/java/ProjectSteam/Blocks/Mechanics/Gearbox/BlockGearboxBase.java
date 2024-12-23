@@ -20,9 +20,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-import static ProjectSteam.Registry.ENTITY_GEARBOX;
-
-public class BlockGearbox extends Block implements EntityBlock {
+public abstract class BlockGearboxBase extends Block implements EntityBlock {
 
     public static EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class);
     public static Map<Direction, BooleanProperty> solidBlockConnections = new HashMap<>();
@@ -34,7 +32,7 @@ public class BlockGearbox extends Block implements EntityBlock {
     }
 
 
-    public BlockGearbox() {
+    public BlockGearboxBase() {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(FACING, Direction.SOUTH);
@@ -76,13 +74,10 @@ public class BlockGearbox extends Block implements EntityBlock {
         return state;
     }
 
-        @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return ENTITY_GEARBOX.get().create(pos, state);
-    }
+
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        return EntityGearbox::tick;
+        return EntityGearboxBase::tick;
     }
 }

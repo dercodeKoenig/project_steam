@@ -3,10 +3,11 @@ package ProjectSteam;
 import ProjectSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderBigWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.RenderSmallWoodenCrankShaft;
+import ProjectSteam.Blocks.Mechanics.DistributorGearbox.RenderWoodenDistributorGearbox;
 import ProjectSteam.Blocks.Mechanics.FlyWheel.RenderWoodenFlyWheel;
 import ProjectSteam.Blocks.Mechanics.BlockMotor.RenderMotor;
-import ProjectSteam.Blocks.Mechanics.DistributorGearbox.RenderDistributorGearbox;
-import ProjectSteam.Blocks.Mechanics.Gearbox.RenderGearbox;
+import ProjectSteam.Blocks.Mechanics.Gearbox.RenderGearboxBase;
+import ProjectSteam.Blocks.Mechanics.Gearbox.RenderWoodenGearbox;
 import ProjectSteam.Blocks.Mechanics.HandGenerator.RenderHandGenerator;
 import ProjectSteam.Blocks.Mechanics.TJunction.RenderTJunction;
 
@@ -24,7 +25,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
-import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
@@ -68,8 +68,8 @@ public class ProjectSteam {
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
-        ItemBlockRenderTypes.setRenderLayer(DISTRIBUTOR_GEARBOX.get(), RenderType.cutout());
-        ItemBlockRenderTypes.setRenderLayer(GEARBOX.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(WOODEN_DISTRIBUTOR_GEARBOX.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(WOODEN_GEARBOX.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(TJUNCTION.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(WOODEN_AXLE_ENCASED.get(), RenderType.cutout());
     }
@@ -81,8 +81,8 @@ public class ProjectSteam {
         event.registerBlockEntityRenderer(ENTITY_WOODEN_FLYWHEEL.get(), RenderWoodenFlyWheel::new);
         event.registerBlockEntityRenderer(ENTITY_SMALL_WOODEN_CRANKSHAFT.get(), RenderSmallWoodenCrankShaft::new);
         event.registerBlockEntityRenderer(ENTITY_BIG_WOODEN_CRANKSHAFT.get(), RenderBigWoodenCrankShaft::new);
-        event.registerBlockEntityRenderer(ENTITY_DISTRIBUTOR_GEARBOX.get(), RenderDistributorGearbox::new);
-        event.registerBlockEntityRenderer(ENTITY_GEARBOX.get(), RenderGearbox::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_DISTRIBUTOR_GEARBOX.get(), RenderWoodenDistributorGearbox::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_GEARBOX.get(), RenderWoodenGearbox::new);
         event.registerBlockEntityRenderer(ENTITY_MOTOR.get(), RenderMotor::new);
         event.registerBlockEntityRenderer(ENTITY_HAND_GENERATOR.get(), RenderHandGenerator::new);
         event.registerBlockEntityRenderer(ENTITY_TJUNCTION.get(), RenderTJunction::new);
@@ -101,8 +101,8 @@ public class ProjectSteam {
             e.accept(WOODEN_FLYWHEEL.get());
             e.accept(SMALL_WOODEN_CRANKSHAFT.get());
             e.accept(BIG_WOODEN_CRANKSHAFT.get());
-            e.accept(DISTRIBUTOR_GEARBOX.get());
-            e.accept(GEARBOX.get());
+            e.accept(WOODEN_DISTRIBUTOR_GEARBOX.get());
+            e.accept(WOODEN_GEARBOX.get());
             e.accept(MOTOR.get());
             e.accept(CLUTCH.get());
             e.accept(HAND_GENERATOR.get());

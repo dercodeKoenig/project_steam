@@ -2,15 +2,15 @@
     "multipart": [
         {
             "when": { "axis": "y" },
-            "apply": { "model": "projectsteam:block/distributor_gearbox" }
+            "apply": { "model": "projectsteam:block/wooden_distributor_gearbox" }
         },
         {
             "when": { "axis": "x" },
-            "apply": { "model": "projectsteam:block/distributor_gearbox", "x": 90, "y": 90 }
+            "apply": { "model": "projectsteam:block/wooden_distributor_gearbox", "x": 90, "y": 90 }
         },
         {
             "when": { "axis": "z" },
-            "apply": { "model": "projectsteam:block/distributor_gearbox", "x": 90, "y": 0 }
+            "apply": { "model": "projectsteam:block/wooden_distributor_gearbox", "x": 90, "y": 0 }
         },
 
 

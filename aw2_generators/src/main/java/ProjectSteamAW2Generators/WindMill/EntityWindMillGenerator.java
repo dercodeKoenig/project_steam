@@ -36,7 +36,7 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public double forcePerBlock = 1;
+    public double forcePerBlock = 3;
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
@@ -235,24 +235,19 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
         if(!level.isClientSide) {
             if (getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
-
-                double v = noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
-                
-double windSpeedMultiplier = 5;
-                double windSpeed = windSpeedMultiplier*v;
-                double actualForce = 0;
+                double windSpeed = noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
+                myForce = 0;
+                myInertia = 0;
                 for (int i = 0; i < size; i++) {
                     int r = i + 2;
                     int bladeNumOnThisRadius = r * 8;
                     double bladeSpeed = myMechanicalBlock.internalVelocity * r;
-                    actualForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
+                    myForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
+                    myInertia += bladeNumOnThisRadius * r;
                 }
-
                 int numberOfBlocks = (int) Math.pow((size + 2) * 2 + 1, 2);
 
-                myForce = actualForce;
                 myFriction = 0.02 * numberOfBlocks;
-                myInertia = numberOfBlocks;
                 //System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {

@@ -14,6 +14,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
 
 import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
@@ -21,17 +22,20 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 
 
 public class BlockWindMillGenerator extends Block implements EntityBlock {
+    public static final BooleanProperty STATE_MULTIBLOCK_FORMED = BooleanProperty.create("state");
 
     public BlockWindMillGenerator() {
         super(Properties.of().noOcclusion().strength(1.0f));
         BlockState state = this.stateDefinition.any();
         state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
+        state = state.setValue(STATE_MULTIBLOCK_FORMED, false);
         this.registerDefaultState(state);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
+        builder.add(STATE_MULTIBLOCK_FORMED);
         super.createBlockStateDefinition(builder);
     }
 

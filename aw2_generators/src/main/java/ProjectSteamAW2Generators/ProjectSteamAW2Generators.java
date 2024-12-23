@@ -1,6 +1,7 @@
 package ProjectSteamAW2Generators;
 
 import ProjectSteamAW2Generators.WaterWheel.RenderWaterWheelGenerator;
+import ProjectSteamAW2Generators.WindMill.RenderWindMillGenerator;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -39,6 +40,8 @@ public class ProjectSteamAW2Generators {
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_WATERWHEEL_GENERATOR.get(), RenderWaterWheelGenerator::new);
+        event.registerBlockEntityRenderer(ENTITY_WINDMILL_GENERATOR.get(), RenderWindMillGenerator::new);
+
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {

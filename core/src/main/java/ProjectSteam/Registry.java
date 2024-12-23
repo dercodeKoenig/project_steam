@@ -27,6 +27,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
@@ -52,6 +53,14 @@ public class Registry {
     public static final Supplier<BlockEntityType<EntityWoodenAxle>> ENTITY_WOODEN_AXLE = BLOCK_ENTITIES.register(
             "entity_wooden_axle",
             () -> BlockEntityType.Builder.of(EntityWoodenAxle::new, WOODEN_AXLE.get()).build(null)
+    );
+    public static final Supplier<Block> WOODEN_AXLE_ENCASED = BLOCKS.register(
+            "wooden_axle_encased",
+            () -> new BlockWoodenAxleEncased()
+    );
+    public static final Supplier<BlockEntityType<EntityWoodenAxleEncased>> ENTITY_WOODEN_AXLE_ENCASED = BLOCK_ENTITIES.register(
+            "entity_wooden_axle_encased",
+            () -> BlockEntityType.Builder.of(EntityWoodenAxleEncased::new, WOODEN_AXLE_ENCASED.get()).build(null)
     );
 
     public static final Supplier<Block> WOODEN_FLYWHEEL = BLOCKS.register(
@@ -162,6 +171,7 @@ public class Registry {
 
     static {
         registerBlockItem("wooden_axle", WOODEN_AXLE);
+        registerBlockItem("wooden_axle_encased", WOODEN_AXLE_ENCASED);
 
         registerBlockItem("wooden_flywheel", WOODEN_FLYWHEEL);
 

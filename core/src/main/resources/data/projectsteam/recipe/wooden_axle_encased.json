@@ -1,0 +1,20 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " C ",
+    " A ",
+    "   "
+  ],
+  "key": {
+    "A": {
+      "item": "projectsteam:wooden_axle"
+    },
+    "C": {
+      "item": "projectsteam:casing"
+    }
+  },
+  "result": {
+    "id": "projectsteam:wooden_axle_encased",
+    "count": 1
+  }
+}

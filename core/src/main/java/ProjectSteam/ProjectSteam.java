@@ -53,11 +53,13 @@ public class ProjectSteam {
         ItemBlockRenderTypes.setRenderLayer(DISTRIBUTOR_GEARBOX.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(GEARBOX.get(), RenderType.cutout());
         ItemBlockRenderTypes.setRenderLayer(TJUNCTION.get(), RenderType.cutout());
+        ItemBlockRenderTypes.setRenderLayer(WOODEN_AXLE_ENCASED.get(), RenderType.cutout());
     }
 
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_WOODEN_AXLE.get(), RenderWoodenAxle::new);
+        event.registerBlockEntityRenderer(ENTITY_WOODEN_AXLE_ENCASED.get(), RenderWoodenAxle::new);
         event.registerBlockEntityRenderer(ENTITY_WOODEN_FLYWHEEL.get(), RenderWoodenFlyWheel::new);
         event.registerBlockEntityRenderer(ENTITY_SMALL_WOODEN_CRANKSHAFT.get(), RenderSmallWoodenCrankShaft::new);
         event.registerBlockEntityRenderer(ENTITY_BIG_WOODEN_CRANKSHAFT.get(), RenderBigWoodenCrankShaft::new);
@@ -76,6 +78,7 @@ public class ProjectSteam {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(PROJECTSTEAM_CREATIVETAB.get())) {
             e.accept(WOODEN_AXLE.get());
+            e.accept(WOODEN_AXLE_ENCASED.get());
             e.accept(WOODEN_FLYWHEEL.get());
             e.accept(SMALL_WOODEN_CRANKSHAFT.get());
             e.accept(BIG_WOODEN_CRANKSHAFT.get());

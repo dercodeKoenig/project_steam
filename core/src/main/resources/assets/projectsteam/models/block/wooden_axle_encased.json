@@ -1,0 +1,95 @@
+{
+  "parent": "block/block",
+  "elements": [
+    {
+      "from": [0, 0, 16],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {
+          "texture": "#front",
+          "cullface": false
+        },
+        "south": {
+          "texture": "#front",
+          "cullface": false
+        }
+      }
+    },
+    {
+      "from": [0, 0, 0],
+      "to": [16, 16, 0],
+      "faces": {
+        "north": {
+          "texture": "#back",
+          "cullface": false
+        },
+        "south": {
+          "texture": "#back",
+          "cullface": false
+        }
+      }
+    },
+    {
+      "from": [0, 16, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "down": {
+          "texture": "#side",
+          "cullface": false
+        },
+        "up": {
+          "texture": "#side",
+          "cullface": false
+        }
+      }
+    },
+    {
+      "from": [0, 0, 0],
+      "to": [16, 0, 16],
+      "faces": {
+        "up": {
+          "texture": "#side",
+          "cullface": false
+        },
+        "down": {
+          "texture": "#side",
+          "cullface": false
+        }
+      }
+    },
+    {
+      "from": [0, 0, 0],
+      "to": [0, 16, 16],
+      "faces": {
+        "east": {
+          "texture": "#side",
+          "cullface": false
+        },
+        "west": {
+          "texture": "#side",
+          "cullface": false
+        }
+      }
+    },
+    {
+      "from": [16, 0, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "west": {
+          "texture": "#side",
+          "cullface": false
+        },
+        "east": {
+          "texture": "#side",
+          "cullface": false
+        }
+      }
+    }
+  ],
+  "textures": {
+    "front": "projectsteam:block/gearbox",
+    "back": "projectsteam:block/gearbox",
+    "side": "projectsteam:block/andesite_casing",
+    "particle": "projectsteam:block/andesite_casing"
+  }
+}

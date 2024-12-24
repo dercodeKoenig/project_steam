@@ -123,12 +123,6 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             myOnloadTag.putUUID("ClientSieveOnload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, myOnloadTag));
         }
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-                myInputRendererBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-                myHopperInputRendererBuffer= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
-            });
-        }
     }
 
     @Override
@@ -257,6 +251,12 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
 
     public EntitySieve(BlockPos pos, BlockState blockState) {
         super(ENTITY_SIEVE.get(), pos, blockState);
+        if (FMLEnvironment.dist == Dist.CLIENT) {
+            RenderSystem.recordRenderCall(() -> {
+                myInputRendererBuffer = new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+                myHopperInputRendererBuffer= new VertexBuffer(VertexBuffer.Usage.DYNAMIC);
+            });
+        }
     }
 
     CompoundTag getMeshUpdateTag() {

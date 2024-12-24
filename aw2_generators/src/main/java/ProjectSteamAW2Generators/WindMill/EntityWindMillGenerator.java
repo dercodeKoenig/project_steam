@@ -36,8 +36,8 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public static double forcePerBlock = 3;
-    public static double windSpeedMultiplier = 10;
+    public static double forcePerBlock = 1;
+    public static double windSpeedMultiplier = 20;
 
     // usually, changes in wind are slowly with noise. but on server start or entity load,
     // it will just start at a random starting value and this can cause a huge sudden change in force.
@@ -174,7 +174,6 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         }
     }
 
-    //TODO make a better structure, for example 3 blocks width and variable height so it matches the render
     boolean isScanning = false;
     public void scanStructure() {
         if (level.isClientSide) return;
@@ -262,7 +261,7 @@ currentWindSpeedMultiplier = 0;
                     currentWindSpeedMultiplier = windSpeedMultiplier;
                 }
 
-                double windSpeed = currentWindSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
+                double windSpeed = currentWindSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
                 myForce = 0;
                 myInertia = 0;
                 int numberOfBlocks = 0;
@@ -276,7 +275,7 @@ currentWindSpeedMultiplier = 0;
                 }
 
                 myFriction = 0.005 * numberOfBlocks;
-                System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+                //System.out.println(currentWindSpeedMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {
                 currentWindSpeedMultiplier = 0;

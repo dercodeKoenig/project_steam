@@ -191,6 +191,9 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             // this should only be synced once and saved as static variables but I just make it here because it is easy to add it here
             info.putInt("syncMaxStackSize", maxStackSizeForSieve);
             info.putInt("syncMaxHopperStackSize", maxStackSizeForSieveHopper);
+            if(currentRecipe!=null){
+                info.putDouble("timeRequired", currentRecipe.timeRequired);
+            }
             if(pfrom!=null) {
                 PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
             }

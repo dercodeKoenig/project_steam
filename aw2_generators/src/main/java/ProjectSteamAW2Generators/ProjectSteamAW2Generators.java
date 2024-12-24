@@ -1,13 +1,17 @@
 package ProjectSteamAW2Generators;
 
+import ARLib.blockentities.*;
+import ProjectSteamAW2Generators.StirlingGenerator.EntityStirlingGenerator;
 import ProjectSteamAW2Generators.StirlingGenerator.RenderStirlingGenerator;
 import ProjectSteamAW2Generators.WaterWheel.RenderWaterWheelGenerator;
 import ProjectSteamAW2Generators.WindMill.RenderWindMillGenerator;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
@@ -28,7 +32,7 @@ public class ProjectSteamAW2Generators {
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::onClientSetup);
-        modEventBus.addListener(this::RegisterCapabilities);
+        modEventBus.addListener(this::registerCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::registerNetworkStuff);
@@ -60,7 +64,9 @@ public class ProjectSteamAW2Generators {
     private void loadShaders(RegisterShadersEvent e) {
     }
 
-    private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
+
+    public void registerCapabilities(RegisterCapabilitiesEvent e) {
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_STIRLING_GENERATOR.get(), (x, y) -> ((EntityStirlingGenerator)x).inventory);
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

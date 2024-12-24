@@ -49,10 +49,10 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
     double maxStress = 2000;
     double myForce = 0;
 
-    IGuiHandler guiHandler;
-    BlockEntityItemStackHandler inventory;
+    public IGuiHandler guiHandler;
+    public BlockEntityItemStackHandler inventory;
 
-    int currentBurnTime;
+    public int currentBurnTime;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -91,9 +91,6 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
                     return true;
                 }
                 return false;
-            }
-            protected int getStackLimit(int slot, ItemStack stack) {
-                return 4096;
             }
         };
 
@@ -189,8 +186,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
-        CompoundTag itag =  inventory.serializeNBT(registries);
-        tag.put("inventory", itag);
+        tag.put("inventory", inventory.serializeNBT(registries));
     }
 
     @Override

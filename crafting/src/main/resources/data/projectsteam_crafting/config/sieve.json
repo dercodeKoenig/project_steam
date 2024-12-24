@@ -6,7 +6,7 @@
   "_comment_baseResistance": "the base resistance the sieve will put on the network",
   "baseResistance": 5.0,
   "_comment_k": "decrease k to make it work faster in manual mode. very low values(<1) may cause some problems in acceleration calculations",
-  "k": 1.0,
+  "k": 4.0,
   "_comment_clickForce": "The Force that the player will apply to the sieve for 5 ticks after click in manual mode",
   "clickForce": 50,
 
@@ -16,7 +16,7 @@
   "_comment_recipe1.2": "If a recipe for a mesh-input pair already exists, the time and resistance will be ignored and the values from the first loaded recipe will be used.",
   "_comment_recipe2": "For Outputs you can have as many items as you want where p is the probability to create the output and amount is the number of rolls (if p>=1, amount is the number of outputs)",
 
-  "_comment_recipe3" : "I will just define time/resistance for some inputs now:",
+  "_comment_recipe3" : "I will just define time/resistance for some inputs now - this will cause it to create recipes with empty outputs, but the other json files will add outputs to the defined inputs:",
   "recipes": [
     {
       "requiredMesh": "projectsteam_crafting:string_mesh",

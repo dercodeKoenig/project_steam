@@ -1,5 +1,6 @@
 package ProjectSteamCrafting.WoodMill;
 
+import ARLib.utils.recipePart;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 
 import java.util.ArrayList;
@@ -27,14 +28,9 @@ public class WoodMillConfig {
     }
 
         public static class MachineRecipe {
-            public Item inputItem = new Item();
-            public List<Item> outputItems = new ArrayList<>();
+            public recipePart inputItem = new recipePart("");
+            public List<recipePart> outputItems = new ArrayList<>();
             public float additionalResistance = 10f;
-
-            public static class Item {
-                public String id = "";
-                public int amount = 1;
-            }
         }
 
 }

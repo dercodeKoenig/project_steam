@@ -1,5 +1,7 @@
 package ProjectSteamCrafting.SpinningWheel;
 
+import ARLib.utils.recipePart;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -25,15 +27,9 @@ public class SpinningWheelConfig {
     }
 
     public static class MachineRecipe {
-        public Item inputItem =new Item();
-        public List<Item> outputItems = new ArrayList<>();
+        public recipePart inputItem =new recipePart("");
+        public List<recipePart> outputItems = new ArrayList<>();
         public float timeRequired = 3f;
         public float additionalResistance = 5f;
-
-        public static class Item {
-            public String id = "";
-            public int amount = 1;
-            public float p = 1;
-        }
     }
 }

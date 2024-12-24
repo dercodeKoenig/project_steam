@@ -161,7 +161,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
                 InventoryUtils.consumeElements(new ArrayList<>(), itemHandlerInputs, currentRecipe.inputItem.id, 1, false);
             }
         }
-        for (SpinningWheelConfig.MachineRecipe.Item output : currentRecipe.outputItems) {
+        for (recipePart output : currentRecipe.outputItems) {
             for (int i = 0; i < output.amount; i++) {
                 if (level.random.nextFloat() < output.p) {
                     InventoryUtils.createElements(new ArrayList<>(), itemHandlerOutputs, output.id, 1);
@@ -183,11 +183,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
                     double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS));
                     currentProgress += progressMade;
                     if (currentProgress >= currentRecipe.timeRequired) {
-                        List<recipePart> myOutputPartsForUtilsLib = new ArrayList<>();
-                        for (SpinningWheelConfig.MachineRecipe.Item i : currentRecipe.outputItems) {
-                            myOutputPartsForUtilsLib.add(new recipePart(i.id, i.amount, i.p));
-                        }
-                        if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(), myOutputPartsForUtilsLib)) {
+                        if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(), currentRecipe.outputItems)) {
                             completeCurrentRecipe();
                         }
                     }

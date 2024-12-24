@@ -288,7 +288,9 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         if (compoundTag.contains("client_onload")) {
             UUID from = compoundTag.getUUID("client_onload");
             ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
+            if(pfrom!=null) {
+                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
+            }
         }
     }
 

@@ -199,7 +199,9 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                     updateTag.putInt("id", id);
                     for (UUID i : clientsTrackingThisAsMaster.keySet()) {
                         ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
-                        PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                        if (player != null) {
+                            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                        }
                     }
                 }
                 if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
@@ -368,7 +370,9 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                     updateTag.putInt("id", id);
                     for (UUID i : clientsTrackingThisAsMaster.keySet()) {
                         ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
-                        PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                        if (player != null) {
+                            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                        }
                     }
                 }
                 if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {

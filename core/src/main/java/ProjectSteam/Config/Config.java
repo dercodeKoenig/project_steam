@@ -66,7 +66,9 @@ public class Config {
 
 
     public void SyncConfig(ServerPlayer p) {
-        PacketDistributor.sendToPlayer(p, new PacketConfigSync(new Gson().toJson(this)));
+        if (p != null) {
+            PacketDistributor.sendToPlayer(p, new PacketConfigSync(new Gson().toJson(this)));
+        }
     }
 
     public void loadConfig(String configString) {

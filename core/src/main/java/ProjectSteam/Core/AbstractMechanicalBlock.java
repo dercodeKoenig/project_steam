@@ -488,7 +488,9 @@ public abstract class AbstractMechanicalBlock {
                 updateTag.putInt("id", id);
                 for (UUID i : clientsTrackingThisAsMaster.keySet()) {
                     ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(i);
-                    PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                    if (player != null) {
+                        PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(myTile, updateTag));
+                    }
                 }
             }
             if (Math.abs(internalVelocity) > 100000 || Double.isNaN(internalVelocity)) {
@@ -509,7 +511,9 @@ public abstract class AbstractMechanicalBlock {
                 updateTag.putDouble("rotation", currentRotation);
                 updateTag.putInt("id", id);
                 ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-                PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(me.getBlockEntity(), updateTag));
+                if (player != null) {
+                    PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(me.getBlockEntity(), updateTag));
+                }
             }
         }
     }

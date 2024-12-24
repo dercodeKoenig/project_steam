@@ -3,6 +3,7 @@ package ProjectSteamCrafting.Sieve;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.ItemUtils;
+import ARLib.utils.recipePart;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import ProjectSteam.Static;
 import ProjectSteamCrafting.Sieve.Items.ItemSieveUpgrade;
@@ -196,7 +197,9 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             // this should only be synced once and saved as static variables but I just make it here because it is easy to add it here
             info.putInt("syncMaxStackSize", maxStackSizeForSieve);
             info.putInt("syncMaxHopperStackSize", maxStackSizeForSieveHopper);
-            PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
+            if(pfrom!=null) {
+                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
+            }
         }
     }
 
@@ -323,7 +326,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
     SieveConfig.MachineRecipe getRecipeForInputs(ItemStack inputs) {
         for (SieveConfig.MachineRecipe i : config.recipes) {
             if (ItemUtils.matches(i.requiredMesh, myMesh)) {
-                SieveConfig.MachineRecipe.Item input = i.inputItem;
+                recipePart input = i.inputItem;
                 if (ItemUtils.matches(input.id, inputs)) {
                     return i;
                 }
@@ -334,7 +337,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
 
     void completeRecipe() {
         if (currentRecipe != null) {
-            for (SieveConfig.MachineRecipe.Item item : currentRecipe.outputItems) {
+            for (recipePart item : currentRecipe.outputItems) {
                 int actual_num = 0;
                 for (int i = 0; i < item.amount; ++i) {
                     if (item.p >= 1.0F || Math.random() < (double) item.p) {
@@ -356,9 +359,9 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
                     ItemEntity ie = new ItemEntity(level, getBlockPos().getX(), getBlockPos().getY() + 1, getBlockPos().getZ(), output);
                     level.addFreshEntity(ie);
                 }
-                myInputs.shrink(1);
-                broadcastChangeOfInventoryAndSetChanged();
             }
+            myInputs.shrink(1);
+            broadcastChangeOfInventoryAndSetChanged();
             currentRecipe = null;
         }
         myFriction = config.baseResistance;

@@ -5,6 +5,7 @@ import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.ItemUtils;
+import ARLib.utils.recipePart;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
@@ -126,7 +127,6 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
     @Override
     public void onStructureComplete() {
-        System.out.println("on structure complete");
         if(level.isClientSide)
             // this is executed before minecraft updates the blockstate on client
             // but resetRotation (to make it sync to the rotation) checks for connected mechanical blocks and it only connects to other mechanical blocks when the multiblock is formed
@@ -182,7 +182,9 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
             UUID from = tag.getUUID("ClientWoodMillOnload");
             ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
             CompoundTag info = getClientSyncUpdateTag();
-            PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
+            if(pfrom != null) {
+                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
+            }
         }
         super.readServer(tag);
     }
@@ -246,7 +248,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
     WoodMillConfig.MachineRecipe getRecipeForInputs(ItemStack inputs) {
         for (WoodMillConfig.MachineRecipe i : config.recipes) {
-            WoodMillConfig.MachineRecipe.Item input = i.inputItem;
+            recipePart input = i.inputItem;
             if (ItemUtils.matches(input.id, inputs)) {
                 return i;
             }
@@ -287,7 +289,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
         return canFitInputs;
     }
 
-    boolean trySetCurrentInput(ItemStack stack) {
+    boolean tryAddInput(ItemStack stack) {
         if (stack.isEmpty()) return false;
         if (!canFitInput()) return false;
 
@@ -296,8 +298,12 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
             if (!level.isClientSide) {
                 workingRecipe w = new workingRecipe();
                 w.currentInput = stack.copyWithCount(1);
-                for (WoodMillConfig.MachineRecipe.Item i : r.outputItems) {
-                    w.outputStacks.add(ItemUtils.getItemStackFromId(i.id, i.amount));
+                for (recipePart i : r.outputItems) {
+                    for (int j = 0; j < i.amount; j++) {
+                        if(level.random.nextFloat() <= i.p) {
+                            w.outputStacks.add(ItemUtils.getItemStackFromId(i.id, 1));
+                        }
+                    }
                 }
                 w.additionalResistance = r.additionalResistance;
                 stack.shrink(1);
@@ -312,7 +318,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
         if (!player.isShiftKeyDown()) {
-            if (trySetCurrentInput(player.getMainHandItem()))
+            if (tryAddInput(player.getMainHandItem()))
                 return InteractionResult.SUCCESS;
             else
                 return InteractionResult.SUCCESS_NO_ITEM_USED;
@@ -368,7 +374,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
                         new AABB(minX, minY, minZ, maxX, maxY, maxZ)
                 );
                 for (ItemEntity i : itemEntities) {
-                    trySetCurrentInput(i.getItem());
+                    tryAddInput(i.getItem());
                     i.setExtendedLifetime();
                 }
 

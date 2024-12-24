@@ -1,5 +1,6 @@
 package ProjectSteamCrafting.Sieve;
 
+import ARLib.utils.recipePart;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -30,27 +31,11 @@ public class SieveConfig {
     }
 
     public static class MachineRecipe {
-        public Item inputItem = new Item();
-        public List<Item> outputItems = new ArrayList<>();
+        public recipePart inputItem = new recipePart("");
+        public List<recipePart> outputItems = new ArrayList<>();
         public float timeRequired = 3f;
         public float additionalResistance = 10f;
         public String requiredMesh = "";
 
-        public static class Item {
-            public String id = "";
-            public int amount = 1;
-            public float p = 1;
-        }
-    }
-
-
-    public String toJson(){
-        Gson gson = new Gson();
-        return gson.toJson(this);
-    }
-
-    public static SieveConfig fromJson(String json){
-        Gson gson = new Gson();
-        return gson.fromJson(json, SieveConfig.class);
     }
 }

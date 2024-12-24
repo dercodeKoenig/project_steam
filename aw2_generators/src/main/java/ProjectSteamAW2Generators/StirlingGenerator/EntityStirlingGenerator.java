@@ -41,11 +41,11 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 
 public class EntityStirlingGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
-    public static double maxForceMultiplier = 50;
-    public static double k = 10;
+    public double maxForceMultiplier = 50;
+    public double k = 5;
 
     double myFriction = 1;
-    double myInertia = 20;
+    double myInertia = 50;
     double maxStress = 2000;
     double myForce = 0;
 
@@ -91,6 +91,9 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
                     return true;
                 }
                 return false;
+            }
+            protected int getStackLimit(int slot, ItemStack stack) {
+                return 4096;
             }
         };
 

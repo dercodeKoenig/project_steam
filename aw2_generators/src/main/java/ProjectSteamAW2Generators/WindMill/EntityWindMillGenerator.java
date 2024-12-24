@@ -38,14 +38,14 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public static double forcePerBlock = 1;
-    public static double windSpeedMultiplier = 20;
+    public static double forcePerBlock = 0.5;
+    public static double windSpeedMultiplier = 10;
 
     // usually, changes in wind are slowly with noise. but on server start or entity load,
     // it will just start at a random starting value and this can cause a huge sudden change in force.
     // this change in force will overstress the network and cause it to break.
     // this is why we have to slowly increase force so that it does not have this big spikes in force
-    double forceSteps = 0.005; // should be 1 after 10 seconds
+    double forceSteps = 0.0005; // should be 1 after 100 seconds
     double currentForceMultiplier = 0;
 
     VertexBuffer vertexBuffer;
@@ -275,6 +275,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 }
 
                 double windSpeed = windSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
+                //double windSpeed = windSpeedMultiplier;
                 myForce = 0;
                 myInertia = 0;
                 int numberOfBlocks = 0;
@@ -289,7 +290,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
                 myFriction = 0.005 * numberOfBlocks;
                 myForce *= currentForceMultiplier; // will slowly increase to 1 over a few ticks
-                //System.out.println(currentWindSpeedMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+                System.out.println(currentForceMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {
                 currentForceMultiplier = 0;

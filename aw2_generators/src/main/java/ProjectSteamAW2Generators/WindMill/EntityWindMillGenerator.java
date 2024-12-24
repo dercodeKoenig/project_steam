@@ -20,6 +20,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.minecraft.world.level.levelgen.synth.PerlinSimplexNoise;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -42,9 +44,9 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     // usually, changes in wind are slowly with noise. but on server start or entity load,
     // it will just start at a random starting value and this can cause a huge sudden change in force.
     // this change in force will overstress the network and cause it to break.
-    // this is why we have to slowly increase wind speed so that it does not have this big spikes in force
-    double windSpeedSteps = 0.01;
-    double currentWindSpeedMultiplier = 0;
+    // this is why we have to slowly increase force so that it does not have this big spikes in force
+    double forceSteps = 0.005; // should be 1 after 10 seconds
+    double currentForceMultiplier = 0;
 
     VertexBuffer vertexBuffer;
     MeshData mesh;
@@ -131,6 +133,11 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     }
 
     boolean isBlockValidAt(BlockPos p) {
+        // this should load the chunk if it is not loaded
+        ChunkAccess chunk = level.getChunk(p);
+        level.getChunk(chunk.getPos().x, chunk.getPos().z, ChunkStatus.FULL, true);
+
+
         BlockState state = level.getBlockState(p);
         if (state.getBlock() instanceof BlockWindMillBlade b) {
             if (!state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
@@ -153,6 +160,11 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
             for (int y = -max_size; y <= max_size; y++) {
                 BlockPos targetBlock = center.offset(x * xMultiplier, y, x * zMultiplier);
                 if(!validBlocks.contains(targetBlock) ) {
+
+                    // this should load the chunk if it is not loaded
+                    ChunkAccess chunk = level.getChunk(targetBlock);
+                    level.getChunk(chunk.getPos().x, chunk.getPos().z, ChunkStatus.FULL, true);
+
                     BlockState state = level.getBlockState(targetBlock);
                     if (state.getBlock() instanceof BlockWindMillBlade) {
                         if(state.getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
@@ -246,7 +258,8 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         }
 
         resetInvalidBlocks(center,validBlocks,xMultiplier,zMultiplier);
-currentWindSpeedMultiplier = 0;
+
+        currentForceMultiplier = 0;
         isScanning = false;
     }
 
@@ -255,13 +268,13 @@ currentWindSpeedMultiplier = 0;
 
         if(!level.isClientSide) {
             if (getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
-                if(currentWindSpeedMultiplier < windSpeedMultiplier){
-                    currentWindSpeedMultiplier += windSpeedSteps;
+                if(currentForceMultiplier < 1){
+                    currentForceMultiplier += forceSteps;
                 }else{
-                    currentWindSpeedMultiplier = windSpeedMultiplier;
+                    currentForceMultiplier = 1;
                 }
 
-                double windSpeed = currentWindSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
+                double windSpeed = windSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
                 myForce = 0;
                 myInertia = 0;
                 int numberOfBlocks = 0;
@@ -275,10 +288,11 @@ currentWindSpeedMultiplier = 0;
                 }
 
                 myFriction = 0.005 * numberOfBlocks;
+                myForce *= currentForceMultiplier; // will slowly increase to 1 over a few ticks
                 //System.out.println(currentWindSpeedMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {
-                currentWindSpeedMultiplier = 0;
+                currentForceMultiplier = 0;
                 myForce = 0;
                 myFriction = 1;
                 myInertia = 1;

@@ -1,5 +1,14 @@
 {
   "block.projectsteam_aw2_generators.waterwheel_generator": "Water Wheel Generator",
-  "item.projectsteam_aw2_generators.waterwheel_generator": "Water Wheel Generator"
+  "item.projectsteam_aw2_generators.waterwheel_generator": "Water Wheel Generator",
+
+  "block.projectsteam_aw2_generators.stirling_generator": "Stirling Generator",
+  "item.projectsteam_aw2_generators.stirling_generator": "Stirling Generator",
+
+  "block.projectsteam_aw2_generators.windmill_generator": "Wind Mill Generator",
+  "item.projectsteam_aw2_generators.windmill_generator": "Wind Mill Generator",
+
+  "block.projectsteam_aw2_generators.windmill_blade": "Wind Mill Blade",
+  "item.projectsteam_aw2_generators.windmill_vlade": "Wind Mill Blade"
 }
 

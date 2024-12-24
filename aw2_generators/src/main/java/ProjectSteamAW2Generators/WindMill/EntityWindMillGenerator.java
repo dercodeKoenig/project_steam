@@ -5,6 +5,7 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.DimensionUtils;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
+import ProjectSteamAW2Generators.Config.Config;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.VertexBuffer;
@@ -38,8 +39,11 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
 public class EntityWindMillGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
 
-    public static double forcePerBlock = 0.5;
-    public static double windSpeedMultiplier = 10;
+    public  double forcePerBlock = Config.INSTANCE.windmill_forcePerBlock;
+    public  double windSpeedMultiplier = Config.INSTANCE.windmill_windSpeedMultiplier;
+    public double frictionPerBlock = Config.INSTANCE.windmill_frictionPerBlock;
+    public double inertiaPerBlock = Config.INSTANCE.windmill_inertiaPerBlock;
+    public int max_size = Config.INSTANCE.windmill_maxSize;
 
     // usually, changes in wind are slowly with noise. but on server start or entity load,
     // it will just start at a random starting value and this can cause a huge sudden change in force.
@@ -53,10 +57,8 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
     PerlinSimplexNoise noise;
 
-
     int size;
     int last_size_for_meshUpdate;
-    int max_size = 9;
 
     double myFriction = 1;
     double myInertia = 10;
@@ -233,6 +235,10 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 maxValidSize = s;
                 validBlocks.addAll(validBlocks_tmp);
                 s++;
+
+                if(maxValidSize == max_size){
+                    doScan = false;
+                }
             }
         }
         this.size = maxValidSize - 1; // size 0 is the axle, size 1 is the axle connection, blades starting at size 2
@@ -284,11 +290,11 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                     int bladeNumOnThisRadius = 4*3;
                     double bladeSpeed = myMechanicalBlock.internalVelocity * r;
                     myForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
-                    myInertia += bladeNumOnThisRadius * r;
+                    myInertia += inertiaPerBlock* bladeNumOnThisRadius * r;
                     numberOfBlocks+=bladeNumOnThisRadius;
                 }
 
-                myFriction = 0.005 * numberOfBlocks;
+                myFriction = frictionPerBlock * numberOfBlocks;
                 myForce *= currentForceMultiplier; // will slowly increase to 1 over a few ticks
                // System.out.println(currentForceMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 

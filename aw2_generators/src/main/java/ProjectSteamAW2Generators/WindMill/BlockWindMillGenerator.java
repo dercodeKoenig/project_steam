@@ -1,10 +1,14 @@
 package ProjectSteamAW2Generators.WindMill;
 
+import ProjectSteamAW2Generators.Config.Config;
 import ProjectSteamAW2Generators.WaterWheel.EntityWaterWheelGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -16,6 +20,8 @@ import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 import static ProjectSteamAW2Generators.Registry.ENTITY_WINDMILL_GENERATOR;
@@ -30,6 +36,11 @@ public class BlockWindMillGenerator extends Block implements EntityBlock {
         state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
         state = state.setValue(STATE_MULTIBLOCK_FORMED, false);
         this.registerDefaultState(state);
+    }
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.literal("cross-shaped, width=3"));
+        tooltipComponents.add(Component.literal("max diameter: "+(Config.INSTANCE.windmill_maxSize*2+1)));
     }
 
     @Override

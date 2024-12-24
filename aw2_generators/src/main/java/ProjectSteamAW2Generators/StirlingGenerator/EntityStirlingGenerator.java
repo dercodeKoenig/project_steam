@@ -11,6 +11,7 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityItemStackHandler;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
+import ProjectSteamAW2Generators.Config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -41,13 +42,15 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 
 public class EntityStirlingGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
-    public double maxForceMultiplier = 50;
-    public double k = 5;
+    public  double maxForceMultiplier = Config.INSTANCE.stirlingGenerator_maxForceMultiplier;
+    public  double k = Config.INSTANCE.stirlingGenerator_k;
+    public  double burnTimeMultiplier = Config.INSTANCE.stirlingGenerator_burnTimeMultiplier;
 
-    double myFriction = 1;
-    double myInertia = 50;
-    double maxStress = 2000;
-    double myForce = 0;
+    public  double myFriction = Config.INSTANCE.stirlingGenerator_friction;
+    public  double myInertia = Config.INSTANCE.stirlingGenerator_inertia;
+    public  double maxStress = Config.INSTANCE.stirlingGenerator_maxStress;
+
+    public double myForce = 0;
 
     public IGuiHandler guiHandler;
     public BlockEntityItemStackHandler inventory;
@@ -135,7 +138,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
 
             if (currentBurnTime <= 0) {
                 Item currentBurnItem = inventory.extractItem(0, 1, false).getItem();
-                currentBurnTime = currentBurnItem.getBurnTime(new ItemStack(currentBurnItem), null);
+                currentBurnTime = (int) (burnTimeMultiplier * currentBurnItem.getBurnTime(new ItemStack(currentBurnItem), null));
                 PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this,getUpdateTag()));
             }
             if (currentBurnTime > 0) {

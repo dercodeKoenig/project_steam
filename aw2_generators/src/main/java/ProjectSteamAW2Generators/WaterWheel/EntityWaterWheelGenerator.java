@@ -3,6 +3,7 @@ package ProjectSteamAW2Generators.WaterWheel;
 import ARLib.network.INetworkTagReceiver;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
+import ProjectSteamAW2Generators.Config.Config;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -19,14 +20,14 @@ import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 
 public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
-    public static double defaultFriction = 1;
-    public static double maxForceMultiplier = 180;
-    public static double k = 180;
+    public double myInertia = Config.INSTANCE.waterWheel_inertia;
+    public    double maxStress = Config.INSTANCE.waterWheel_maxStress;
+    public double defaultFriction = Config.INSTANCE.waterWheel_friction;
+    public  double maxForceMultiplier = Config.INSTANCE.waterWheel_maxForceMultiplier;
+    public  double k = Config.INSTANCE.waterWheel_k;
 
-    double myFriction = 10;
-    double myInertia = 100;
-    double maxStress = 2000;
-    double myForce = 0;
+    public double myFriction = 10;
+    public double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override

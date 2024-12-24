@@ -1,10 +1,13 @@
 package ProjectSteamAW2Generators;
 
 import ARLib.blockentities.*;
+import ProjectSteamAW2Generators.Config.Config;
+import ProjectSteamAW2Generators.Config.PacketConfigSync;
 import ProjectSteamAW2Generators.StirlingGenerator.EntityStirlingGenerator;
 import ProjectSteamAW2Generators.StirlingGenerator.RenderStirlingGenerator;
 import ProjectSteamAW2Generators.WaterWheel.RenderWaterWheelGenerator;
 import ProjectSteamAW2Generators.WindMill.RenderWindMillGenerator;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -15,8 +18,11 @@ import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
+import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
@@ -28,7 +34,9 @@ import static ProjectSteamAW2Generators.Registry.*;
 public class ProjectSteamAW2Generators {
 
     public ProjectSteamAW2Generators(IEventBus modEventBus, ModContainer modContaine) throws IOException {
-        //modEventBus.register(this);
+
+        NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
+
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::onClientSetup);
@@ -50,6 +58,14 @@ public class ProjectSteamAW2Generators {
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
+        final PayloadRegistrar registrar = event.registrar("1");
+        PacketConfigSync.register(registrar);
+    }
+
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
+        if(login.getEntity() instanceof ServerPlayer p){
+            Config.INSTANCE.SyncConfig(p);
+        }
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

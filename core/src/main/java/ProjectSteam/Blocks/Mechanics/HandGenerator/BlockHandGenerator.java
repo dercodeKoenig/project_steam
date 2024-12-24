@@ -73,8 +73,8 @@ public class BlockHandGenerator extends Block implements EntityBlock {
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         tooltipComponents.add(Component.literal("Max Force: "+ Config.INSTANCE.HAND_GENERATOR_MAX_FORCE));
-        tooltipComponents.add(Component.literal("Max Speed: "+ Config.INSTANCE.HAND_GENERATOR_MAX_SPEED));
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.HAND_GENERATOR_MAX_STRESS));
+        tooltipComponents.add(Component.literal("Max Speed: "+ Config.INSTANCE.HAND_GENERATOR_MAX_SPEED + "rad/s"));
+        //tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.HAND_GENERATOR_MAX_STRESS));
         tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.HAND_GENERATOR_FRICTION));
         tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.HAND_GENERATOR_INERTIA));
     }

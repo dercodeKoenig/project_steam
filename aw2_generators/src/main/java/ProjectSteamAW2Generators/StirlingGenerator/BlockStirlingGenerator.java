@@ -1,12 +1,16 @@
 package ProjectSteamAW2Generators.StirlingGenerator;
 
+import ProjectSteamAW2Generators.Config.Config;
 import ProjectSteamAW2Generators.WaterWheel.EntityWaterWheelGenerator;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
@@ -19,6 +23,8 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.List;
+
 import static ProjectSteamAW2Generators.Registry.ENTITY_STIRLING_GENERATOR;
 import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
 
@@ -29,6 +35,14 @@ public class BlockStirlingGenerator extends Block implements EntityBlock {
         BlockState state = this.stateDefinition.any();
         state = state.setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH);
         this.registerDefaultState(state);
+    }
+
+    @Override
+    public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        tooltipComponents.add(Component.literal("Max Force: "+ Config.INSTANCE.stirlingGenerator_maxForceMultiplier));
+        tooltipComponents.add(Component.literal("Max Speed: "+ Config.INSTANCE.stirlingGenerator_maxForceMultiplier / Config.INSTANCE.stirlingGenerator_k + "rad/s"));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.stirlingGenerator_friction));
+        tooltipComponents.add(Component.literal("Inertia: "+Config.INSTANCE.stirlingGenerator_inertia));
     }
 
     @Override

@@ -173,6 +173,8 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
             }
         }
     }
+
+    //TODO make a better structure, for example 3 blocks width and variable height so it matches the render
     boolean isScanning = false;
     public void scanStructure() {
         if (level.isClientSide) return;
@@ -196,7 +198,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
             A:{
                 List<BlockPos> validBlocks_tmp = new ArrayList<>();
                 for (int x = -s; x <= s; x++) {
-                    for (int y = -s; y <= s; y++) {
+                    for (int y = -1; y <= 1; y++) {
                         BlockPos targetBlock = center.offset(x * xMultiplier, y, x * zMultiplier);
                         if (!isBlockValidAt(targetBlock)) {
                             doScan = false;
@@ -206,6 +208,17 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                         }
                     }
                 }
+            for (int y = -s; y <= s; y++) {
+                for (int x = -1; x <= 1; x++) {
+                    BlockPos targetBlock = center.offset(x * xMultiplier, y, x * zMultiplier);
+                    if (!isBlockValidAt(targetBlock)) {
+                        doScan = false;
+                        break A;
+                    } else {
+                        validBlocks_tmp.add(targetBlock);
+                    }
+                }
+            }
                 maxValidSize = s;
                 validBlocks.addAll(validBlocks_tmp);
                 s++;
@@ -234,37 +247,39 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         }
 
         resetInvalidBlocks(center,validBlocks,xMultiplier,zMultiplier);
-
+currentWindSpeedMultiplier = 0;
         isScanning = false;
     }
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
 
-        if(currentWindSpeedMultiplier < windSpeedMultiplier){
-            currentWindSpeedMultiplier += windSpeedSteps;
-        }else{
-            currentWindSpeedMultiplier = windSpeedMultiplier;
-        }
-
         if(!level.isClientSide) {
             if (getBlockState().getValue(BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED)) {
+                if(currentWindSpeedMultiplier < windSpeedMultiplier){
+                    currentWindSpeedMultiplier += windSpeedSteps;
+                }else{
+                    currentWindSpeedMultiplier = windSpeedMultiplier;
+                }
+
                 double windSpeed = currentWindSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, getBlockPos().getX() * getBlockPos().getZ(), false);
                 myForce = 0;
                 myInertia = 0;
+                int numberOfBlocks = 0;
                 for (int i = 0; i < size; i++) {
                     int r = i + 2;
-                    int bladeNumOnThisRadius = r * 8;
+                    int bladeNumOnThisRadius = 4*3;
                     double bladeSpeed = myMechanicalBlock.internalVelocity * r;
                     myForce += forcePerBlock * bladeNumOnThisRadius * Math.pow(windSpeed - bladeSpeed, 2) * Math.signum(windSpeed - bladeSpeed) * r;
-                    myInertia += 1*bladeNumOnThisRadius * r;
+                    myInertia += bladeNumOnThisRadius * r;
+                    numberOfBlocks+=bladeNumOnThisRadius;
                 }
-                int numberOfBlocks = (int) Math.pow((size + 2) * 2 + 1, 2);
 
                 myFriction = 0.005 * numberOfBlocks;
-                //System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+                System.out.println(myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {
+                currentWindSpeedMultiplier = 0;
                 myForce = 0;
                 myFriction = 1;
                 myInertia = 1;

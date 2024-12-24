@@ -102,6 +102,10 @@ public class RenderWindMillGenerator implements BlockEntityRenderer<EntityWindMi
     public AABB getRenderBoundingBox(EntityWindMillGenerator tile) {
         return new AABB(tile.getBlockPos()).inflate(tile.size+2);
     }
+    @Override
+    public int getViewDistance() {
+        return 256;
+    }
 
 
     @Override

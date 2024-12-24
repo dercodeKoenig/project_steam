@@ -1,5 +1,6 @@
 package ProjectSteamAW2Generators;
 
+import ProjectSteamAW2Generators.StirlingGenerator.RenderStirlingGenerator;
 import ProjectSteamAW2Generators.WaterWheel.RenderWaterWheelGenerator;
 import ProjectSteamAW2Generators.WindMill.RenderWindMillGenerator;
 import net.neoforged.bus.api.IEventBus;
@@ -41,7 +42,7 @@ public class ProjectSteamAW2Generators {
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_WATERWHEEL_GENERATOR.get(), RenderWaterWheelGenerator::new);
         event.registerBlockEntityRenderer(ENTITY_WINDMILL_GENERATOR.get(), RenderWindMillGenerator::new);
-
+        event.registerBlockEntityRenderer(ENTITY_STIRLING_GENERATOR.get(), RenderStirlingGenerator::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -52,6 +53,7 @@ public class ProjectSteamAW2Generators {
             e.accept(WATERWHEEL_GENERATOR.get());
             e.accept(WINDMILL_GENERATOR.get());
             e.accept(WINDMILL_BLADE.get());
+            e.accept(STIRLING_GENERATOR.get());
         }
     }
 

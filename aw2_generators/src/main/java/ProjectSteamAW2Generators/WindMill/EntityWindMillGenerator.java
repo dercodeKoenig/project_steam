@@ -290,7 +290,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
                 myFriction = 0.005 * numberOfBlocks;
                 myForce *= currentForceMultiplier; // will slowly increase to 1 over a few ticks
-                System.out.println(currentForceMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
+               // System.out.println(currentForceMultiplier+":"+windSpeed+" --  "+myForce+":"+myInertia+":"+myFriction+":"+myMechanicalBlock.internalVelocity);
 
             } else {
                 currentForceMultiplier = 0;

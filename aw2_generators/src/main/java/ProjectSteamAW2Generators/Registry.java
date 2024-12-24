@@ -1,5 +1,7 @@
 package ProjectSteamAW2Generators;
 
+import ProjectSteamAW2Generators.StirlingGenerator.BlockStirlingGenerator;
+import ProjectSteamAW2Generators.StirlingGenerator.EntityStirlingGenerator;
 import ProjectSteamAW2Generators.WaterWheel.BlockWaterWheelGenerator;
 import ProjectSteamAW2Generators.WaterWheel.EntityWaterWheelGenerator;
 import ProjectSteamAW2Generators.WindMill.BlockWindMillBlade;
@@ -45,12 +47,22 @@ public class Registry {
             () -> new BlockWindMillBlade()
     );
 
+    public static final Supplier<Block> STIRLING_GENERATOR = BLOCKS.register(
+            "stirling_generator",
+            () -> new BlockStirlingGenerator()
+    );
+    public static final Supplier<BlockEntityType<EntityStirlingGenerator>> ENTITY_STIRLING_GENERATOR = BLOCK_ENTITIES.register(
+            "entity_stirling_generator",
+            () -> BlockEntityType.Builder.of(EntityStirlingGenerator::new, STIRLING_GENERATOR.get()).build(null)
+    );
 
     static {
         registerBlockItem("waterwheel_generator", WATERWHEEL_GENERATOR);
+
         registerBlockItem("windmill_generator", WINDMILL_GENERATOR);
         registerBlockItem("windmill_blade", WINDMILL_BLADE);
 
+        registerBlockItem("stirling_generator", STIRLING_GENERATOR);
     }
 
     public static void register(IEventBus modBus) {

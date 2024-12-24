@@ -199,8 +199,8 @@ public class RenderStirlingGenerator implements BlockEntityRenderer<EntityStirli
 
             m2 = new Matrix4f(m1);
             float r_arm = 1f / 16f;
-            float tx = (float) (Math.cos((rotation*rotationMultiplier) / 180f * Math.PI) * r_arm);
-            float ty = (float) (Math.sin((rotation*rotationMultiplier) / 180f * Math.PI) * r_arm);
+            float tx = (float) (Math.cos((rotation * rotationMultiplier) / 180f * Math.PI) * r_arm);
+            float ty = (float) (Math.sin((rotation * rotationMultiplier) / 180f * Math.PI) * r_arm);
             m2 = m2.translate(tx, ty, 0);
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m2, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set((new Matrix3f(m2)).invert().transpose());
@@ -211,8 +211,8 @@ public class RenderStirlingGenerator implements BlockEntityRenderer<EntityStirli
 
 
             m2 = new Matrix4f(m1);
-            tx = (float) (Math.cos((-rotation*rotationMultiplier) / 180f * Math.PI) * r_arm);
-            ty = (float) (Math.sin((-rotation*rotationMultiplier) / 180f * Math.PI) * r_arm);
+            tx = (float) (Math.cos((-rotation * rotationMultiplier) / 180f * Math.PI) * r_arm);
+            ty = (float) (Math.sin((-rotation * rotationMultiplier) / 180f * Math.PI) * r_arm);
             m2 = m2.translate(tx, ty, 0);
             float c1ArmLen = 0.7f;
             float c1Rotation = (float) (Math.asin(ty / c1ArmLen) * 180 / Math.PI);
@@ -244,9 +244,11 @@ public class RenderStirlingGenerator implements BlockEntityRenderer<EntityStirli
             LEQUAL_DEPTH_TEST.clearRenderState();
             NO_TRANSPARENCY.clearRenderState();
 
-            stack.scale(3f/16,3f/16,3f/16);
-            stack.translate(2f/3,1f,10.5/3f);
-            Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.FIRE.defaultBlockState(),stack,bufferSource,packedLight,packedOverlay, ModelData.EMPTY,null);
+            if (tile.currentBurnTime > 0) {
+                stack.scale(3f / 16, 3f / 16, 3f / 16);
+                stack.translate(2f / 3, 1f, 10.5 / 3f);
+                Minecraft.getInstance().getBlockRenderer().renderSingleBlock(Blocks.FIRE.defaultBlockState(), stack, bufferSource, packedLight, packedOverlay, ModelData.EMPTY, null);
+            }
         }
     }
 }

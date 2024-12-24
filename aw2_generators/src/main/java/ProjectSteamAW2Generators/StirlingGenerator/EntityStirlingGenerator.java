@@ -7,23 +7,33 @@ import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import ARLib.utils.BlockEntityItemStackHandler;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.material.Fluids;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.checkerframework.checker.units.qual.C;
+
+import java.util.UUID;
 
 import static ProjectSteamAW2Generators.Registry.ENTITY_STIRLING_GENERATOR;
 import static ProjectSteamAW2Generators.Registry.ENTITY_WATERWHEEL_GENERATOR;
@@ -100,27 +110,40 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         }
     }
 
+    CompoundTag getUpdateTag(){
+        CompoundTag t = new CompoundTag();
+        t.putInt("burnTime", currentBurnTime);
+        return t;
+    }
+
     @Override
     public void onLoad() {
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
+        if(level.isClientSide){
+            CompoundTag onLoadRequest = new CompoundTag();
+            onLoadRequest.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this,onLoadRequest));
+        }
     }
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
+        currentBurnTime --;
         if (!level.isClientSide) {
             IGuiHandler.serverTick(guiHandler);
-        }
-currentBurnTime --;
-        if(currentBurnTime<=0){
-             Item currentBurnItem = inventory.extractItem(0, 1, false).getItem();
-             currentBurnTime = currentBurnItem.getBurnTime(new ItemStack(currentBurnItem),null);
-        }
-        if(currentBurnTime > 0) {
-            float directionMultiplier = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1;
-            myForce = directionMultiplier * maxForceMultiplier - k * myMechanicalBlock.internalVelocity;
-        }else{
-            myForce = 0;
+
+            if (currentBurnTime <= 0) {
+                Item currentBurnItem = inventory.extractItem(0, 1, false).getItem();
+                currentBurnTime = currentBurnItem.getBurnTime(new ItemStack(currentBurnItem), null);
+                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this,getUpdateTag()));
+            }
+            if (currentBurnTime > 0) {
+                float directionMultiplier = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING).getAxisDirection() == Direction.AxisDirection.POSITIVE ? 1 : -1;
+                myForce = directionMultiplier * maxForceMultiplier - k * myMechanicalBlock.internalVelocity;
+            } else {
+                myForce = 0;
+            }
         }
     }
 
@@ -132,12 +155,24 @@ currentBurnTime --;
     public void readServer(CompoundTag compoundTag) {
         myMechanicalBlock.mechanicalReadServer(compoundTag);
         guiHandler.readServer(compoundTag);
+
+        if(compoundTag.contains("client_onload")){
+            UUID from = compoundTag.getUUID("client_onload");
+            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+            if(pfrom != null){
+                PacketDistributor.sendToPlayer(pfrom,PacketBlockEntity.getBlockEntityPacket(this,getUpdateTag()));
+            }
+        }
     }
 
     @Override
     public void readClient(CompoundTag compoundTag) {
         myMechanicalBlock.mechanicalReadClient(compoundTag);
         guiHandler.readClient(compoundTag);
+
+        if(compoundTag.contains("burnTime")){
+            currentBurnTime = compoundTag.getInt("burnTime");
+        }
     }
 
     @Override

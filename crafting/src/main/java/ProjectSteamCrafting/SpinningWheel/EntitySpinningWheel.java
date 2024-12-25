@@ -5,10 +5,7 @@ import ARLib.gui.IGuiHandler;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
-import ARLib.utils.BlockEntityItemStackHandler;
-import ARLib.utils.InventoryUtils;
-import ARLib.utils.MachineRecipe;
-import ARLib.utils.recipePart;
+import ARLib.utils.*;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
 import ProjectSteam.Static;
@@ -142,7 +139,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
 
     public void scanFornewRecipe() {
         for (SpinningWheelConfig.MachineRecipe r : config.recipes) {
-            if(InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new recipePart(r.inputItem.id,r.inputItem.amount,1)))){
+            if(InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new RecipePart(r.inputItem.id,r.inputItem.amount)))){
                 currentRecipe = r;
                 break;
             }
@@ -175,12 +172,9 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
                 InventoryUtils.consumeElements(new ArrayList<>(), itemHandlerInputs, currentRecipe.inputItem.id, 1, false);
             }
         }
-        for (recipePart output : currentRecipe.outputItems) {
-            for (int i = 0; i < output.amount; i++) {
-                if (level.random.nextFloat() < output.p) {
-                    InventoryUtils.createElements(new ArrayList<>(), itemHandlerOutputs, output.id, 1);
-                }
-            }
+        for (RecipePartWithProbability output : currentRecipe.outputItems) {
+            output.computeRandomAmount();
+            InventoryUtils.createElements(new ArrayList<>(), itemHandlerOutputs, output.id, output.getRandomAmount());
         }
         resetRecipe();
     }
@@ -188,16 +182,16 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public void tick() {
         myMechanicalBlock.mechanicalTick();
         if (!level.isClientSide) {
-            IGuiHandler.serverTick(guiHandler);
+            guiHandler.serverTick();
 
             if (currentRecipe == null) {
                 scanFornewRecipe();
             } else {
-                if (InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new recipePart(currentRecipe.inputItem.id, currentRecipe.inputItem.amount, 1)))) {
+                if (InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new RecipePart(currentRecipe.inputItem.id, currentRecipe.inputItem.amount)))) {
                     double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS));
                     currentProgress += progressMade;
                     if (currentProgress >= currentRecipe.timeRequired) {
-                        if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(), currentRecipe.outputItems)) {
+                        if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(),new ArrayList<>(currentRecipe.outputItems))) {
                             completeCurrentRecipe();
                         }
                     }

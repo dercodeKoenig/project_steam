@@ -5,7 +5,8 @@ import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.ItemUtils;
-import ARLib.utils.recipePart;
+import ARLib.utils.RecipePart;
+import ARLib.utils.RecipePartWithProbability;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
@@ -248,7 +249,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
     WoodMillConfig.MachineRecipe getRecipeForInputs(ItemStack inputs) {
         for (WoodMillConfig.MachineRecipe i : config.recipes) {
-            recipePart input = i.inputItem;
+            RecipePart input = i.inputItem;
             if (ItemUtils.matches(input.id, inputs)) {
                 return i;
             }
@@ -298,12 +299,9 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
             if (!level.isClientSide) {
                 workingRecipe w = new workingRecipe();
                 w.currentInput = stack.copyWithCount(1);
-                for (recipePart i : r.outputItems) {
-                    for (int j = 0; j < i.amount; j++) {
-                        if(level.random.nextFloat() <= i.p) {
-                            w.outputStacks.add(ItemUtils.getItemStackFromId(i.id, 1));
-                        }
-                    }
+                for (RecipePartWithProbability i : r.outputItems) {
+                    i.computeRandomAmount();
+                    w.outputStacks.add(ItemUtils.getItemStackFromId(i.id, i.getRandomAmount()));
                 }
                 w.additionalResistance = r.additionalResistance;
                 stack.shrink(1);

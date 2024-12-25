@@ -3,7 +3,7 @@ package ProjectSteamCrafting.Sieve;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.ItemUtils;
-import ARLib.utils.recipePart;
+import ARLib.utils.RecipePartWithProbability;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import ProjectSteam.Static;
 import ProjectSteamCrafting.Sieve.Items.ItemSieveUpgrade;
@@ -329,7 +329,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
     SieveConfig.MachineRecipe getRecipeForInputs(ItemStack inputs) {
         for (SieveConfig.MachineRecipe i : config.recipes) {
             if (ItemUtils.matches(i.requiredMesh, myMesh)) {
-                recipePart input = i.inputItem;
+                RecipePartWithProbability input = i.inputItem;
                 if (ItemUtils.matches(input.id, inputs)) {
                     return i;
                 }
@@ -340,7 +340,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
 
     void completeRecipe() {
         if (currentRecipe != null) {
-            for (recipePart item : currentRecipe.outputItems) {
+            for (RecipePartWithProbability item : currentRecipe.outputItems) {
                 int actual_num = 0;
                 for (int i = 0; i < item.amount; ++i) {
                     if (item.p >= 1.0F || Math.random() < (double) item.p) {

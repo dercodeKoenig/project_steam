@@ -134,7 +134,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         myMechanicalBlock.mechanicalTick();
         currentBurnTime --;
         if (!level.isClientSide) {
-            IGuiHandler.serverTick(guiHandler);
+            guiHandler.serverTick();
 
             if (currentBurnTime <= 0) {
                 Item currentBurnItem = inventory.extractItem(0, 1, false).getItem();

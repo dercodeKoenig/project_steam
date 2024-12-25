@@ -1,6 +1,6 @@
 package ProjectSteamCrafting.WoodMill;
 
-import ARLib.utils.recipePart;
+import ARLib.utils.RecipePartWithProbability;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 
 import java.util.ArrayList;
@@ -28,8 +28,8 @@ public class WoodMillConfig {
     }
 
         public static class MachineRecipe {
-            public recipePart inputItem = new recipePart("");
-            public List<recipePart> outputItems = new ArrayList<>();
+            public RecipePartWithProbability inputItem = new RecipePartWithProbability("");
+            public List<RecipePartWithProbability> outputItems = new ArrayList<>();
             public float additionalResistance = 10f;
         }
 

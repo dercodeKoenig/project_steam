@@ -210,7 +210,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         myMechanicalBlock.mechanicalTick();
 
         if (!level.isClientSide) {
-            IGuiHandler.serverTick(guiHandler);
+            guiHandler.serverTick();
 
             int torque = 0;
             double efficiency = 0;

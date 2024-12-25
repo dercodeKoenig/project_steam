@@ -74,6 +74,17 @@ public class BlockStirlingGenerator extends Block implements EntityBlock {
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
+    public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        BlockEntity me = level.getBlockEntity(pos);
+        if (me instanceof EntityStirlingGenerator s) {
+            if (!me.getLevel().isClientSide) {
+                ItemStack stack = s.inventory.getStackInSlot(0).copy();
+                Block.popResource(level, pos, stack);
+            }
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
+    }
+
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityStirlingGenerator::tick;

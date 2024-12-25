@@ -19,7 +19,9 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
@@ -119,6 +121,18 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public void onLoad(){
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
+    }
+
+    public void popInventory(){
+        ItemStack stack;
+        for (int i = 0; i < 4; i++) {
+            stack = inventoryInput.getStackInSlot(i).copy();
+            Block.popResource(level, getBlockPos(), stack);
+
+            stack = inventoryOutput.getStackInSlot(i).copy();
+            Block.popResource(level, getBlockPos(), stack);
+        }
+        setChanged();
     }
 
     public void resetRecipe() {

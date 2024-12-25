@@ -58,6 +58,7 @@ public class BlockSpinningWheel extends Block implements EntityBlock {
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
         if(blockEntity instanceof EntitySpinningWheel s){
+s.popInventory();
         }
         super.onRemove(state, level, pos, newState, isMoving);
     }

@@ -34,7 +34,7 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver, IguiO
         List<GuiModuleBase> modules = new ArrayList<>();
         for (int n = 0; n < Config.INSTANCE.researchList.size(); n++) {
             Config.Research i = Config.INSTANCE.researchList.get(n);
-            guiModuleDefaultButton b = new guiModuleDefaultButton(n,i.name,  guiHandler,0, (int) (n*22),150,18);
+            guiModuleDefaultButton b = new guiModuleDefaultButton(n,i.name,  guiHandler,0, (int) (n*20),150,16);
             modules.add(b);
         }
         guiHandler.getModules().clear();
@@ -50,7 +50,7 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver, IguiO
         if(level.isClientSide) {
             makeGui();
 
-            guiHandler.openGui(350, 180);
+            guiHandler.openGui(300, 180);
         }
 
         return InteractionResultHolder.success(itemstack);

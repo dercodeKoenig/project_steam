@@ -6,7 +6,9 @@ import ARLib.gui.IguiOnClientTick;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleScrollContainer;
+import ARLib.network.INetworkItemStackTagReceiver;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketPlayerMainHand;
 import ResearchStation.Config.Config;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
@@ -21,7 +23,7 @@ import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemResearchBook extends Item implements INetworkTagReceiver, IguiOnClientTick {
+public class ItemResearchBook extends Item implements INetworkItemStackTagReceiver, IguiOnClientTick {
 
     GuiHandlerMainHandItem guiHandler = new GuiHandlerMainHandItem(this);
 
@@ -38,7 +40,7 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver, IguiO
             modules.add(b);
         }
         guiHandler.getModules().clear();
-        guiModuleScrollContainer c = new guiModuleScrollContainer(modules,0x00000000,guiHandler,10,20,220,150);
+        guiModuleScrollContainer c = new guiModuleScrollContainer(modules,0x10000000,guiHandler,10,10,150,160);
         guiHandler.registerModule(c);
     }
 
@@ -48,8 +50,6 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver, IguiO
         ItemStack itemstack = player.getItemInHand(usedHand);
 
         if(level.isClientSide) {
-            makeGui();
-
             guiHandler.openGui(300, 180);
         }
 
@@ -57,9 +57,8 @@ public class ItemResearchBook extends Item implements INetworkTagReceiver, IguiO
     }
 
 
-
     @Override
-    public void readServer(CompoundTag compoundTag) {
+    public void readServer(CompoundTag compoundTag, ItemStack itemStack) {
 
     }
 

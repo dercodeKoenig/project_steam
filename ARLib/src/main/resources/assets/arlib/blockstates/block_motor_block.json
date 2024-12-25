@@ -1,0 +1,9 @@
+{
+    "variants": {
+        "facing=north": { "model": "arlib:block/block_motor_block" },
+        "facing=south": { "model": "arlib:block/block_motor_block", "y": 180 },
+        "facing=west": { "model": "arlib:block/block_motor_block", "y": 270 },
+        "facing=east": { "model": "arlib:block/block_motor_block", "y": 90 }
+    }
+}
+

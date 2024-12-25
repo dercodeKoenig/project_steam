@@ -82,19 +82,19 @@
 
         {
             "when": { "axis": "z", "facing": "up", "solid_conn_west": "false" },
-            "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 90, "y": 90 }
-        },
-        {
-            "when": { "axis": "z", "facing": "up", "solid_conn_west": "true" },
-            "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 90, "y": 90 }
-        },
-        {
-            "when": { "axis": "z", "facing": "up", "solid_conn_east": "false" },
             "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 90, "y": 270 }
         },
         {
-            "when": { "axis": "z", "facing": "up", "solid_conn_east": "true" },
+            "when": { "axis": "z", "facing": "up", "solid_conn_west": "true" },
             "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 90, "y": 270 }
+        },
+        {
+            "when": { "axis": "z", "facing": "up", "solid_conn_east": "false" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 90, "y": 90 }
+        },
+        {
+            "when": { "axis": "z", "facing": "up", "solid_conn_east": "true" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 90, "y": 90 }
         },
         {
             "when": { "axis": "z", "facing": "up" },
@@ -103,19 +103,19 @@
 
         {
             "when": { "axis": "z", "facing": "down", "solid_conn_west": "false" },
-            "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 90, "y": 90 }
-        },
-        {
-            "when": { "axis": "z", "facing": "down", "solid_conn_west": "true" },
-            "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 90, "y": 90 }
-        },
-        {
-            "when": { "axis": "z", "facing": "down", "solid_conn_east": "false" },
             "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 90, "y": 270 }
         },
         {
-            "when": { "axis": "z", "facing": "down", "solid_conn_east": "true" },
+            "when": { "axis": "z", "facing": "down", "solid_conn_west": "true" },
             "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 90, "y": 270 }
+        },
+        {
+            "when": { "axis": "z", "facing": "down", "solid_conn_east": "false" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_small", "x": 90, "y": 90 }
+        },
+        {
+            "when": { "axis": "z", "facing": "down", "solid_conn_east": "true" },
+            "apply": { "model": "projectsteam:block/gearbox2_top_extended", "x": 90, "y": 90 }
         },
         {
             "when": { "axis": "z", "facing": "down" },

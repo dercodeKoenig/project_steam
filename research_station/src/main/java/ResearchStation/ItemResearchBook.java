@@ -13,7 +13,7 @@ import ARLib.network.PacketPlayerMainHand;
 import ResearchStation.Config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -63,13 +63,131 @@ public class ItemResearchBook extends Item {
         try {
             return stack.get(DataComponents.CUSTOM_DATA).copyTag();
         } catch (Exception e) {
-            return new CompoundTag();
+            CompoundTag itemTag = new CompoundTag();
+            ListTag completed = new ListTag();
+            itemTag.put("completed", completed);
+            ListTag queued = new ListTag();
+            itemTag.put("queued", queued);
+
+            StringTag currentResearch = StringTag.valueOf("");
+            itemTag.put("currentResearch", currentResearch);
+            IntTag currentProgress = IntTag.valueOf(0);
+            itemTag.put("currentProgress", currentProgress);
+
+            return itemTag;
         }
     }
+
     void setStackTag(ItemStack stack, CompoundTag tag) {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
+    String getCurrentResearch(CompoundTag itemTag) {
+        return itemTag.getString("currentResearch");
+    }
+
+    String getCurrentResearch(ItemStack stack) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        return getCurrentResearch(itemTag);
+    }
+
+    void setCurrentResearch(ItemStack stack, String researchId) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        itemTag.putString("currentResearch", researchId);
+    }
+
+    int getCurrentProgress(CompoundTag itemTag) {
+        return itemTag.getInt("currentProgress");
+    }
+
+    int getCurrentProgress(ItemStack stack) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        return getCurrentProgress(itemTag);
+    }
+
+    void setCurrentProgress(ItemStack stack, int progress) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        itemTag.putInt("currentProgress", progress);
+    }
+
+    List<String> getCompletedResearches_readOnly(CompoundTag itemTag) {
+        List<String> completedStringList = new ArrayList<>();
+        ListTag completedResearchesT = itemTag.getList("completed", Tag.TAG_STRING);
+        for (int i = 0; i < completedResearchesT.size(); i++) {
+            completedStringList.add(completedResearchesT.getString(i));
+        }
+        return completedStringList;
+    }
+
+    List<String> getCompletedResearches_readOnly(ItemStack stack) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        return getCompletedResearches_readOnly(itemTag);
+    }
+
+    void setCompletedResearches(ItemStack stack, List<String> completedResearches) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        ListTag t = new ListTag();
+        for (String i : completedResearches) {
+            t.add(StringTag.valueOf(i));
+        }
+        itemTag.put("completed", t);
+        setStackTag(stack, itemTag);
+    }
+
+    List<String> getQueuedResearches_readOnly(CompoundTag itemTag) {
+        List<String> queuedStringList = new ArrayList<>();
+        ListTag queuedResearchesT = itemTag.getList("queued", Tag.TAG_STRING);
+        for (int i = 0; i < queuedResearchesT.size(); i++) {
+            queuedStringList.add(queuedResearchesT.getString(i));
+        }
+        return queuedStringList;
+    }
+
+    List<String> getQueuedResearches_readOnly(ItemStack stack) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        return getQueuedResearches_readOnly(itemTag);
+    }
+
+    void setQueuedResearches(ItemStack stack, List<String> queuedResearches) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        ListTag t = new ListTag();
+        for (String i : queuedResearches) {
+            t.add(StringTag.valueOf(i));
+        }
+        itemTag.put("queued", t);
+        setStackTag(stack, itemTag);
+    }
+
+    boolean tryCompleteResearch(ItemStack stack, String researchId) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        List<String> completedResearches = getCompletedResearches_readOnly(stack);
+        for (int i = 0; i < Config.INSTANCE.researchList.size(); i++) {
+            Config.Research r = Config.INSTANCE.researchList.get(i);
+            if (r.name.equals(researchId)) {
+                if (completedResearches.containsAll(r.requiredResearches)) {
+                    completedResearches.add(r.name);
+                    setCompletedResearches(stack, completedResearches);
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    List<Config.Research> getAvailableResearches(ItemStack stack) {
+        List<Config.Research> availableResearch = new ArrayList<>();
+        List<String> completedAndQueuedResearches = new ArrayList<>();
+        completedAndQueuedResearches.addAll(getCompletedResearches_readOnly(stack));
+        completedAndQueuedResearches.addAll(getQueuedResearches_readOnly(stack));
+
+        for (Config.Research r : Config.INSTANCE.researchList) {
+            if (completedAndQueuedResearches.containsAll(r.requiredResearches)) {
+                availableResearch.add(r);
+            }
+        }
+
+        return availableResearch;
+    }
 
     public void openGui() {
         //makeGui();

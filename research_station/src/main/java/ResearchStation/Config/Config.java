@@ -23,6 +23,7 @@ public class Config {
 
     public static class Research{
         public String name = "";
+        public int ticksRequired = 100;
         public List<String> requiredResearches = new ArrayList<>();
         public List<RecipePart> requiredItems = new ArrayList<>();
     }

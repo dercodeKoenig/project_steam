@@ -3,20 +3,26 @@ package ResearchStation;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
 import ResearchStation.Config.Config;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static ResearchStation.Registry.ENTITY_RESEARCH_STATION;
 
@@ -78,6 +84,9 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             public void onButtonClicked() {
                 if (level.isClientSide) {
                     guiHandlerResearchQueue.openGui(300, 180, false);
+                    CompoundTag requestDataTag = new CompoundTag();
+                    requestDataTag.putUUID("request_book_tag", Minecraft.getInstance().player.getUUID());
+                    PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityResearchStation.this,requestDataTag));
                 }
             }
         };
@@ -131,7 +140,40 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
         guiHandler.getModules().add(availableResearch);
     }
 
+void updateResearchQueueGuiFromBookStack(ItemStack bookStack) {
+    researchQueue.modules.clear();
+    availableResearch.modules.clear();
 
+    if (bookStack.getItem() instanceof ItemResearchBook irb) {
+        List<String> queued = irb.getQueuedResearches_readOnly(bookStack);
+        for (int i = 0; i < queued.size(); i++) {
+            String name = queued.get(i);
+            int y = 20 * i;
+            guiModuleDefaultButton db = new guiModuleDefaultButton(1000 + i, name, guiHandlerResearchQueue, 10, y, 100, 18) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag requestTag = new CompoundTag();
+                    requestTag.putString("removeFromQueue", name);
+                }
+            };
+            researchQueue.modules.add(db);
+        }
+
+        List<Config.Research> available = irb.getAvailableResearches(bookStack);
+        for (int i = 0; i < queued.size(); i++) {
+            String name = available.get(i).name;
+            int y = 20 * i;
+            guiModuleDefaultButton db = new guiModuleDefaultButton(1000 + i, name, guiHandlerResearchQueue, 150+10, y, 100, 18) {
+                @Override
+                public void onButtonClicked() {
+                    CompoundTag requestTag = new CompoundTag();
+                    requestTag.putString("addToQueue", name);
+                }
+            };
+            availableResearch.modules.add(db);
+        }
+    }
+}
 
     public void popInventory() {
         Block.popResource(level, getBlockPos(), bookInventory.getStackInSlot(0));
@@ -161,14 +203,44 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
         ((EntityResearchStation) t).tick();
     }
 
+    CompoundTag getUpdatTag() {
+        CompoundTag t = new CompoundTag();
+        boolean hasBook = !bookInventory.getStackInSlot(0).isEmpty();
+        t.putBoolean("hasBook", hasBook);
+        if (hasBook) {
+            ItemStack bookStack = bookInventory.getStackInSlot(0);
+            t.put("bookStack", bookStack.save(level.registryAccess()));
+        }
+        return t;
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag) {
         guiHandler.readServer(compoundTag);
+
+        if(compoundTag.contains("request_book_tag")){
+            UUID from = compoundTag.getUUID("request_book_tag");
+            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+            if(pfrom!=null){
+                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this,getUpdatTag()));
+            }
+        }
     }
 
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
+
+        if (compoundTag.contains("hasBook")) {
+            if (!compoundTag.getBoolean("hasBook")) {
+                guiHandlerResearchQueue.screen.onClose();
+            } else {
+                if (compoundTag.contains("bookStack")) {
+                    ItemStack bookStack = ItemStack.parse(level.registryAccess(),compoundTag.getCompound("bookStack")).get();
+                    updateResearchQueueGuiFromBookStack(bookStack);
+                }
+            }
+        }
     }
 
     @Override

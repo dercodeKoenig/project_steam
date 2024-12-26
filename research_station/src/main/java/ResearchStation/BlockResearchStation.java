@@ -58,9 +58,11 @@ public class BlockResearchStation extends Block implements EntityBlock {
 
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
-        BlockEntity e = level.getBlockEntity(pos);
-        if(e instanceof EntityResearchStation r){
-            r.popInventory();
+        if(!(newState.getBlock() instanceof BlockResearchStation)) {
+            BlockEntity e = level.getBlockEntity(pos);
+            if (e instanceof EntityResearchStation r) {
+                r.popInventory();
+            }
         }
         super.onRemove(state,level,pos,newState,movedByPiston);
     }

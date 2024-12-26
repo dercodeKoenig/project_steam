@@ -156,10 +156,34 @@ public class ItemResearchBook extends Item {
         }
         itemTag.put("queued", t);
         setStackTag(stack, itemTag);
+
+        removeInvalidQueuedResearches(stack);
+    }
+
+    void removeInvalidQueuedResearches(ItemStack stack){
+        List<String> queuedResearches = getQueuedResearches_readOnly(stack);
+        List<String> completedResearches = getCompletedResearches_readOnly(stack);
+
+        for (int i = 0; i < queuedResearches.size(); i++) {
+            String name = queuedResearches.get(i);
+            for(Config.Research r:Config.INSTANCE.researchList) {
+                if(r.name.equals(name)) {
+                   if(!completedResearches.containsAll(r.requiredResearches)){
+                       queuedResearches.remove(name);
+                       setQueuedResearches(stack,queuedResearches);
+                       removeInvalidQueuedResearches(stack);
+                       return;
+                   }else{
+                       completedResearches.add(name);
+                   }
+                   break;
+                }
+            }
+        }
+
     }
 
     boolean tryCompleteResearch(ItemStack stack, String researchId) {
-        CompoundTag itemTag = getStackTagOrEmpty(stack);
         List<String> completedResearches = getCompletedResearches_readOnly(stack);
         for (int i = 0; i < Config.INSTANCE.researchList.size(); i++) {
             Config.Research r = Config.INSTANCE.researchList.get(i);
@@ -181,7 +205,7 @@ public class ItemResearchBook extends Item {
         completedAndQueuedResearches.addAll(getQueuedResearches_readOnly(stack));
 
         for (Config.Research r : Config.INSTANCE.researchList) {
-            if (completedAndQueuedResearches.containsAll(r.requiredResearches)) {
+            if (completedAndQueuedResearches.containsAll(r.requiredResearches) && !completedAndQueuedResearches.contains(r.name)) {
                 availableResearch.add(r);
             }
         }

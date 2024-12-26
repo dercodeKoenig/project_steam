@@ -67,7 +67,7 @@ public class ModularScreen extends Screen {
         }
 
         // send to guihandler to drop item when clicked outside of the gui
-        if (x < leftOffset || x > leftOffset + guiW || y < topOffset || y > topOffset + guiW) {
+        if (x < leftOffset || x > leftOffset + guiW || y < topOffset || y > topOffset + guiH) {
             CompoundTag tag = new CompoundTag();
             CompoundTag myTag = new CompoundTag();
             // add client id to the tag

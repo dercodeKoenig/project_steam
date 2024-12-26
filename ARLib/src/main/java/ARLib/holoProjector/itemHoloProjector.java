@@ -108,7 +108,7 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
                 tag.putBoolean("scroll", false);
             }
 
-            PacketDistributor.sendToServer(new PacketPlayerMainHand(id, tag));
+            PacketDistributor.sendToServer(PacketPlayerMainHand.packetToServer(id, tag));
             event.setCanceled(true);
         }
     }
@@ -256,7 +256,7 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag, ItemStack stack) {
+    public void readServer(CompoundTag compoundTag, ItemStack stack, UUID sender) {
         CompoundTag itemTag = getStacktagOrEmpty(stack);
 
         if (compoundTag.contains("guiButtonClick")) {

@@ -42,7 +42,7 @@ public class GuiHandlerMainHandItem implements IGuiHandler {
 
     @Override
     public void sendToServer(CompoundTag tag) {
-        PacketDistributor.sendToServer(new PacketPlayerMainHand(Minecraft.getInstance().player.getUUID(),tag));
+        PacketDistributor.sendToServer(PacketPlayerMainHand.packetToServer(Minecraft.getInstance().player.getUUID(),tag));
     }
 
 

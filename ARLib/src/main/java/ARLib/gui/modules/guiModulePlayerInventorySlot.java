@@ -107,6 +107,7 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
                         ItemStack notInserted = j.insertItemIntoSlot(player, stack, stack.getCount());
                         int inserted = stack.getCount() - notInserted.getCount();
                         extractItemFromSlot(player,inserted);
+                        stack = notInserted;
                     }
                 }
                 if (i instanceof guiModuleItemHandlerSlot j) {
@@ -114,6 +115,7 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
                         ItemStack notInserted = j.insertItemIntoSlot(stack, stack.getCount());
                         int inserted = stack.getCount() - notInserted.getCount();
                         extractItemFromSlot(player,inserted);
+                        stack = notInserted;
                     }
                 }
             }

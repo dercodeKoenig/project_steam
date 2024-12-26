@@ -22,7 +22,7 @@ import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemResearchBook extends Item implements INetworkItemStackTagReceiver {
+public class ItemResearchBook extends Item {
 
     GuiHandlerMainHandItem guiHandler = new GuiHandlerMainHandItem();
 
@@ -64,15 +64,5 @@ public class ItemResearchBook extends Item implements INetworkItemStackTagReceiv
 
     void researchButtonCLicked(String name){
         System.out.println(name+" button clicked");
-    }
-
-    @Override
-    public void readServer(CompoundTag compoundTag, ItemStack itemStack) {
-
-    }
-
-    @Override
-    public void readClient(CompoundTag compoundTag) {
-
     }
 }

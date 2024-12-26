@@ -29,13 +29,18 @@ public class PacketPlayerMainHand implements CustomPacketPayload {
     public static final Type<PacketPlayerMainHand> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath("arlib", "packetplayermainhand"));
 
-    public PacketPlayerMainHand(UUID id, CompoundTag tag) {
-        this.tag = tag;
-        this.UUIDtag = new CompoundTag();
-        UUIDtag.putUUID("uuid", id);
+    // add the uuid of the sender so the server can match it to the player
+    public static PacketPlayerMainHand packetToServer (UUID from, CompoundTag tag) {
+        CompoundTag UUIDtag = new CompoundTag();
+        UUIDtag.putUUID("uuid", from);
+        return new PacketPlayerMainHand(UUIDtag, tag);
+    }
+    // no need for uuid, you should use PacketDistributor.sendToPlayer()
+    public static PacketPlayerMainHand packetToClient (CompoundTag tag) {
+        return new PacketPlayerMainHand(new CompoundTag(), tag);
     }
 
-    public PacketPlayerMainHand(CompoundTag UUIDtag, CompoundTag tag) {
+    PacketPlayerMainHand(CompoundTag UUIDtag, CompoundTag tag) {
         this.tag = tag;
         this.UUIDtag = UUIDtag;
     }
@@ -72,7 +77,7 @@ public class PacketPlayerMainHand implements CustomPacketPayload {
         Player p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(id);
         ItemStack selectedStack = p.getInventory().getSelected();
         if(selectedStack.getItem() instanceof INetworkItemStackTagReceiver r)
-            r.readServer(data.getTag(), selectedStack);
+            r.readServer(data.getTag(), selectedStack, id);
     }
 
     @Override

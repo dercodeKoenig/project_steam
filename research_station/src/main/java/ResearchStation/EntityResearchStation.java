@@ -7,13 +7,10 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
 import ResearchStation.Config.Config;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -21,11 +18,9 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import static ResearchStation.Registry.ENTITY_RESEARCH_STATION;
 
@@ -38,6 +33,8 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
 
 
     public GuiHandlerBlockEntity guiHandler;
+    guiModuleItemHandlerSlot bookSlot; // this can be used to read book data on client because it will be synced while gui is open
+    guiModuleText targetResearchText;
     ItemStackHandler bookInventory;
     ItemStackHandler requiredItemsPreview;
     ItemStackHandler requiredItemsInventory;
@@ -57,11 +54,11 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
         };
 
         requiredItemsPreview = new ItemStackHandler(16) {
+            // block input/output on this one
             @Override
             public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
                 return stack;
             }
-
             @Override
             public ItemStack extractItem(int slot, int amount, boolean simulate) {
                 return ItemStack.EMPTY;
@@ -79,6 +76,7 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             protected void onContentsChanged(int slot) {
                 setChanged();
 
+                //update blockstate to show/hide book
                 if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockResearchStation) {
                     if (getStackInSlot(0).getItem() instanceof ItemResearchBook) {
                         level.setBlock(getBlockPos(), getBlockState().setValue(BlockResearchStation.HAS_BOOK, true), 3);
@@ -94,35 +92,43 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             }
         };
 
-        guiModuleItemHandlerSlot bookSlow = new guiModuleItemHandlerSlot(0, bookInventory, 0, 1, 0, guiHandler, 10, 10);
+        bookSlot = new guiModuleItemHandlerSlot(0, bookInventory, 0, 1, 0, guiHandler, 10, 10){
+            @Override
+            public void client_handleDataSyncedToClient(CompoundTag tag) {
+                super.client_handleDataSyncedToClient(tag);
+
+                // re-build the gui when something changes. The book-itemStack will be synced while gui is open
+                updateResearchQueueGuiFromBookStack(this.client_getItemStackToRender());
+            }
+            };
+
         guiModuleDefaultButton b1 = new guiModuleDefaultButton(1, "open", guiHandler, 30, 10, 30, 16) {
             @Override
             public void onButtonClicked() {
                 // the stack in the item handler slot is synced to client during guiHandler.servertick()
-                if (bookSlow.client_getItemStackToRender().getItem() instanceof ItemResearchBook irb) {
+                if (bookSlot.client_getItemStackToRender().getItem() instanceof ItemResearchBook irb) {
                     if (level.isClientSide) {
                         irb.openGui();
                     }
                 }
             }
         };
+
         guiModuleDefaultButton b2 = new guiModuleDefaultButton(5, "research queue", guiHandler, 70, 10, 100, 16) {
             @Override
             public void onButtonClicked() {
                 if (level.isClientSide) {
-                    guiHandlerResearchQueue.openGui(300, 180, false);
-                    CompoundTag requestDataTag = new CompoundTag();
-                    requestDataTag.putUUID("request_book_tag", Minecraft.getInstance().player.getUUID());
-                    PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityResearchStation.this, requestDataTag));
+                    guiHandlerResearchQueue.openGui(380, 180, false);
                 }
             }
         };
-        guiHandler.getModules().add(bookSlow);
+        guiHandler.getModules().add(bookSlot);
         guiHandler.getModules().add(b1);
         guiHandler.getModules().add(b2);
 
-        guiModuleText target = new guiModuleText(2, "- current Research -", guiHandler, 10, 30, 0xff000000, false);
-        guiHandler.getModules().add(target);
+
+        targetResearchText = new guiModuleText(2, "- current Research -", guiHandler, 10, 30, 0xff000000, false);
+        guiHandler.getModules().add(targetResearchText);
 
         guiModuleText inventory = new guiModuleText(4, "inventory", guiHandler, 10, 55, 0xff000000, false);
         guiHandler.getModules().add(inventory);
@@ -155,8 +161,10 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             guiHandler.getModules().add(i);
         }
 
-        progressBar = new guiModuleProgressBarHorizontal6px(9009,0xff00ff00,guiHandlerResearchQueue,10,40);
+        progressBar = new guiModuleProgressBarHorizontal6px(9009,0xff00ff00,guiHandler,10,40);
 guiHandler.getModules().add(progressBar);
+
+
 
         guiModuleImage i1 = new guiModuleImage(guiHandlerResearchQueue, 0, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
         guiHandlerResearchQueue.getModules().add(i1);
@@ -165,17 +173,18 @@ guiHandler.getModules().add(progressBar);
 
         guiModuleText rqt = new guiModuleText(10000, "Research in queue", guiHandlerResearchQueue, 30, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rqt);
-        guiModuleText rat = new guiModuleText(10001, "Research available", guiHandlerResearchQueue, 180, 20, 0xff000000, false);
+        guiModuleText rat = new guiModuleText(10001, "Research available", guiHandlerResearchQueue, 220, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rat);
-        researchQueue = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 19, 39, 113, 135);
+        researchQueue = new guiModuleScrollContainer(new ArrayList<>(), 0xf0000000, guiHandler, 19, 39, 163, 135);
         guiHandlerResearchQueue.getModules().add(researchQueue);
-        availableResearch = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 150 + 19, 39, 113, 135);
+        availableResearch = new guiModuleScrollContainer(new ArrayList<>(), 0xf0000000, guiHandler, 190 + 19, 39, 113, 135);
         guiHandlerResearchQueue.getModules().add(availableResearch);
     }
 
     void updateResearchQueueGuiFromBookStack(ItemStack bookStack) {
         researchQueue.modules.clear();
         availableResearch.modules.clear();
+
         if (bookStack.getItem() instanceof ItemResearchBook irb) {
             List<String> queued = irb.getQueuedResearches_readOnly(bookStack);
             for (int i = 0; i < queued.size(); i++) {
@@ -198,7 +207,7 @@ guiHandler.getModules().add(progressBar);
 
             List<Config.Research> available = irb.getAvailableResearches(bookStack);
             for (int i = 0; i < available.size(); i++) {
-                String name = available.get(i).name;
+                String name = available.get(i).id;
                 int y = 14 * i + 2;
                 guiModuleText t = new guiModuleText(2000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 availableResearch.modules.add(t);
@@ -215,7 +224,8 @@ guiHandler.getModules().add(progressBar);
                 availableResearch.modules.add(db);
             }
         }
-        guiHandlerResearchQueue.screen.calculateGuiOffsetAndNotifyModules();
+        if(guiHandlerResearchQueue.screen != null)
+            guiHandlerResearchQueue.screen.calculateGuiOffsetAndNotifyModules();
     }
 
     public void popInventory() {
@@ -244,7 +254,7 @@ guiHandler.getModules().add(progressBar);
         if (book.getItem() instanceof ItemResearchBook irb) {
             ItemStackHandler tmp = new ItemStackHandler(requiredItemsPreview.getSlots());
             for (RecipePart i : irb.getRequiredItemsForResearch(book)) {
-                InventoryUtils.createElements(List.of(), List.of(tmp), i.id, i.amount);
+                InventoryUtils.createElements(List.of(), List.of(tmp), i.id, i.amount,level.registryAccess());
             }
 
             for (int i = 0; i < requiredItemsPreview.getSlots(); i++) {
@@ -256,13 +266,26 @@ guiHandler.getModules().add(progressBar);
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
-            setRequiredItemsPreview();
             ItemStack book = bookInventory.getStackInSlot(0);
             if (book.getItem() instanceof ItemResearchBook irb) {
+                setRequiredItemsPreview();
                 irb.startResearchIfPossibleAndConsumeElements(book, requiredItemsInventory);
                 irb.tickResearch(book, 1);
-                if(!irb.getCurrentResearch(book).isEmpty())
-                    progressBar.setProgressAndSync((double)irb.getCurrentProgress(book) / Config.INSTANCE.getResearchMap().get(irb.getCurrentResearch(book)).ticksRequired);
+                double progress = 0;
+                String currentResearch = irb.getCurrentResearch(book);
+                if(!currentResearch.isEmpty()) {
+                    progress = (double) irb.getCurrentProgress(book) / Config.INSTANCE.getResearchMap().get(currentResearch).ticksRequired;
+                    targetResearchText.setTextAndSync(currentResearch);
+                }else {
+                    List<String> queue = irb.getQueuedResearches_readOnly(book);
+                    if (!queue.isEmpty()) {
+                        targetResearchText.setTextAndSync(queue.getFirst());
+                    } else {
+                        targetResearchText.setTextAndSync("no research selected");
+                    }
+                }
+                progressBar.setProgressAndSync(progress);
+
             }else{
                 progressBar.setProgressAndSync(0);
             }
@@ -273,30 +296,10 @@ guiHandler.getModules().add(progressBar);
         ((EntityResearchStation) t).tick();
     }
 
-    CompoundTag getUpdatTag() {
-        CompoundTag t = new CompoundTag();
-        boolean hasBook = !bookInventory.getStackInSlot(0).isEmpty();
-        t.putBoolean("hasBook", hasBook);
-        if (hasBook) {
-            ItemStack bookStack = bookInventory.getStackInSlot(0);
-            t.put("bookStack", bookStack.save(level.registryAccess()));
-        }
-        return t;
-    }
-
-    void sendUpdateToGuiTrackingPlayers() {
-        CompoundTag t = getUpdatTag();
-        for (UUID player : guiHandler.playersTrackingGui.keySet()) {
-            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(player);
-            if (p != null) {
-                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, t));
-            }
-        }
-    }
-
     @Override
     public void readServer(CompoundTag compoundTag) {
         guiHandler.readServer(compoundTag);
+        //System.out.println(compoundTag);
 
         if (compoundTag.contains("addToQueue")) {
             String name = compoundTag.getString("addToQueue");
@@ -306,7 +309,6 @@ guiHandler.getModules().add(progressBar);
                 if (!queued.contains(name)) {
                     queued.add(name);
                     irb.setQueuedResearches(bookStack, queued);
-                    sendUpdateToGuiTrackingPlayers();
                 }
             }
         }
@@ -318,16 +320,7 @@ guiHandler.getModules().add(progressBar);
                 if (queued.contains(name)) {
                     queued.remove(name);
                     irb.setQueuedResearches(bookStack, queued);
-                    sendUpdateToGuiTrackingPlayers();
                 }
-            }
-        }
-
-        if (compoundTag.contains("request_book_tag")) {
-            UUID from = compoundTag.getUUID("request_book_tag");
-            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            if (pfrom != null) {
-                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, getUpdatTag()));
             }
         }
     }
@@ -335,17 +328,7 @@ guiHandler.getModules().add(progressBar);
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
-
-        if (compoundTag.contains("hasBook")) {
-            if (!compoundTag.getBoolean("hasBook")) {
-                guiHandlerResearchQueue.screen.onClose();
-            } else {
-                if (compoundTag.contains("bookStack")) {
-                    ItemStack bookStack = ItemStack.parse(level.registryAccess(), compoundTag.getCompound("bookStack")).get();
-                    updateResearchQueueGuiFromBookStack(bookStack);
-                }
-            }
-        }
+        //System.out.println(compoundTag);
     }
 
     @Override

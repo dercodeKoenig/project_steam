@@ -36,10 +36,10 @@ public class ItemResearchBook extends Item {
         List<GuiModuleBase> modules = new ArrayList<>();
         for (int n = 0; n < Config.INSTANCE.researchList.size(); n++) {
             Config.Research i = Config.INSTANCE.researchList.get(n);
-            guiModuleDefaultButton b = new guiModuleDefaultButton(n, i.name, guiHandler, 10, (int) (n * 20), 130, 16) {
+            guiModuleDefaultButton b = new guiModuleDefaultButton(n, i.id, guiHandler, 10, (int) (n * 20), 130, 16) {
                 @Override
                 public void onButtonClicked() {
-                    researchButtonCLicked(i.name);
+                    researchButtonCLicked(i.id);
                 }
             };
             modules.add(b);
@@ -89,6 +89,7 @@ public class ItemResearchBook extends Item {
     void setCurrentResearch(ItemStack stack, String researchId) {
         CompoundTag itemTag = getStackTagOrEmpty(stack);
         itemTag.putString("currentResearch", researchId);
+        setStackTag(stack,itemTag);
     }
 
     int getCurrentProgress(CompoundTag itemTag) {
@@ -103,6 +104,7 @@ public class ItemResearchBook extends Item {
     void setCurrentProgress(ItemStack stack, int progress) {
         CompoundTag itemTag = getStackTagOrEmpty(stack);
         itemTag.putInt("currentProgress", progress);
+        setStackTag(stack,itemTag);
     }
 
     List<String> getCompletedResearches_readOnly(CompoundTag itemTag) {
@@ -158,6 +160,9 @@ public class ItemResearchBook extends Item {
     void removeInvalidQueuedResearches(ItemStack stack) {
         List<String> queuedResearches = getQueuedResearches_readOnly(stack);
         List<String> completedResearches = getCompletedResearches_readOnly(stack);
+        if(!getCurrentResearch(stack).isEmpty())
+            // if a research is in progress, assume it is completed to step to the next one
+            completedResearches.add(getCurrentResearch(stack));
 
         for (int i = 0; i < queuedResearches.size(); i++) {
             String name = queuedResearches.get(i);
@@ -169,6 +174,7 @@ public class ItemResearchBook extends Item {
                 removeInvalidQueuedResearches(stack);
                 return;
             } else {
+                // if this queued research is valid, assume it is completed to step to the next one
                 completedResearches.add(name);
             }
         }
@@ -201,6 +207,11 @@ public class ItemResearchBook extends Item {
             if (!queued.isEmpty()) {
                 String first = queued.removeFirst();
                 Config.Research i = Config.INSTANCE.getResearchMap().get(first);
+                if(i==null){
+                    setCurrentResearch(stack,"");
+                    setQueuedResearches(stack, queued);
+                    return; // cam happen if config was changed
+                }
                 if (InventoryUtils.hasInputs(List.of(inventory), new ArrayList<>(), i.requiredItems)) {
                     for (RecipePart p : i.requiredItems) {
                         InventoryUtils.consumeElements(new ArrayList<>(), List.of(inventory), p.id, p.amount, false);
@@ -219,7 +230,9 @@ public class ItemResearchBook extends Item {
             if (!queued.isEmpty()) {
                 String first = queued.getFirst();
                 Config.Research c = Config.INSTANCE.getResearchMap().get(first);
-                return c.requiredItems;
+                if(c!=null) // can happen if config was changes. dont want it to crash the game
+                    return c.requiredItems;
+                else return List.of();
             }
         }
         return List.of();
@@ -231,7 +244,11 @@ public class ItemResearchBook extends Item {
             int progress = getCurrentProgress(stack);
             progress += increment;
             setCurrentProgress(stack, progress);
-            if(progress >= Config.INSTANCE.getResearchMap().get(currentResearch).ticksRequired){
+            Config.Research i = Config.INSTANCE.getResearchMap().get(currentResearch);
+            if (i == null)
+                // can happen if config was changed
+                setCurrentResearch(stack, "");
+            else if (progress >= i.ticksRequired) {
                 tryCompleteResearch(stack);
             }
         }
@@ -244,7 +261,8 @@ public class ItemResearchBook extends Item {
         completedAndQueuedResearches.addAll(getQueuedResearches_readOnly(stack));
 
         for (Config.Research r : Config.INSTANCE.researchList) {
-            if (completedAndQueuedResearches.containsAll(r.requiredResearches) && !completedAndQueuedResearches.contains(r.name)) {
+            if (completedAndQueuedResearches.containsAll(r.requiredResearches) && !completedAndQueuedResearches.contains(r.id) && !r.id.equals(getCurrentResearch(stack))) {
+                // return all except already completed or already in queue or currently researched
                 availableResearch.add(r);
             }
         }

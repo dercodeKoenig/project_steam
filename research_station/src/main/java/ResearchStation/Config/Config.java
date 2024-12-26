@@ -24,7 +24,7 @@ public class Config {
     public static Config INSTANCE = loadConfig();
 
     public static class Research {
-        public String name = "";
+        public String id = "";
         public int ticksRequired = 100;
         public List<String> requiredResearches = new ArrayList<>();
         public List<RecipePart> requiredItems = new ArrayList<>();
@@ -36,7 +36,7 @@ public class Config {
     private void makeResearchMap() {
         researchMap = new HashMap<>();
         for (Research i : researchList) {
-            researchMap.put(i.name, i);
+            researchMap.put(i.id, i);
         }
     }
     public Map<String, Research> getResearchMap() {
@@ -45,6 +45,18 @@ public class Config {
 
 
     public Config() {
+        Research t1 = new Research();
+        t1.id = "example Research 1";
+        t1.ticksRequired = 100;
+        t1.requiredItems.add(new RecipePart("c:ingots/iron",4));
+        researchList.add(t1);
+
+        t1 = new Research();
+        t1.id = "example Research 2";
+        t1.ticksRequired = 300;
+        t1.requiredResearches.add("example Research 1");
+        t1.requiredItems.add(new RecipePart("minecraft:string",128));
+        researchList.add(t1);
     }
 
     public void SyncConfig(ServerPlayer p) {

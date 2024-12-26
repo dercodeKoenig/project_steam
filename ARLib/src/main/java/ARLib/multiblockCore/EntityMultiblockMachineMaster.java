@@ -67,7 +67,7 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
             String identifier = output.id;
             int totalToProduce = output.getRandomAmount();
             if (totalToProduce > 0) {
-                InventoryUtils.createElements(this.fluidOutTiles, this.itemOutTiles, identifier, totalToProduce);
+                InventoryUtils.createElements(this.fluidOutTiles, this.itemOutTiles, identifier, totalToProduce, level.registryAccess());
             }
         }
     }
@@ -78,7 +78,7 @@ public abstract class EntityMultiblockMachineMaster extends EntityMultiblockMast
     }
 
     public boolean canFitOutputs(List<RecipePart> outputs) {
-        return InventoryUtils.canFitElements(this.itemOutTiles, this.fluidOutTiles, outputs);
+        return InventoryUtils.canFitElements(this.itemOutTiles, this.fluidOutTiles, outputs, level.registryAccess());
     }
 
 void checkTilesStillValidAndRescan(){

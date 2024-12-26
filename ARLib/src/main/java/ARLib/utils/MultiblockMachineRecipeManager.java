@@ -31,7 +31,7 @@ public class MultiblockMachineRecipeManager<T extends EntityMultiblockMachineMas
         ItemFluidStacks r = new ItemFluidStacks();
         if(currentRecipe != null){
             for (RecipePartWithProbability i:currentRecipe.outputs){
-                ItemStack istack = getItemStackFromId(i.id, i.getRandomAmount());
+                ItemStack istack = getItemStackFromId(i.id, i.getRandomAmount(),master.getLevel().registryAccess());
                 FluidStack fstack = getFluidStackFromId(i.id, i.getRandomAmount());
                 if(istack!=null)
                     r.itemStacks.add(istack);

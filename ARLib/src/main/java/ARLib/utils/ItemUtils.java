@@ -1,5 +1,8 @@
 package ARLib.utils;
 
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderSet;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
@@ -7,10 +10,12 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import java.util.List;
 import java.util.Optional;
 
 public class ItemUtils {
@@ -43,8 +48,22 @@ public class ItemUtils {
     }
 
     // id is the item ID string, e.g., "minecraft:diamond"
-    public static ItemStack getItemStackFromId(String id, int count) {
+    public static ItemStack getItemStackFromId(String id, int count, RegistryAccess registry) {
         ResourceLocation itemId = ResourceLocation.tryParse(id);
+
+        if(itemId != null) {
+            TagKey<Item> tagKey = TagKey.create(Registries.ITEM, itemId);
+
+            HolderSet.Named<Item> itemsInTag = registry.lookupOrThrow(BuiltInRegistries.ITEM.key()).get(tagKey).orElse(null);
+            if(itemsInTag!=null) {
+                List<Holder<Item>> itemsInTagList = itemsInTag.stream().toList();
+                if (!itemsInTagList.isEmpty()) {
+                    return new ItemStack(itemsInTagList.getFirst().value(), count);
+                }
+            }
+
+        }
+
         Item item = BuiltInRegistries.ITEM.get(itemId);
         if(item == Items.AIR)return null;
         return new ItemStack(item, count);

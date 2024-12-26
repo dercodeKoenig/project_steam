@@ -1,5 +1,6 @@
 package ARLib.utils;
 
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
@@ -11,14 +12,14 @@ import java.util.List;
 import static ARLib.utils.ItemUtils.*;
 
 public class InventoryUtils {
-    public static   <I extends IItemHandler, F extends IFluidHandler> boolean canFitElements(List<I> itemInTiles, List<F> fluidInTiles, List<RecipePart> elements) {
+    public static   <I extends IItemHandler, F extends IFluidHandler> boolean canFitElements(List<I> itemInTiles, List<F> fluidInTiles, List<RecipePart> elements, RegistryAccess registry) {
         List<ItemStack> itemStacks = new ArrayList<>();
         List<FluidStack> fluidStacks = new ArrayList<>();
 
         for (RecipePart part : elements) {
             int num = part.amount;
             String id = part.id;
-            ItemStack istack = getItemStackFromId(id, num);
+            ItemStack istack = getItemStackFromId(id, num, registry);
             if (istack != null) {
                 itemStacks.add(istack);
             }
@@ -156,8 +157,8 @@ public class InventoryUtils {
     }
 
 
-    public static <F extends IFluidHandler, I extends IItemHandler> void createElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_produce, int num) {
-        ItemStack istack = getItemStackFromId(id_or_tag_to_produce, num);
+    public static <F extends IFluidHandler, I extends IItemHandler> void createElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_produce, int num, RegistryAccess registry) {
+        ItemStack istack = getItemStackFromId(id_or_tag_to_produce, num, registry);
         if(istack != null){
             for (int i = 0; i < itemHandlers.size(); i++) {
                 for (int o = 0; o < itemHandlers.get(i).getSlots(); o++) {

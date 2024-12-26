@@ -35,7 +35,14 @@ public class ItemResearchBook extends Item implements INetworkItemStackTagReceiv
         List<GuiModuleBase> modules = new ArrayList<>();
         for (int n = 0; n < Config.INSTANCE.researchList.size(); n++) {
             Config.Research i = Config.INSTANCE.researchList.get(n);
-            guiModuleDefaultButton b = new guiModuleDefaultButton(n,i.name,  guiHandler,0, (int) (n*20),150,16);
+            guiModuleDefaultButton b = new guiModuleDefaultButton(n,i.name,  guiHandler,0, (int) (n*20),150,16){
+                @Override
+                public void client_onMouseCLick(double x, double y, int button) {
+                    if (this.isEnabled && this.client_isMouseOver(x, y, this.onGuiX, this.onGuiY, this.w, this.h) && button == 0) {
+                     researchButtonCLicked(i.name);
+                    }
+                }
+            };
             modules.add(b);
         }
         guiHandler.getModules().clear();
@@ -55,6 +62,9 @@ public class ItemResearchBook extends Item implements INetworkItemStackTagReceiv
         return InteractionResultHolder.success(itemstack);
     }
 
+    void researchButtonCLicked(String name){
+        System.out.println(name+" button clicked");
+    }
 
     @Override
     public void readServer(CompoundTag compoundTag, ItemStack itemStack) {

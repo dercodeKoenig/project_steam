@@ -36,7 +36,7 @@ ItemStackHandler inventory;
             }
         };
 
-        guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(0,inventory,0,1,0,guiHandler,70,10);
+        guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(0,inventory,0,1,0,guiHandler,10,10);
         guiHandler.getModules().add(s1);
         for( GuiModuleBase i: guiModulePlayerInventorySlot.makePlayerHotbarModules(10,120,200,0,1,guiHandler)){
             guiHandler.getModules().add(i);

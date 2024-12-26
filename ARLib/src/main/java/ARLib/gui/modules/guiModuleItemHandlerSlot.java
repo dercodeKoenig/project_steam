@@ -124,9 +124,15 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
             for (GuiModuleBase i : this.guiHandler.getModules()) {
                 if (i instanceof guiModuleItemHandlerSlot j) {
                     if (j.invGroup == instantTransferTarget) {
-                        ItemStack toTransfer = getStackInSlot();
-                        ItemStack notInserted = j.insertItemIntoSlot(toTransfer,toTransfer.getCount());
-                        int inserted = toTransfer.getCount() - notInserted.getCount();
+                        ItemStack notInserted = j.insertItemIntoSlot(stack, stack.getCount());
+                        int inserted = stack.getCount() - notInserted.getCount();
+                        extractItemFromSlot(inserted);
+                    }
+                }
+                if (i instanceof guiModulePlayerInventorySlot j) {
+                    if (j.invGroup == instantTransferTarget) {
+                        ItemStack notInserted = j.insertItemIntoSlot(player, stack, stack.getCount());
+                        int inserted = stack.getCount() - notInserted.getCount();
                         extractItemFromSlot(inserted);
                     }
                 }

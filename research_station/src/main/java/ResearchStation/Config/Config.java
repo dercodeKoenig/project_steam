@@ -14,14 +14,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class Config {
 
     public static Config INSTANCE = loadConfig();
 
-    public static class Research{
+    public static class Research {
         public String name = "";
         public int ticksRequired = 100;
         public List<String> requiredResearches = new ArrayList<>();
@@ -30,18 +32,19 @@ public class Config {
 
     public List<Research> researchList = new ArrayList<>();
 
-    public Config(){
-        Research testResearch = new Research();
-        testResearch.name = "testResearch";
-        testResearch.requiredItems.add(new RecipePart("minecraft:coal",4));
-        researchList.add(testResearch);
+    private Map<String, Research> researchMap = new HashMap<>();
+    private void makeResearchMap() {
+        researchMap = new HashMap<>();
+        for (Research i : researchList) {
+            researchMap.put(i.name, i);
+        }
+    }
+    public Map<String, Research> getResearchMap() {
+        return researchMap;
+    }
 
-        Research testResearch2 = new Research();
-        testResearch2.name = "testResearch2";
-        testResearch2.requiredItems.add(new RecipePart("minecraft:iron",4));
-        testResearch2.requiredItems.add(new RecipePart("minecraft:stone",2));
-        testResearch2.requiredResearches.add("testResearch");
-        researchList.add(testResearch2);
+
+    public Config() {
     }
 
     public void SyncConfig(ServerPlayer p) {
@@ -52,7 +55,7 @@ public class Config {
 
     public void loadConfig(String configString) {
         Config.INSTANCE = new Gson().fromJson(configString, Config.class);
-        System.out.println("load config:"+configString);
+        System.out.println("load config:" + configString);
     }
 
     public static Config loadConfig() {
@@ -68,7 +71,9 @@ public class Config {
             // Load JSON from the file
             String jsonContent = Files.readString(filePath);
             Gson gson = new Gson();
-            return gson.fromJson(jsonContent, Config.class);
+            Config c = gson.fromJson(jsonContent, Config.class);
+            c.makeResearchMap();
+            return c;
         } catch (JsonSyntaxException e) {
             System.err.println("Failed to parse config JSON");
             throw new RuntimeException(e);

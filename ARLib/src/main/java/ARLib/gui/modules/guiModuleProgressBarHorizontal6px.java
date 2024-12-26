@@ -13,9 +13,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import java.util.Objects;
 
 public class guiModuleProgressBarHorizontal6px extends GuiModuleBase {
-    int color;
-    double progress;
-    String info;
+    public int color;
+    public double progress;
+    public String info = "";
     public guiModuleProgressBarHorizontal6px(int id, int barColor, IGuiHandler guiHandler, int x, int y) {
         super(id, guiHandler, x, y);
         this.color = barColor;

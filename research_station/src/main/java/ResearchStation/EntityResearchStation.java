@@ -4,6 +4,8 @@ import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.InventoryUtils;
+import ARLib.utils.RecipePart;
 import ResearchStation.Config.Config;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
@@ -11,6 +13,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -38,6 +41,7 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
     ItemStackHandler bookInventory;
     ItemStackHandler requiredItemsPreview;
     ItemStackHandler requiredItemsInventory;
+    guiModuleProgressBarHorizontal6px progressBar;
 
 
     public EntityResearchStation(BlockPos pos, BlockState blockState) {
@@ -52,8 +56,23 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             }
         };
 
-        requiredItemsPreview = new ItemStackHandler(16);
-        requiredItemsInventory = new ItemStackHandler(16);
+        requiredItemsPreview = new ItemStackHandler(16) {
+            @Override
+            public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+                return stack;
+            }
+
+            @Override
+            public ItemStack extractItem(int slot, int amount, boolean simulate) {
+                return ItemStack.EMPTY;
+            }
+        };
+        requiredItemsInventory = new ItemStackHandler(16) {
+            @Override
+            protected void onContentsChanged(int slot) {
+                setChanged();
+            }
+        };
 
         bookInventory = new ItemStackHandler(1) {
             @Override
@@ -105,15 +124,14 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
         guiModuleText target = new guiModuleText(2, "- current Research -", guiHandler, 10, 30, 0xff000000, false);
         guiHandler.getModules().add(target);
 
-        guiModuleText inventory = new guiModuleText(4, "inventory", guiHandler, 10, 45, 0xff000000, false);
+        guiModuleText inventory = new guiModuleText(4, "inventory", guiHandler, 10, 55, 0xff000000, false);
         guiHandler.getModules().add(inventory);
 
-        guiModuleText reqItemsText = new guiModuleText(3, "required items", guiHandler, 100, 45, 0xff000000, false);
+        guiModuleText reqItemsText = new guiModuleText(3, "required items", guiHandler, 100, 55, 0xff000000, false);
         guiHandler.getModules().add(reqItemsText);
 
         int itemViewW = 4;
-        int itemViewOffsetY = 60;
-
+        int itemViewOffsetY = 70;
         for (int i = 0; i < requiredItemsPreview.getSlots(); i++) {
             int x = 100 + (i % itemViewW) * 18;
             int y = itemViewOffsetY + (i / itemViewW) * 18;
@@ -129,27 +147,29 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
         }
 
 
-        int playerInventoryOffsetY = 150;
-        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, playerInventoryOffsetY + 70, 5000, 0, 1, guiHandler)) {
+        int playerInventoryOffsetY = 160;
+        for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, playerInventoryOffsetY + 62, 5000, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
         }
         for (GuiModuleBase i : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, playerInventoryOffsetY, 6000, 0, 1, guiHandler)) {
             guiHandler.getModules().add(i);
         }
 
+        progressBar = new guiModuleProgressBarHorizontal6px(9009,0xff00ff00,guiHandlerResearchQueue,10,40);
+guiHandler.getModules().add(progressBar);
 
         guiModuleImage i1 = new guiModuleImage(guiHandlerResearchQueue, 0, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
         guiHandlerResearchQueue.getModules().add(i1);
         guiModuleImage i2 = new guiModuleImage(guiHandlerResearchQueue, 150, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
         guiHandlerResearchQueue.getModules().add(i2);
 
-        guiModuleText rqt = new guiModuleText(10000,"Research in queue",guiHandlerResearchQueue,30,20,0xff000000,false);
+        guiModuleText rqt = new guiModuleText(10000, "Research in queue", guiHandlerResearchQueue, 30, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rqt);
-        guiModuleText rat = new guiModuleText(10001,"Research available",guiHandlerResearchQueue,180,20,0xff000000,false);
+        guiModuleText rat = new guiModuleText(10001, "Research available", guiHandlerResearchQueue, 180, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rat);
         researchQueue = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 19, 39, 113, 135);
         guiHandlerResearchQueue.getModules().add(researchQueue);
-        availableResearch = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 150+19, 39, 113, 135);
+        availableResearch = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 150 + 19, 39, 113, 135);
         guiHandlerResearchQueue.getModules().add(availableResearch);
     }
 
@@ -160,16 +180,16 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             List<String> queued = irb.getQueuedResearches_readOnly(bookStack);
             for (int i = 0; i < queued.size(); i++) {
                 String name = queued.get(i);
-                int y = 14 * i+2;
-                guiModuleText t = new guiModuleText(1000+i,name,guiHandlerResearchQueue,2,y+2,0xFF000000,false);
+                int y = 14 * i + 2;
+                guiModuleText t = new guiModuleText(1000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 researchQueue.modules.add(t);
 
-                guiModuleButton db = new guiModuleButton(1000 + i, "-", guiHandlerResearchQueue, 100, y, 10, 10,ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"),10,10) {
+                guiModuleButton db = new guiModuleButton(1000 + i, "-", guiHandlerResearchQueue, 100, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         CompoundTag requestTag = new CompoundTag();
                         requestTag.putString("removeFromQueue", name);
-                        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityResearchStation.this,requestTag));
+                        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityResearchStation.this, requestTag));
                     }
                 };
                 db.color = 0xFFFFFFFF;
@@ -179,16 +199,16 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
             List<Config.Research> available = irb.getAvailableResearches(bookStack);
             for (int i = 0; i < available.size(); i++) {
                 String name = available.get(i).name;
-                int y = 14 * i+2;
-                guiModuleText t = new guiModuleText(2000+i,name,guiHandlerResearchQueue,2,y+2,0xFF000000,false);
+                int y = 14 * i + 2;
+                guiModuleText t = new guiModuleText(2000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 availableResearch.modules.add(t);
 
-                guiModuleButton db = new guiModuleButton(2000 + i, "+", guiHandlerResearchQueue, 100, y, 10, 10,ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"),10,10) {
+                guiModuleButton db = new guiModuleButton(2000 + i, "+", guiHandlerResearchQueue, 100, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         CompoundTag requestTag = new CompoundTag();
                         requestTag.putString("addToQueue", name);
-                        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityResearchStation.this,requestTag));
+                        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityResearchStation.this, requestTag));
                     }
                 };
                 db.color = 0xFFFFFFFF;
@@ -216,9 +236,36 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
         super.onLoad();
     }
 
+    void setRequiredItemsPreview() {
+        for (int i = 0; i < requiredItemsPreview.getSlots(); i++) {
+            requiredItemsPreview.setStackInSlot(i, ItemStack.EMPTY);
+        }
+        ItemStack book = bookInventory.getStackInSlot(0);
+        if (book.getItem() instanceof ItemResearchBook irb) {
+            ItemStackHandler tmp = new ItemStackHandler(requiredItemsPreview.getSlots());
+            for (RecipePart i : irb.getRequiredItemsForResearch(book)) {
+                InventoryUtils.createElements(List.of(), List.of(tmp), i.id, i.amount);
+            }
+
+            for (int i = 0; i < requiredItemsPreview.getSlots(); i++) {
+                requiredItemsPreview.setStackInSlot(i, tmp.getStackInSlot(i));
+            }
+        }
+    }
+
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+            setRequiredItemsPreview();
+            ItemStack book = bookInventory.getStackInSlot(0);
+            if (book.getItem() instanceof ItemResearchBook irb) {
+                irb.startResearchIfPossibleAndConsumeElements(book, requiredItemsInventory);
+                irb.tickResearch(book, 1);
+                if(!irb.getCurrentResearch(book).isEmpty())
+                    progressBar.setProgressAndSync((double)irb.getCurrentProgress(book) / Config.INSTANCE.getResearchMap().get(irb.getCurrentResearch(book)).ticksRequired);
+            }else{
+                progressBar.setProgressAndSync(0);
+            }
         }
     }
 
@@ -304,12 +351,14 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
-        bookInventory.deserializeNBT(registries, tag.getCompound("inventory"));
+        bookInventory.deserializeNBT(registries, tag.getCompound("bookInventory"));
+        requiredItemsInventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
-        tag.put("inventory", bookInventory.serializeNBT(registries));
+        tag.put("bookInventory", bookInventory.serializeNBT(registries));
+        tag.put("inventory", requiredItemsInventory.serializeNBT(registries));
     }
 }

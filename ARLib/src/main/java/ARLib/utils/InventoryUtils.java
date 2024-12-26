@@ -156,8 +156,8 @@ public class InventoryUtils {
     }
 
 
-    public static <F extends IFluidHandler, I extends IItemHandler> void createElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_consume, int num) {
-        ItemStack istack = getItemStackFromId(id_or_tag_to_consume, num);
+    public static <F extends IFluidHandler, I extends IItemHandler> void createElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_produce, int num) {
+        ItemStack istack = getItemStackFromId(id_or_tag_to_produce, num);
         if(istack != null){
             for (int i = 0; i < itemHandlers.size(); i++) {
                 for (int o = 0; o < itemHandlers.get(i).getSlots(); o++) {
@@ -166,7 +166,7 @@ public class InventoryUtils {
                 }
             }
         }
-        FluidStack fstack = getFluidStackFromId(id_or_tag_to_consume, num);
+        FluidStack fstack = getFluidStackFromId(id_or_tag_to_produce, num);
         if(fstack != null){
             for (int i = 0; i < fluidHandlers.size(); i++) {
                 int filled = fluidHandlers.get(i).fill(fstack, IFluidHandler.FluidAction.EXECUTE);

@@ -1,29 +1,24 @@
 package ResearchStation;
 
 import ARLib.gui.GuiHandlerMainHandItem;
-import ARLib.gui.IGuiHandler;
-import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleScrollContainer;
-import ARLib.network.INetworkItemStackTagReceiver;
-import ARLib.network.INetworkTagReceiver;
-import ARLib.network.PacketPlayerMainHand;
+import ARLib.utils.InventoryUtils;
+import ARLib.utils.RecipePart;
 import ResearchStation.Config.Config;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -160,42 +155,86 @@ public class ItemResearchBook extends Item {
         removeInvalidQueuedResearches(stack);
     }
 
-    void removeInvalidQueuedResearches(ItemStack stack){
+    void removeInvalidQueuedResearches(ItemStack stack) {
         List<String> queuedResearches = getQueuedResearches_readOnly(stack);
         List<String> completedResearches = getCompletedResearches_readOnly(stack);
 
         for (int i = 0; i < queuedResearches.size(); i++) {
             String name = queuedResearches.get(i);
-            for(Config.Research r:Config.INSTANCE.researchList) {
-                if(r.name.equals(name)) {
-                   if(!completedResearches.containsAll(r.requiredResearches)){
-                       queuedResearches.remove(name);
-                       setQueuedResearches(stack,queuedResearches);
-                       removeInvalidQueuedResearches(stack);
-                       return;
-                   }else{
-                       completedResearches.add(name);
-                   }
-                   break;
-                }
+            Config.Research r = Config.INSTANCE.getResearchMap().get(name);
+
+            if (!completedResearches.containsAll(r.requiredResearches)) {
+                queuedResearches.remove(name);
+                setQueuedResearches(stack, queuedResearches);
+                removeInvalidQueuedResearches(stack);
+                return;
+            } else {
+                completedResearches.add(name);
             }
         }
-
     }
 
-    boolean tryCompleteResearch(ItemStack stack, String researchId) {
+    boolean tryCompleteResearch(ItemStack stack) {
+        String researchId = getCurrentResearch(stack);
+        List<String> queuedResearches = getQueuedResearches_readOnly(stack);
+        queuedResearches.remove(researchId);
+        setQueuedResearches(stack, queuedResearches);
+
         List<String> completedResearches = getCompletedResearches_readOnly(stack);
-        for (int i = 0; i < Config.INSTANCE.researchList.size(); i++) {
-            Config.Research r = Config.INSTANCE.researchList.get(i);
-            if (r.name.equals(researchId)) {
-                if (completedResearches.containsAll(r.requiredResearches)) {
-                    completedResearches.add(r.name);
-                    setCompletedResearches(stack, completedResearches);
-                    return true;
+
+
+        Config.Research r = Config.INSTANCE.getResearchMap().get(researchId);
+        boolean hasAllRequired = completedResearches.containsAll(r.requiredResearches);
+        setCurrentResearch(stack, "");
+        setCurrentProgress(stack, 0);
+        if (hasAllRequired) {
+            completedResearches.add(researchId);
+            setCompletedResearches(stack, completedResearches);
+            return true;
+        }
+        return false;
+    }
+
+    public void startResearchIfPossibleAndConsumeElements(ItemStack stack, IItemHandler inventory) {
+        if (getCurrentResearch(stack).isEmpty()) {
+            List<String> queued = getQueuedResearches_readOnly(stack);
+            if (!queued.isEmpty()) {
+                String first = queued.removeFirst();
+                Config.Research i = Config.INSTANCE.getResearchMap().get(first);
+                if (InventoryUtils.hasInputs(List.of(inventory), new ArrayList<>(), i.requiredItems)) {
+                    for (RecipePart p : i.requiredItems) {
+                        InventoryUtils.consumeElements(new ArrayList<>(), List.of(inventory), p.id, p.amount, false);
+                    }
+                    setQueuedResearches(stack, queued);
+                    setCurrentResearch(stack, first);
+                    setCurrentProgress(stack, 0);
                 }
             }
         }
-        return false;
+    }
+
+    public List<RecipePart> getRequiredItemsForResearch(ItemStack stack) {
+        if (getCurrentResearch(stack).isEmpty()) {
+            List<String> queued = getQueuedResearches_readOnly(stack);
+            if (!queued.isEmpty()) {
+                String first = queued.getFirst();
+                Config.Research c = Config.INSTANCE.getResearchMap().get(first);
+                return c.requiredItems;
+            }
+        }
+        return List.of();
+    }
+
+    public void tickResearch(ItemStack stack, int increment) {
+        String currentResearch = getCurrentResearch(stack);
+        if (!currentResearch.isEmpty()) {
+            int progress = getCurrentProgress(stack);
+            progress += increment;
+            setCurrentProgress(stack, progress);
+            if(progress >= Config.INSTANCE.getResearchMap().get(currentResearch).ticksRequired){
+                tryCompleteResearch(stack);
+            }
+        }
     }
 
     List<Config.Research> getAvailableResearches(ItemStack stack) {

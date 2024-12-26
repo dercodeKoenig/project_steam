@@ -216,9 +216,9 @@ public class ItemResearchBook extends Item {
                     for (RecipePart p : i.requiredItems) {
                         InventoryUtils.consumeElements(new ArrayList<>(), List.of(inventory), p.id, p.amount, false);
                     }
-                    setQueuedResearches(stack, queued);
                     setCurrentResearch(stack, first);
                     setCurrentProgress(stack, 0);
+                    setQueuedResearches(stack, queued);
                 }
             }
         }
@@ -259,6 +259,9 @@ public class ItemResearchBook extends Item {
         List<String> completedAndQueuedResearches = new ArrayList<>();
         completedAndQueuedResearches.addAll(getCompletedResearches_readOnly(stack));
         completedAndQueuedResearches.addAll(getQueuedResearches_readOnly(stack));
+        if(!getCurrentResearch(stack).isEmpty())
+            // assume it will be completed next
+            completedAndQueuedResearches.add(getCurrentResearch(stack));
 
         for (Config.Research r : Config.INSTANCE.researchList) {
             if (completedAndQueuedResearches.containsAll(r.requiredResearches) && !completedAndQueuedResearches.contains(r.id) && !r.id.equals(getCurrentResearch(stack))) {

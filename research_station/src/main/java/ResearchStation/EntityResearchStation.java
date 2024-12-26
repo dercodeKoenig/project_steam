@@ -166,18 +166,18 @@ guiHandler.getModules().add(progressBar);
 
 
 
-        guiModuleImage i1 = new guiModuleImage(guiHandlerResearchQueue, 0, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
+        guiModuleImage i1 = new guiModuleImage(guiHandlerResearchQueue, 0, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
         guiHandlerResearchQueue.getModules().add(i1);
-        guiModuleImage i2 = new guiModuleImage(guiHandlerResearchQueue, 150, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
+        guiModuleImage i2 = new guiModuleImage(guiHandlerResearchQueue, 190, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
         guiHandlerResearchQueue.getModules().add(i2);
 
         guiModuleText rqt = new guiModuleText(10000, "Research in queue", guiHandlerResearchQueue, 30, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rqt);
         guiModuleText rat = new guiModuleText(10001, "Research available", guiHandlerResearchQueue, 220, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rat);
-        researchQueue = new guiModuleScrollContainer(new ArrayList<>(), 0xf0000000, guiHandler, 19, 39, 163, 135);
+        researchQueue = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 24, 39, 143, 135);
         guiHandlerResearchQueue.getModules().add(researchQueue);
-        availableResearch = new guiModuleScrollContainer(new ArrayList<>(), 0xf0000000, guiHandler, 190 + 19, 39, 113, 135);
+        availableResearch = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 190 + 24, 39, 143, 135);
         guiHandlerResearchQueue.getModules().add(availableResearch);
     }
 
@@ -193,7 +193,7 @@ guiHandler.getModules().add(progressBar);
                 guiModuleText t = new guiModuleText(1000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 researchQueue.modules.add(t);
 
-                guiModuleButton db = new guiModuleButton(1000 + i, "-", guiHandlerResearchQueue, 100, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                guiModuleButton db = new guiModuleButton(1000 + i, "-", guiHandlerResearchQueue, 130, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         CompoundTag requestTag = new CompoundTag();
@@ -212,7 +212,7 @@ guiHandler.getModules().add(progressBar);
                 guiModuleText t = new guiModuleText(2000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 availableResearch.modules.add(t);
 
-                guiModuleButton db = new guiModuleButton(2000 + i, "+", guiHandlerResearchQueue, 100, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                guiModuleButton db = new guiModuleButton(2000 + i, "+", guiHandlerResearchQueue, 130, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         CompoundTag requestTag = new CompoundTag();
@@ -231,6 +231,13 @@ guiHandler.getModules().add(progressBar);
     public void popInventory() {
         Block.popResource(level, getBlockPos(), bookInventory.getStackInSlot(0));
         bookInventory.setStackInSlot(0, ItemStack.EMPTY);
+
+        for (int i = 0; i < requiredItemsInventory.getSlots(); i++) {
+            Block.popResource(level, getBlockPos(), requiredItemsInventory.getStackInSlot(i));
+            requiredItemsInventory.setStackInSlot(i, ItemStack.EMPTY);
+        }
+
+
         setChanged();
     }
 
@@ -266,9 +273,9 @@ guiHandler.getModules().add(progressBar);
     public void tick() {
         if (!level.isClientSide) {
             guiHandler.serverTick();
+            setRequiredItemsPreview();
             ItemStack book = bookInventory.getStackInSlot(0);
             if (book.getItem() instanceof ItemResearchBook irb) {
-                setRequiredItemsPreview();
                 irb.startResearchIfPossibleAndConsumeElements(book, requiredItemsInventory);
                 irb.tickResearch(book, 1);
                 double progress = 0;
@@ -287,6 +294,7 @@ guiHandler.getModules().add(progressBar);
                 progressBar.setProgressAndSync(progress);
 
             }else{
+                targetResearchText.setTextAndSync("provide research book");
                 progressBar.setProgressAndSync(0);
             }
         }

@@ -43,7 +43,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     List<IItemHandler> itemHandlerInputs = new ArrayList<>();
     List<IItemHandler> itemHandlerOutputs = new ArrayList<>();
 
-    public IGuiHandler guiHandler;
+    public GuiHandlerBlockEntity guiHandler;
 
     public int ticksRemainingForForce = 0;
     double myFriction = config.baseResistance;
@@ -89,29 +89,29 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
 
         guiHandler = new GuiHandlerBlockEntity(this);
         for(guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,130,100,1,0,guiHandler)){
-            guiHandler.registerModule(i);
+            guiHandler.getModules().add(i);
         }
         for(guiModulePlayerInventorySlot i :guiModulePlayerInventorySlot.makePlayerInventoryModules(10,70,200,1,0,guiHandler)){
-            guiHandler.registerModule(i);
+            guiHandler.getModules().add(i);
         }
 
         guiModuleItemHandlerSlot i1 = new guiModuleItemHandlerSlot(0,inventoryInput,0,0,1,guiHandler,20,10);
-        guiHandler.registerModule(i1);
+        guiHandler.getModules().add(i1);
         guiModuleItemHandlerSlot i2 = new guiModuleItemHandlerSlot(1,inventoryInput,1,0,1,guiHandler,20,30);
-        guiHandler.registerModule(i2);
+        guiHandler.getModules().add(i2);
         guiModuleItemHandlerSlot i3 = new guiModuleItemHandlerSlot(2,inventoryInput,2,0,1,guiHandler,40,10);
-        guiHandler.registerModule(i3);
+        guiHandler.getModules().add(i3);
         guiModuleItemHandlerSlot i4 = new guiModuleItemHandlerSlot(3,inventoryInput,3,0,1,guiHandler,40,30);
-        guiHandler.registerModule(i4);
+        guiHandler.getModules().add(i4);
 
         guiModuleItemHandlerSlot o1 = new guiModuleItemHandlerSlot(4,inventoryOutput,0,2,1,guiHandler,110,10);
-        guiHandler.registerModule(o1);
+        guiHandler.getModules().add(o1);
         guiModuleItemHandlerSlot o2 = new guiModuleItemHandlerSlot(5,inventoryOutput,1,2,1,guiHandler,110,30);
-        guiHandler.registerModule(o2);
+        guiHandler.getModules().add(o2);
         guiModuleItemHandlerSlot o3 = new guiModuleItemHandlerSlot(6,inventoryOutput,2,2,1,guiHandler,130,10);
-        guiHandler.registerModule(o3);
+        guiHandler.getModules().add(o3);
         guiModuleItemHandlerSlot o4 = new guiModuleItemHandlerSlot(7,inventoryOutput,3,2,1,guiHandler,130,30);
-        guiHandler.registerModule(o4);
+        guiHandler.getModules().add(o4);
     }
 
     @Override

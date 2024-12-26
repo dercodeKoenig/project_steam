@@ -7,6 +7,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.BlockEntityItemStackHandler;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -25,7 +26,7 @@ import static net.minecraft.world.level.block.Block.popResource;
 public class EntityItemInputBlock extends BlockEntity implements IItemHandler, INetworkTagReceiver {
 
     BlockEntityItemStackHandler inventory;
-    IGuiHandler guiHandler;
+    GuiHandlerBlockEntity guiHandler;
 
 
     public EntityItemInputBlock(BlockPos pos, BlockState blockState) {
@@ -39,19 +40,19 @@ public class EntityItemInputBlock extends BlockEntity implements IItemHandler, I
 
         int containergroup = 0;
         int playerinventorygroup = 1;
-        this.guiHandler.registerModule(new guiModuleItemHandlerSlot(0,this, 0,containergroup,playerinventorygroup,this.guiHandler,45,10) );
-        this.guiHandler.registerModule(new guiModuleItemHandlerSlot(1,this, 1,containergroup,playerinventorygroup,this.guiHandler,65,10) );
-        this.guiHandler.registerModule(new guiModuleItemHandlerSlot(2,this, 2,containergroup,playerinventorygroup,this.guiHandler,85,10) );
-        this.guiHandler.registerModule(new guiModuleItemHandlerSlot(3,this, 3,containergroup,playerinventorygroup,this.guiHandler,105,10) );
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(0,this, 0,containergroup,playerinventorygroup,this.guiHandler,45,10) );
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(1,this, 1,containergroup,playerinventorygroup,this.guiHandler,65,10) );
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(2,this, 2,containergroup,playerinventorygroup,this.guiHandler,85,10) );
+        this.guiHandler.getModules().add(new guiModuleItemHandlerSlot(3,this, 3,containergroup,playerinventorygroup,this.guiHandler,105,10) );
 
         List<guiModulePlayerInventorySlot> playerHotBar =  guiModulePlayerInventorySlot.makePlayerHotbarModules(7,100,100,playerinventorygroup,containergroup,this.guiHandler);
         for (guiModulePlayerInventorySlot i:playerHotBar){
-            this.guiHandler.registerModule(i);
+            this.guiHandler.getModules().add(i);
         }
 
         List<guiModulePlayerInventorySlot> playerInv =  guiModulePlayerInventorySlot.makePlayerInventoryModules(7,40,200,playerinventorygroup,containergroup,this.guiHandler);
         for (guiModulePlayerInventorySlot i:playerInv){
-            this.guiHandler.registerModule(i);
+            this.guiHandler.getModules().add(i);
         }
 
 

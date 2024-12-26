@@ -33,7 +33,7 @@ import static net.minecraft.world.level.block.Block.popResource;
 public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,IFluidHandler, INetworkTagReceiver {
 
     FluidTank myTank;
-    IGuiHandler guiHandler;
+    GuiHandlerBlockEntity guiHandler;
 
     List<ItemStack> inventory;
 
@@ -46,20 +46,20 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
         myTank = new FluidTank(4000);
 
         guiHandler = new GuiHandlerBlockEntity(this);
-        guiHandler.registerModule(new guiModuleFluidTankDisplay(0, this, 0, guiHandler, 10, 10));
+        guiHandler.getModules().add(new guiModuleFluidTankDisplay(0, this, 0, guiHandler, 10, 10));
         guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(1, this, 0, 1, 0, guiHandler, 30, 10);
         s1.setSlotBackground(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background_bucket.png"), 18,18);
-        guiHandler.registerModule(s1);
-        guiHandler.registerModule(new guiModuleItemHandlerSlot(2, this, 1, 1, 0, guiHandler, 30, 45));
+        guiHandler.getModules().add(s1);
+        guiHandler.getModules().add(new guiModuleItemHandlerSlot(2, this, 1, 1, 0, guiHandler, 30, 45));
 
         for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(7, 140, 10, 0, 1, guiHandler)) {
-            guiHandler.registerModule(i);
+            guiHandler.getModules().add(i);
         }
         for (guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerInventoryModules(7, 70, 30, 0, 1, guiHandler)) {
-            guiHandler.registerModule(i);
+            guiHandler.getModules().add(i);
         }
         ResourceLocation arrow = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png");
-        guiHandler.registerModule(new guiModuleImage(guiHandler, 32, 28, 16, 16, arrow, 12, 16));
+        guiHandler.getModules().add(new guiModuleImage(guiHandler, 32, 28, 16, 16, arrow, 12, 16));
 
         inventory = new ArrayList<>();
         inventory.add(ItemStack.EMPTY);

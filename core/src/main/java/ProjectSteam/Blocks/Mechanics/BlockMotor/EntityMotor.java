@@ -89,7 +89,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     int clientRPMForVisualEffects;
 
 
-    IGuiHandler guiHandler;
+    GuiHandlerBlockEntity guiHandler;
     BlockEntityBattery energyStorage;
 
     guiModuleEnergy e1;
@@ -117,45 +117,45 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
         guiHandler = new GuiHandlerBlockEntity(this);
         //e1 = new guiModuleEnergy(0,this,guiHandler,10,10);
-        //guiHandler.registerModule(e1);
+        //guiHandler.getModules().add(e1);
 
         rpm = new guiModuleRotationalProgress(1, guiHandler, 30, 10);
         rpm.bg = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_scale_round_red_end.png");
-        guiHandler.registerModule(rpm);
+        guiHandler.getModules().add(rpm);
 
         torque = new guiModuleRotationalProgress(2, guiHandler, 90, 10);
         torque.bg = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_scale_round_red_line_at_61.png");
-        guiHandler.registerModule(torque);
+        guiHandler.getModules().add(torque);
 
         heat = new guiModuleVerticalProgressBar(3, guiHandler, 10, 10);
         heat.bar = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_vertical_progress_bar_i.png");
-        guiHandler.registerModule(heat);
+        guiHandler.getModules().add(heat);
 
         torqueText = new guiModuleText(4, "TORQUE", guiHandler, 100, 50, 0xFF000000, false);
-        guiHandler.registerModule(torqueText);
+        guiHandler.getModules().add(torqueText);
         RPMText = new guiModuleText(5, "RPM", guiHandler, 35, 50, 0xFF000000, false);
-        guiHandler.registerModule(RPMText);
+        guiHandler.getModules().add(RPMText);
 
         currentPowerText = new guiModuleText(6, rfPerTick + " RF/tick", guiHandler, 45, 74, 0xFF000000, false);
-        guiHandler.registerModule(currentPowerText);
+        guiHandler.getModules().add(currentPowerText);
 
         increasePower = new guiModuleButton(7, "+50", guiHandler, 110, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         increasePower.color = 0xFFFFFFFF;
-        guiHandler.registerModule(increasePower);
+        guiHandler.getModules().add(increasePower);
 
         decreasePower = new guiModuleButton(8, "-50", guiHandler, 10, 70, 30, 14, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         decreasePower.color = 0xFFFFFFFF;
-        guiHandler.registerModule(decreasePower);
+        guiHandler.getModules().add(decreasePower);
 
         efficiency = new guiModuleRotationalProgress(9,guiHandler,150,10);
-        guiHandler.registerModule(efficiency);
+        guiHandler.getModules().add(efficiency);
 
         efficiencyText = new guiModuleText(10, "", guiHandler, 155, 50, 0xFF000000, false);
-        guiHandler.registerModule(efficiencyText);
+        guiHandler.getModules().add(efficiencyText);
 
         invertRotation = new guiModuleButton(11, directionMultiplier > 0 ? "+":"-", guiHandler, 155, 70, 30,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         invertRotation.color = 0xFFFFFFFF;
-        guiHandler.registerModule(invertRotation);
+        guiHandler.getModules().add(invertRotation);
     }
 
     public void openGui() {
@@ -264,21 +264,21 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
             currentHeat -= tempDiffCreated;
 
             double heatProgress = (currentHeat - 272) / (MAX_HEAT - 272);
-            heat.setProgress(heatProgress);
-            heat.setHoverInfo((Math.round(currentHeat) - 272) + "°C");
+            heat.setProgressAndSync(heatProgress);
+            heat.setHoverInfoAndSync((Math.round(currentHeat) - 272) + "°C");
 
             double dps = Math.abs(rad_to_degree(myMechanicalBlock.internalVelocity));
             double rps = dps / 360;
             double rpm = rps * 60;
 
-            this.rpm.setProgress(rpm / MAX_RPM);
-            this.RPMText.setText("RPM: " + Math.round(rpm));
+            this.rpm.setProgressAndSync(rpm / MAX_RPM);
+            this.RPMText.setTextAndSync("RPM: " + Math.round(rpm));
 
-            torqueText.setText("T: " + torque);
-            this.torque.setProgress(Math.abs(torque) / maxConstantTorqueAllowedBeforeOverheat * 0.61);
+            torqueText.setTextAndSync("T: " + torque);
+            this.torque.setProgressAndSync(Math.abs(torque) / maxConstantTorqueAllowedBeforeOverheat * 0.61);
 
-            this.efficiency.setProgress(efficiency);
-            this.efficiencyText.setText("eff: "+Math.round(efficiency*100)+"%");
+            this.efficiency.setProgressAndSync(efficiency);
+            this.efficiencyText.setTextAndSync("eff: "+Math.round(efficiency*100)+"%");
 
 
             int heatlvl = (int) Math.round(heatProgress*10);
@@ -357,11 +357,11 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 rfPerTick -= 50;
             }
             rfPerTick = Math.max(0, rfPerTick);
-            this.currentPowerText.setText(rfPerTick + " RF/tick");
+            this.currentPowerText.setTextAndSync(rfPerTick + " RF/tick");
 
             if(id == 11){
                 directionMultiplier =directionMultiplier > 0 ? -1:1;
-                invertRotation.setText(directionMultiplier > 0 ? "+":"-");
+                invertRotation.setTextAndSync(directionMultiplier > 0 ? "+":"-");
             }
         }
     }
@@ -371,9 +371,9 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
         directionMultiplier = tag.getInt("direction");
-        invertRotation.setText(directionMultiplier > 0 ? "+":"-");
+        invertRotation.setTextAndSync(directionMultiplier > 0 ? "+":"-");
         rfPerTick = tag.getInt("rfpt");
-        currentPowerText.setText(rfPerTick + " RF/tick");
+        currentPowerText.setTextAndSync(rfPerTick + " RF/tick");
     }
 
     @Override

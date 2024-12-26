@@ -2,7 +2,6 @@ package ResearchStation;
 
 import ARLib.gui.GuiHandlerMainHandItem;
 import ARLib.gui.IGuiHandler;
-import ARLib.gui.IguiOnClientTick;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleScrollContainer;
@@ -23,9 +22,9 @@ import net.minecraft.world.level.Level;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ItemResearchBook extends Item implements INetworkItemStackTagReceiver, IguiOnClientTick {
+public class ItemResearchBook extends Item implements INetworkItemStackTagReceiver {
 
-    GuiHandlerMainHandItem guiHandler = new GuiHandlerMainHandItem(this);
+    GuiHandlerMainHandItem guiHandler = new GuiHandlerMainHandItem();
 
     public ItemResearchBook() {
         super(new Properties().stacksTo(1));
@@ -41,7 +40,7 @@ public class ItemResearchBook extends Item implements INetworkItemStackTagReceiv
         }
         guiHandler.getModules().clear();
         guiModuleScrollContainer c = new guiModuleScrollContainer(modules,0x10000000,guiHandler,10,10,150,160);
-        guiHandler.registerModule(c);
+        guiHandler.getModules().add(c);
     }
 
 
@@ -64,11 +63,6 @@ public class ItemResearchBook extends Item implements INetworkItemStackTagReceiv
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-
-    }
-
-    @Override
-    public void onGuiClientTick() {
 
     }
 }

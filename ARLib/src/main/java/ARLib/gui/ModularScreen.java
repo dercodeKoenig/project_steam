@@ -21,13 +21,18 @@ public class ModularScreen extends Screen {
     int topOffset;
 
     IGuiHandler c;
+    boolean renderBackground;
 
     public ModularScreen(IGuiHandler c, int w, int h) {
+        this(c, w, h, true);
+    }
+
+    public ModularScreen(IGuiHandler c, int w, int h, boolean renderBackground) {
         super(Component.literal("Screen"));
         this.c = c;
         this.guiW = w;
         this.guiH = h;
-
+        this.renderBackground = renderBackground;
     }
 
     @Override
@@ -46,10 +51,11 @@ public class ModularScreen extends Screen {
         c.onGuiClose();
         super.onClose();
     }
+
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
         for (GuiModuleBase m : c.getModules()) {
-            m.client_onMouseScrolled(mouseX, mouseY, scrollX,scrollY);
+            m.client_onMouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
         return false;
     }
@@ -61,18 +67,16 @@ public class ModularScreen extends Screen {
         }
 
         // send to guihandler to drop item when clicked outside of the gui
-        if (x < leftOffset||x>leftOffset+guiW||y<topOffset||y>topOffset+guiW){
+        if (x < leftOffset || x > leftOffset + guiW || y < topOffset || y > topOffset + guiW) {
             CompoundTag tag = new CompoundTag();
             CompoundTag myTag = new CompoundTag();
             // add client id to the tag
             UUID myId = Minecraft.getInstance().player.getUUID();
-            myTag.putUUID("uuid_from",myId);
-            myTag.putBoolean("dropAll",button==0);
+            myTag.putUUID("uuid_from", myId);
+            myTag.putBoolean("dropAll", button == 0);
             tag.put("dropItem", myTag);
             c.sendToServer(tag);
         }
-
-
 
         return super.mouseClicked(x, y, button);
     }
@@ -96,11 +100,13 @@ public class ModularScreen extends Screen {
 
 
         guiGraphics.fill(0, 0, this.width, this.height, 0x30000000); // Semi-transparent black
-        guiGraphics.blit(
-                background,
-                leftOffset, topOffset,
-                guiW, guiH, 0, 0, 176, 171, 176, 171
-        );
+        if (renderBackground) {
+            guiGraphics.blit(
+                    background,
+                    leftOffset, topOffset,
+                    guiW, guiH, 0, 0, 176, 171, 176, 171
+            );
+        }
         for (GuiModuleBase m : c.getModules()) {
             m.render(guiGraphics, mouseX, mouseY, partialTick);
         }

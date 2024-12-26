@@ -23,24 +23,20 @@ public class guiModuleProgressBarHorizontal6px extends GuiModuleBase {
 
     public ResourceLocation background = ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_horizontal_progress_bar_background.png");
 
-    public void setHoverInfo(String s){
+    public void setHoverInfoAndSync(String s){
         boolean needsUpdate = !Objects.equals(s, this.info);
         this.info = s;
         if(needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            this.server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
     }
 
-    public void setProgress(double progress) {
+    public void setProgressAndSync(double progress) {
         progress = Math.max(0,Math.min(1,progress));
         boolean needsUpdate =progress != this.progress;
         this.progress = progress;
         if(needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            this.server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
     }
 
@@ -53,6 +49,7 @@ public class guiModuleProgressBarHorizontal6px extends GuiModuleBase {
             myTag.putString("info", this.info);
         }
         tag.put(this.getMyTagKey(), myTag);
+
         super.server_writeDataToSyncToClient(tag);
     }
 
@@ -69,6 +66,7 @@ public class guiModuleProgressBarHorizontal6px extends GuiModuleBase {
                 this.info = "";
             }
         }
+
         super.client_handleDataSyncedToClient(tag);
     }
 

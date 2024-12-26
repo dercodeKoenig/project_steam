@@ -23,23 +23,19 @@ public class guiModuleText extends GuiModuleBase {
         this.makeShadow = makeShadow;
     }
 
-    public void setText(String text) {
+    public void setTextAndSync(String text) {
         boolean needsUpdate = !Objects.equals(this.text, text);
         this.text = text;
         if (needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
     }
 
-    public void setColor(int color) {
+    public void setColorAndSync(int color) {
         boolean needsUpdate = this.color != color;
         this.color = color;
         if (needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
     }
 

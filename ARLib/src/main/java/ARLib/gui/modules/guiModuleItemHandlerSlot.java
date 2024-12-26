@@ -6,6 +6,7 @@ import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -28,9 +29,6 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
     @Override
     public void server_writeDataToSyncToClient(CompoundTag tag){
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        // it can be null, this can run on client because they can use the same set method to update values
-        // this is usually not bad because the list of players tracking the gui on client side is empty so no packet will be sent.
-        // if server = null, this was probably called because the Base Module had something updated
         if(server != null) {
             CompoundTag myTag = new CompoundTag();
             RegistryAccess registryAccess = server.registryAccess();
@@ -45,15 +43,15 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
         super.server_writeDataToSyncToClient(tag);
 
     }
+
     @Override
     public void serverTick(){
         if (!ItemStack.isSameItemSameComponents(itemHandler.getStackInSlot(targetSlot),lastStack) || itemHandler.getStackInSlot(targetSlot).getCount() != lastStack.getCount()){
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler. sendToTrackingClients(tag);
+            broadcastModuleUpdate();
             lastStack = itemHandler.getStackInSlot(targetSlot).copy();
         }
     }
+
     @Override
     public void client_handleDataSyncedToClient(CompoundTag tag) {
         if (tag.contains(getMyTagKey())) {
@@ -77,29 +75,81 @@ public class guiModuleItemHandlerSlot extends guiModuleInventorySlotBase {
         lastStack =ItemStack.EMPTY;
     }
 
+    public void server_handleInventoryClick(Player player, int button, boolean isShift) {
+        InventoryMenu inventoryMenu = player.inventoryMenu;
+        ItemStack carriedStack = inventoryMenu.getCarried();
+        ItemStack stack = getStackInSlot();
 
-    @Override
-    public ItemStack getStackInSlot(Player player) {
+        if (button == 0 && !isShift) {
+
+            if (carriedStack.isEmpty() && !stack.isEmpty()) {
+                // Pick up the stack
+                int max_pickup = Math.min(stack.getCount(),stack.getMaxStackSize());
+                inventoryMenu.setCarried(extractItemFromSlot(max_pickup));
+
+            } else if (stack.isEmpty() && !carriedStack.isEmpty()) {
+                // Place down the carried item
+                inventoryMenu.setCarried(insertItemIntoSlot(carriedStack,carriedStack.getCount()));
+
+            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, carriedStack)) {
+                // Add to stack
+                int transferAmount = Math.min(getSlotLimit() - stack.getCount(), carriedStack.getCount());
+                inventoryMenu.setCarried(insertItemIntoSlot(carriedStack,transferAmount));
+            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && !ItemStack.isSameItemSameComponents(stack, carriedStack)) {
+                // swap items
+                if (stack.getCount()<=stack.getMaxStackSize() && carriedStack.getCount()<=carriedStack.getMaxStackSize()){
+                    ItemStack stackCopy = stack.copy();
+                    extractItemFromSlot(stack.getCount());
+                    insertItemIntoSlot(carriedStack,carriedStack.getCount());
+                    inventoryMenu.setCarried(stackCopy);
+                }
+            }
+        }
+        if (button == 1 && !isShift) {
+            if (carriedStack.isEmpty() && !stack.isEmpty()) {
+                // Pick up half of the stack
+                int halfCount = stack.getCount() / 2;
+                inventoryMenu.setCarried(extractItemFromSlot(halfCount));
+
+            } else if (stack.getCount() < getSlotLimit() && !carriedStack.isEmpty()) {
+                // Place one item from carried stack
+                ItemStack ret = insertItemIntoSlot(carriedStack,1);
+                inventoryMenu.setCarried(ret);
+            }
+        }
+        if (button == 0 && isShift) {
+            // move all items in the current slot to slots of the instant transfer target group
+            // loop over all modules and try to find a module where the group id matches the transfer target
+
+            for (GuiModuleBase i : this.guiHandler.getModules()) {
+                if (i instanceof guiModuleItemHandlerSlot j) {
+                    if (j.invGroup == instantTransferTarget) {
+                        ItemStack toTransfer = getStackInSlot();
+                        ItemStack notInserted = j.insertItemIntoSlot(toTransfer,toTransfer.getCount());
+                        int inserted = toTransfer.getCount() - notInserted.getCount();
+                        extractItemFromSlot(inserted);
+                    }
+                }
+            }
+        }
+    }
+
+    public ItemStack getStackInSlot() {
         return itemHandler.getStackInSlot(targetSlot);
     }
 
-    @Override
-    public ItemStack insertItemIntoSlot(Player player, ItemStack stack, int amount) {
-
+    public ItemStack insertItemIntoSlot(ItemStack stack, int amount) {
             ItemStack toInsert = stack.copyWithCount(amount);
             ItemStack notInserted = itemHandler.insertItem(targetSlot, toInsert, false);
             int inserted = toInsert.getCount() - notInserted.getCount();
             return stack.copyWithCount(stack.getCount() - inserted);
-
     }
 
-    @Override
-    public ItemStack extractItemFromSlot(Player player, int amount) {
+    public ItemStack extractItemFromSlot(int amount) {
         return itemHandler.extractItem(targetSlot,amount,false);
     }
 
-    @Override
-    public int getSlotLimit(Player player, ItemStack stack) {
+    public int getSlotLimit() {
         return itemHandler.getSlotLimit(targetSlot);
     }
 }

@@ -5,8 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 
 import java.util.Objects;
 
@@ -28,25 +26,20 @@ public class guiModuleButton extends GuiModuleBase {
         }
     }
 
-    public void setText(String text) {
+    public void setTextAndSync(String text) {
         boolean needsUpdate = !Objects.equals(this.text, text);
         this.text = text;
         if (needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
     }
 
-    public void setColor(int color) {
+    public void setColorAndSync(int color) {
         boolean needsUpdate = this.color != color;
         this.color = color;
         if (needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
-
     }
 
     @Override

@@ -3,16 +3,14 @@ package ARLib.gui.modules;
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
 
 public class GuiModuleBase {
 
-    protected int x;
-    protected int y;
-    protected int id;
+    public int x;
+    public int y;
+    public int id;
 
-    protected boolean isEnabled = true;
+    public boolean isEnabled = true;
 
     protected int onGuiX;
     protected int onGuiY;
@@ -27,19 +25,18 @@ public class GuiModuleBase {
         this.onGuiY = 0;
     }
 
-    public void setIsEnabled(boolean isEnabled) {
+    public void broadcastModuleUpdate(){
+        CompoundTag tag = new CompoundTag();
+        server_writeDataToSyncToClient(tag);
+        this.guiHandler.broadcastUpdate(tag);
+    }
+
+    public void setIsEnabledAndBroadcastUpdate(boolean isEnabled) {
         boolean needsUpdate = isEnabled != this.isEnabled;
         this.isEnabled = isEnabled;
         if (needsUpdate) {
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler. sendToTrackingClients(tag);
+            broadcastModuleUpdate();
         }
-    }
-
-    public void client_setLocation(int x, int y){
-        this.x = x;
-        this.y = y;
     }
 
     public void client_setGuiOffset(int left, int top){
@@ -71,7 +68,7 @@ public class GuiModuleBase {
         if(tag.contains(getMySuperTagKey())) {
             CompoundTag myTag = tag.getCompound(getMySuperTagKey());
             if(myTag.contains("updateIsEnabled")){
-                setIsEnabled(myTag.getBoolean("updateIsEnabled"));
+                isEnabled = (myTag.getBoolean("updateIsEnabled"));
             }
         }
     }

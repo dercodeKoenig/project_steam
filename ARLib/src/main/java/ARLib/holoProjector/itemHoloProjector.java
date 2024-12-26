@@ -1,7 +1,6 @@
 package ARLib.holoProjector;
 
 import ARLib.gui.GuiHandlerMainHandItem;
-import ARLib.gui.IguiOnClientTick;
 import ARLib.gui.modules.GuiModuleBase;import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleScrollContainer;
 import ARLib.network.INetworkItemStackTagReceiver;
@@ -36,7 +35,7 @@ import java.util.*;
 import static ARLib.ARLibRegistry.BLOCK_STRUCTURE_PREVIEW;
 
 
-public class itemHoloProjector extends Item implements INetworkItemStackTagReceiver, IguiOnClientTick {
+public class itemHoloProjector extends Item implements INetworkItemStackTagReceiver {
     static GuiHandlerMainHandItem guiHandler;
 
     public static Map<String, List<BlockInfo>> structureBlocks = new HashMap<>();
@@ -115,7 +114,12 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
     }
 
     public void initGui() {
-        guiHandler = new GuiHandlerMainHandItem(this);
+        guiHandler = new GuiHandlerMainHandItem(){
+            @Override
+            public void onGuiClientTick(){
+                // nothing to do i guess
+            }
+        };
         List<GuiModuleBase> containerModules = new ArrayList<>();
 
         for (int id : buttonIdToMachineName.keySet()) {
@@ -124,7 +128,7 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
             containerModules.add(button);
         }
         guiModuleScrollContainer container = new guiModuleScrollContainer(containerModules, 0xFFA0A0A0, guiHandler, 5, 5, 90, 90);
-        guiHandler.registerModule(container);
+        guiHandler.getModules().add(container);
     }
 
     public void placeLayer(CompoundTag itemTag) {
@@ -283,11 +287,6 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
 
     @Override
     public void readClient(CompoundTag compoundTag) {
-
-    }
-
-    @Override
-    public void onGuiClientTick() {
 
     }
 

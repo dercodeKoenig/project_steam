@@ -19,7 +19,7 @@ import static ARLib.ARLibRegistry.ENTITY_ENERGY_INPUT_BLOCK;
 public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorage, INetworkTagReceiver {
 
     protected BlockEntityBattery energyStorage;
-    IGuiHandler guiHandler;
+    GuiHandlerBlockEntity guiHandler;
 
     public EntityEnergyInputBlock(BlockPos p_155229_, BlockState p_155230_) {
         this(ENTITY_ENERGY_INPUT_BLOCK.get(), p_155229_, p_155230_);
@@ -28,7 +28,7 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
         super(type, p_155229_, p_155230_);
         energyStorage = new BlockEntityBattery(this, 10000);
         this.guiHandler = new GuiHandlerBlockEntity(this);
-        this.guiHandler.registerModule(new guiModuleEnergy(0,this,this.guiHandler,10,10));
+        this.guiHandler.getModules().add(new guiModuleEnergy(0,this,this.guiHandler,10,10));
     }
 
 

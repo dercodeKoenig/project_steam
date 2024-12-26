@@ -2,9 +2,18 @@ package ARLib.gui;
 
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.network.PacketBlockEntity;
+import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -61,10 +70,11 @@ import java.util.*;
  */
 public class GuiHandlerBlockEntity implements IGuiHandler {
 
-    Map<UUID, Integer> playersTrackingGui;
-    List<GuiModuleBase> modules;
-    int last_ping = 0;
-    BlockEntity parentBE;
+    public Map<UUID, Integer> playersTrackingGui;
+    public List<GuiModuleBase> modules;
+    public int last_ping = 0;
+    public BlockEntity parentBE;
+    public ModularScreen screen;
 
     public GuiHandlerBlockEntity(BlockEntity parentBlockEntity) {
         this.playersTrackingGui = new HashMap<>();
@@ -72,29 +82,91 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
         this.parentBE = parentBlockEntity;
     }
 
-    public void registerModule(GuiModuleBase guiModule) {
-        modules.add(guiModule);
-    }
-
     @Override
     public List<GuiModuleBase> getModules() {
         return modules;
     }
 
-    @Override
-    public Map<UUID, Integer> getPlayersTrackingGui(){
-        return playersTrackingGui;
+    public void openGui(int w, int h) {
+        sendPing();
+        // fix for not syncing in creative mode, player should never be null bc this is called on client
+        if (Minecraft.getInstance().player != null)
+            Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
+        screen = new ModularScreen(this, w, h);
+        Minecraft.getInstance().setScreen(screen);
     }
 
     @Override
-    public CustomPacketPayload getNetworkPacketForTag_client(CompoundTag tag) {
-        return PacketBlockEntity.getBlockEntityPacket(parentBE,tag);
-    }
-    @Override
-    public CustomPacketPayload getNetworkPacketForTag_server(CompoundTag tag) {
-        return PacketBlockEntity.getBlockEntityPacket(parentBE,tag);
+    public void sendToServer(CompoundTag tag) {
+        PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(parentBE, tag));
     }
 
+    @Override
+    public void broadcastUpdate(CompoundTag tag) {
+        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+        if (server != null) {
+            for (UUID uid : playersTrackingGui.keySet()) {
+                ServerPlayer p = server.getPlayerList().getPlayer(uid);
+                if (p != null) {
+                    PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(parentBE, tag));
+                }
+            }
+        }
+    }
+
+    void removePlayerFromGui(UUID uid) {
+        playersTrackingGui.remove(uid);
+        Player p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(uid);
+        if (p != null) {
+            dropPlayersCarriedItem(p);
+        }
+    }
+
+    @Override
+    public void readServer(CompoundTag tag) {
+        IGuiHandler.super.readServer(tag);
+
+        if (tag.contains("guiPing")) {
+            UUID uid = tag.getUUID("guiPing");
+            // update data asap when a client opens the gui new
+            if (!playersTrackingGui.containsKey(uid)) {
+                CompoundTag guiData = new CompoundTag();
+                for (GuiModuleBase guiModule : getModules()) {
+                    guiModule.server_writeDataToSyncToClient(guiData);
+                }
+                MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+                ServerPlayer p = server.getPlayerList().getPlayer(uid);
+                if (p != null) {
+                    PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(parentBE, guiData));
+                }
+            }
+            playersTrackingGui.put(uid, 0);
+        }
+        if (tag.contains("closeGui")) {
+            UUID uid = tag.getUUID("closeGui");
+            // a client said he no longer has the gui open
+            if (playersTrackingGui.containsKey(uid)) {
+                removePlayerFromGui(uid);
+            }
+        }
+    }
+    @Override
+    public void serverTick() {
+        IGuiHandler.super.serverTick();
+
+        if (!playersTrackingGui.isEmpty()) {
+            // if a player has not sent a gui ping for 10 seconds, he no longer has the gui open
+            // this should usually not happen because the client will unregister itself on gui close but just to be safe....
+            for (UUID uid : playersTrackingGui.keySet()) {
+                playersTrackingGui.put(uid, playersTrackingGui.get(uid) + 1);
+                if (playersTrackingGui.get(uid) > 200) {
+                    removePlayerFromGui(uid);
+                }
+            }
+        }
+    }
+
+    @Override
     public void onGuiClientTick() {
         last_ping += 1;
         if (last_ping > 20) {
@@ -102,5 +174,16 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
             sendPing();
         }
     }
+    void sendPing(){
+        CompoundTag tag = new CompoundTag();
+        tag.putUUID("guiPing", Minecraft.getInstance().player.getUUID());
+        sendToServer(tag);
+    }
 
+    @Override
+    public void onGuiClose() {
+        CompoundTag tag = new CompoundTag();
+        tag.putUUID("closeGui", Minecraft.getInstance().player.getUUID());
+        sendToServer(tag);
+    }
 }

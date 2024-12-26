@@ -17,7 +17,6 @@ import java.util.UUID;
 public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
 
     ResourceLocation slot_background = ResourceLocation.fromNamespaceAndPath("arlib","textures/gui/gui_item_slot_background.png");
-
     int slot_bg_w = 18;
     int slot_bg_h = 18;
     public void setSlotBackground(ResourceLocation bg, int textureWidth, int textureHeight){
@@ -36,65 +35,7 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
     public abstract ItemStack client_getItemStackToRender();
 
     // called when the slot is clicked from server
-    public void server_handleInventoryClick(Player player, int button, boolean isShift) {
-        InventoryMenu inventoryMenu = player.inventoryMenu;
-        ItemStack carriedStack = inventoryMenu.getCarried();
-        ItemStack stack = getStackInSlot(player);
-
-        if (button == 0 && !isShift) {
-
-            if (carriedStack.isEmpty() && !stack.isEmpty()) {
-                // Pick up the stack
-                int max_pickup = Math.min(stack.getCount(),stack.getMaxStackSize());
-                inventoryMenu.setCarried(extractItemFromSlot(player,max_pickup));
-
-            } else if (stack.isEmpty() && !carriedStack.isEmpty()) {
-                // Place down the carried item
-                inventoryMenu.setCarried(insertItemIntoSlot(player,carriedStack,carriedStack.getCount()));
-
-            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, carriedStack)) {
-                // Add to stack
-                int transferAmount = Math.min(getSlotLimit(player,stack) - stack.getCount(), carriedStack.getCount());
-                inventoryMenu.setCarried(insertItemIntoSlot(player,carriedStack,transferAmount));
-            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && !ItemStack.isSameItemSameComponents(stack, carriedStack)) {
-                // swap items
-                if (stack.getCount()<=stack.getMaxStackSize() && carriedStack.getCount()<=carriedStack.getMaxStackSize()){
-                    ItemStack stackCopy = stack.copy();
-                    extractItemFromSlot(player,stack.getCount());
-                    insertItemIntoSlot(player,carriedStack,carriedStack.getCount());
-                    inventoryMenu.setCarried(stackCopy);
-                }
-            }
-        }
-        if (button == 1 && !isShift) {
-            if (carriedStack.isEmpty() && !stack.isEmpty()) {
-                // Pick up half of the stack
-                int halfCount = stack.getCount() / 2;
-                inventoryMenu.setCarried(extractItemFromSlot(player, halfCount));
-
-            } else if (stack.getCount() < getSlotLimit(player,stack) && !carriedStack.isEmpty()) {
-                // Place one item from carried stack
-                ItemStack ret = insertItemIntoSlot(player,carriedStack,1);
-                inventoryMenu.setCarried(ret);
-            }
-        }
-        if (button == 0 && isShift) {
-            // move all items in the current slot to slots of the instant transfer target group
-            // loop over all modules and try to find a module where the group id matches the transfer target
-
-            for (GuiModuleBase i : this.guiHandler.getModules()) {
-                if (i instanceof guiModuleInventorySlotBase j) {
-                    if (j.invGroup == instantTransferTarget) {
-                        ItemStack toTransfer = getStackInSlot(player);
-                        ItemStack notInserted = j.insertItemIntoSlot(player,toTransfer,toTransfer.getCount());
-                        int inserted = toTransfer.getCount() - notInserted.getCount();
-                        extractItemFromSlot(player,inserted);
-                    }
-                }
-            }
-        }
-    }
-
+    public abstract void server_handleInventoryClick(Player player, int button, boolean isShift);
 
     @Override
     public void client_onMouseCLick(double mx, double my, int button) {
@@ -131,8 +72,8 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
                 int button = myTag.getInt("mouseButtonClicked");
                 boolean isShift = myTag.getBoolean("isShift");
                 Player player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from_uuid);
-
-                server_handleInventoryClick(player,button,isShift);
+                if (player != null)
+                    server_handleInventoryClick(player, button, isShift);
             }
         }
     }
@@ -163,17 +104,4 @@ public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
 
         }
     }
-
-    public abstract ItemStack getStackInSlot(Player p) ;
-
-
-    public abstract ItemStack insertItemIntoSlot(Player p, ItemStack stack, int amount);
-
-
-    public abstract ItemStack extractItemFromSlot(Player p, int amount);
-
-
-    public abstract int getSlotLimit(Player p, ItemStack stack);
-
-
 }

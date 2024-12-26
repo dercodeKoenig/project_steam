@@ -3,6 +3,7 @@ package ARLib.gui.modules;
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.ArrayList;
@@ -12,19 +13,15 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
 
     int targetSlot;
 
-
     @Override
     public ItemStack client_getItemStackToRender() {
         return  Minecraft.getInstance().player.getInventory().getItem(targetSlot);
     }
 
-
-    @Override
     public ItemStack getStackInSlot(Player player) {
         return player.getInventory().getItem(targetSlot);
     }
 
-    @Override
     public ItemStack insertItemIntoSlot(Player player, ItemStack stack, int amount) {
         if(!player.getInventory().getItem(targetSlot).isEmpty() && !ItemStack.isSameItemSameComponents(player.getInventory().getItem(targetSlot),stack)){
             //stack does not match item in slot, return
@@ -41,7 +38,6 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
         return stack.copyWithCount(stack.getCount()-to_insert);
     }
 
-    @Override
     public ItemStack extractItemFromSlot(Player player, int amount) {
         int current_count = player.getInventory().getItem(targetSlot).getCount();
         int to_extract = Math.min(current_count,amount);
@@ -50,7 +46,6 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
         return ret;
     }
 
-    @Override
     public int getSlotLimit(Player player,ItemStack stack) {
         return player.getInventory().getMaxStackSize(stack);
     }
@@ -60,6 +55,64 @@ public class guiModulePlayerInventorySlot extends guiModuleInventorySlotBase{
         this.targetSlot = targetSlot;
     }
 
+    public void server_handleInventoryClick(Player player, int button, boolean isShift) {
+        InventoryMenu inventoryMenu = player.inventoryMenu;
+        ItemStack carriedStack = inventoryMenu.getCarried();
+        ItemStack stack = getStackInSlot(player);
+
+        if (button == 0 && !isShift) {
+
+            if (carriedStack.isEmpty() && !stack.isEmpty()) {
+                // Pick up the stack
+                int max_pickup = Math.min(stack.getCount(),stack.getMaxStackSize());
+                inventoryMenu.setCarried(extractItemFromSlot(player,max_pickup));
+
+            } else if (stack.isEmpty() && !carriedStack.isEmpty()) {
+                // Place down the carried item
+                inventoryMenu.setCarried(insertItemIntoSlot(player,carriedStack,carriedStack.getCount()));
+
+            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && ItemStack.isSameItemSameComponents(stack, carriedStack)) {
+                // Add to stack
+                int transferAmount = Math.min(getSlotLimit(player,stack) - stack.getCount(), carriedStack.getCount());
+                inventoryMenu.setCarried(insertItemIntoSlot(player,carriedStack,transferAmount));
+            } else if (!stack.isEmpty() && !carriedStack.isEmpty() && !ItemStack.isSameItemSameComponents(stack, carriedStack)) {
+                // swap items
+                if (stack.getCount()<=stack.getMaxStackSize() && carriedStack.getCount()<=carriedStack.getMaxStackSize()){
+                    ItemStack stackCopy = stack.copy();
+                    extractItemFromSlot(player,stack.getCount());
+                    insertItemIntoSlot(player,carriedStack,carriedStack.getCount());
+                    inventoryMenu.setCarried(stackCopy);
+                }
+            }
+        }
+        if (button == 1 && !isShift) {
+            if (carriedStack.isEmpty() && !stack.isEmpty()) {
+                // Pick up half of the stack
+                int halfCount = stack.getCount() / 2;
+                inventoryMenu.setCarried(extractItemFromSlot(player,halfCount));
+
+            } else if (stack.getCount() < getSlotLimit(player,stack) && !carriedStack.isEmpty()) {
+                // Place one item from carried stack
+                ItemStack ret = insertItemIntoSlot(player,carriedStack,1);
+                inventoryMenu.setCarried(ret);
+            }
+        }
+        if (button == 0 && isShift) {
+            // move all items in the current slot to slots of the instant transfer target group
+            // loop over all modules and try to find a module where the group id matches the transfer target
+
+            for (GuiModuleBase i : this.guiHandler.getModules()) {
+                if (i instanceof guiModulePlayerInventorySlot j) {
+                    if (j.invGroup == instantTransferTarget) {
+                        ItemStack toTransfer = getStackInSlot(player);
+                        ItemStack notInserted = j.insertItemIntoSlot(player,toTransfer,toTransfer.getCount());
+                        int inserted = toTransfer.getCount() - notInserted.getCount();
+                        extractItemFromSlot(player,inserted);
+                    }
+                }
+            }
+        }
+    }
 
 
     public static List<guiModulePlayerInventorySlot> makePlayerHotbarModules(int x, int y, int startingId, int inventoryGroup, int instantTransferTargetGroup, IGuiHandler guiHandler){

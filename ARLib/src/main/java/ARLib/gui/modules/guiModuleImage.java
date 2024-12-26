@@ -9,9 +9,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.energy.IEnergyStorage;
 
 public class guiModuleImage extends GuiModuleBase {
-    int w, h;
-    int textureW, textureH;
-    ResourceLocation image;
+    public int w, h;
+    public int textureW, textureH;
+    public ResourceLocation image;
 
 
     public guiModuleImage(IGuiHandler guiHandler, int x, int y, int w, int h, ResourceLocation image, int textureW, int textureH) {

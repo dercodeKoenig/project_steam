@@ -52,7 +52,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
 
     public double myForce = 0;
 
-    public IGuiHandler guiHandler;
+    public GuiHandlerBlockEntity guiHandler;
     public BlockEntityItemStackHandler inventory;
 
     public int currentBurnTime;
@@ -98,12 +98,12 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         };
 
         guiModuleItemHandlerSlot s1 = new guiModuleItemHandlerSlot(0,inventory,0,1,0,guiHandler,70,10);
-        guiHandler.registerModule(s1);
+        guiHandler.getModules().add(s1);
         for( GuiModuleBase i: guiModulePlayerInventorySlot.makePlayerHotbarModules(10,120,200,0,1,guiHandler)){
-            guiHandler.registerModule(i);
+            guiHandler.getModules().add(i);
         }
         for( GuiModuleBase i: guiModulePlayerInventorySlot.makePlayerInventoryModules(10,50,100,0,1,guiHandler)){
-            guiHandler.registerModule(i);
+            guiHandler.getModules().add(i);
         }
     }
 

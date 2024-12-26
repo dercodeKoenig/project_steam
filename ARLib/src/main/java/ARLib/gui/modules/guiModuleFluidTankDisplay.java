@@ -113,9 +113,8 @@ public class guiModuleFluidTankDisplay extends GuiModuleBase {
             last_maxCapacity = fluidHandler.getTankCapacity(targetSlot);
             last_update = 0;
             lastFluidStack = fluidHandler.getFluidInTank(targetSlot).copy();
-            CompoundTag tag = new CompoundTag();
-            server_writeDataToSyncToClient(tag);
-            this.guiHandler.sendToTrackingClients(tag);
+
+            broadcastModuleUpdate();
         }
     }
 

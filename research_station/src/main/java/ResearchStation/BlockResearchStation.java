@@ -55,7 +55,17 @@ public class BlockResearchStation extends Block implements EntityBlock {
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
+
     @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        BlockEntity e = level.getBlockEntity(pos);
+        if(e instanceof EntityResearchStation r){
+            r.popInventory();
+        }
+        super.onRemove(state,level,pos,newState,movedByPiston);
+    }
+
+        @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityResearchStation::tick;
     }

@@ -109,7 +109,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
 
     public void openGui(){
         if(level.isClientSide) {
-            guiHandler.openGui(180, 150);
+            guiHandler.openGui(180, 150, true);
         }
     }
 

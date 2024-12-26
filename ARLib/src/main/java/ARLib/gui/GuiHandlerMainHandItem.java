@@ -47,12 +47,12 @@ public class GuiHandlerMainHandItem implements IGuiHandler {
 
 
     @OnlyIn(Dist.CLIENT)
-    public void openGui(int w, int h) {
+    public void openGui(int w, int h, boolean renderBackground) {
         // fix for not syncing in creative mode
         if(Minecraft.getInstance().player != null)
             Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
 
-        Minecraft.getInstance().setScreen(new ModularScreen(this, w, h));
+        Minecraft.getInstance().setScreen(new ModularScreen(this, w, h, renderBackground));
     }
 
 }

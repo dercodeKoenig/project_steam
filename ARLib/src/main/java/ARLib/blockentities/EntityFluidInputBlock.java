@@ -173,7 +173,7 @@ public class EntityFluidInputBlock extends BlockEntity implements IItemHandler,I
     }
 
     public void openGui() {
-        guiHandler.openGui(176, 165);
+        guiHandler.openGui(176, 165, true);
     }
 
     @Override

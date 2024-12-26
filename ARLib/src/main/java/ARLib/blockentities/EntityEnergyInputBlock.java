@@ -89,7 +89,7 @@ public class EntityEnergyInputBlock extends BlockEntity implements IEnergyStorag
         }
     }
     public void openGui(){
-        guiHandler.openGui(100,74);
+        guiHandler.openGui(100,74, true);
     }
 
     public static <x extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, x t) {

@@ -227,7 +227,7 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
         if (player.isShiftKeyDown()) {
             if (level.isClientSide) {
                 initGui();
-                guiHandler.openGui(100, 100);
+                guiHandler.openGui(100, 100, true);
             }
             return InteractionResultHolder.success(itemstack);
         }

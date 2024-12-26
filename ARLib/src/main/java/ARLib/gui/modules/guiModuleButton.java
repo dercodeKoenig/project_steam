@@ -15,13 +15,17 @@ public class guiModuleButton extends GuiModuleBase {
     public String text;
     public int color;
 
+    public void onButtonClicked(){
+        CompoundTag tag = new CompoundTag();
+        tag.putInt("guiButtonClick", id);
+        guiHandler.sendToServer(tag);
+    }
+
     @Override
     public void client_onMouseCLick(double x, double y, int button) {
         if (isEnabled) {
             if (client_isMouseOver(x, y, onGuiX, onGuiY, w, h) && button == 0) {
-                CompoundTag tag = new CompoundTag();
-                tag.putInt("guiButtonClick", id);
-                guiHandler.sendToServer(tag);
+                onButtonClicked();
             }
         }
     }

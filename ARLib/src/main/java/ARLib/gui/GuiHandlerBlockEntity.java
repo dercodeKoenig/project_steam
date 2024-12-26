@@ -87,12 +87,12 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
         return modules;
     }
 
-    public void openGui(int w, int h) {
+    public void openGui(int w, int h, boolean renderBackground) {
         sendPing();
         // fix for not syncing in creative mode, player should never be null bc this is called on client
         if (Minecraft.getInstance().player != null)
             Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
-        screen = new ModularScreen(this, w, h);
+        screen = new ModularScreen(this, w, h,renderBackground);
         Minecraft.getInstance().setScreen(screen);
     }
 

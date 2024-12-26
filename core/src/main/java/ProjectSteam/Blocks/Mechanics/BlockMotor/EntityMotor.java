@@ -160,7 +160,7 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
 
     public void openGui() {
         if (level.isClientSide)
-            guiHandler.openGui(210, 90);
+            guiHandler.openGui(210, 90, true);
     }
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {

@@ -161,7 +161,7 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
         }
         else{
             if(level.isClientSide)
-                guiHandler.openGui(180,160);
+                guiHandler.openGui(180,160 ,true);
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }

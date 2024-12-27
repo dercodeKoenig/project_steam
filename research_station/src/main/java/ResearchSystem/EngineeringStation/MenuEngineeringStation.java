@@ -125,7 +125,7 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
         for (int i = 9; i < 9 * 4; i++) {
             addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, yoffset2 + i / 9 * 18));
         }
-        
+
         int yoffset = 75;
         for (int i = 0; i < 18; i++) {
             addSlot(new SlotItemHandler(station!=null?station.inputInventory:new ItemStackHandler(18), i, 10 + i % 9 * 18, yoffset + i / 9 * 18));
@@ -145,6 +145,21 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                 }
                 slots.get(index).onQuickCraft(stack, stack1);
 
+            }
+            if(index < 10){
+                if(!moveItemStackTo(stack, 11, 11 + 4 * 9+18, false)){
+                    return ItemStack.EMPTY;
+                }
+            }
+            if(index > 10 && index < 11+4*9){
+                if(!moveItemStackTo(stack, 11+4*9, 11 + 4 * 9+18, false)){
+                    return ItemStack.EMPTY;
+                }
+            }
+            if(index >= 11+4*9){
+                if(!moveItemStackTo(stack, 11, 11 + 4 * 9, false)){
+                    return ItemStack.EMPTY;
+                }
             }
             if(stack1.getCount() == stack.getCount()){
                 return ItemStack.EMPTY;

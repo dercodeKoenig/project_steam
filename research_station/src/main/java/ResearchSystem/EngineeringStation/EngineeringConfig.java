@@ -1,4 +1,4 @@
-package ResearchSystem.ResearchStation;
+package ResearchSystem.EngineeringStation;
 
 import ARLib.utils.RecipePart;
 import com.google.gson.Gson;
@@ -28,44 +28,88 @@ import java.util.List;
 import java.util.Map;
 
 
-public class ResearchConfig {
+public class EngineeringConfig {
 
-    public static ResearchConfig INSTANCE = loadConfig();
+    public static EngineeringConfig INSTANCE = loadConfig();
 
-    public static class Research {
-        public String id = "";
-        public int ticksRequired = 100;
-        public List<String> requiredResearches = new ArrayList<>();
-        public List<RecipePart> requiredItems = new ArrayList<>();
+    public static class Recipe {
+        public String requiredResearch = "";
+        RecipePart output = new RecipePart("minecraft:air",1);
+        List<String> pattern = new ArrayList<>();
+        Map<String,RecipeInput> keys = new HashMap<>();
     }
-
-    public List<Research> researchList = new ArrayList<>();
-
-    private Map<String, Research> researchMap = new HashMap<>();
-    private void makeResearchMap() {
-        researchMap = new HashMap<>();
-        for (Research i : researchList) {
-            researchMap.put(i.id, i);
+    public static class RecipeInput{
+        RecipePart input = new RecipePart("");
+        RecipePart onComplete = new RecipePart("",0);
+        public RecipeInput(RecipePart in, RecipePart out){
+            this.input = in;this.onComplete = out;
+        }
+        public RecipeInput(RecipePart in){
+            this(in, new RecipePart(""));
         }
     }
-    public Map<String, Research> getResearchMap() {
-        return researchMap;
+
+    public List<Recipe> recipeList = new ArrayList<>();
+
+    public static String[] shrink(List<String> pattern) {
+        int i = Integer.MAX_VALUE;
+        int j = 0;
+        int k = 0;
+        int l = 0;
+
+        for(int i1 = 0; i1 < pattern.size(); ++i1) {
+            String s = (String)pattern.get(i1);
+            i = Math.min(i, firstNonSpace(s));
+            int j1 = lastNonSpace(s);
+            j = Math.max(j, j1);
+            if (j1 < 0) {
+                if (k == i1) {
+                    ++k;
+                }
+
+                ++l;
+            } else {
+                l = 0;
+            }
+        }
+
+        if (pattern.size() == l) {
+            return new String[0];
+        } else {
+            String[] astring = new String[pattern.size() - l - k];
+
+            for(int k1 = 0; k1 < astring.length; ++k1) {
+                astring[k1] = ((String)pattern.get(k1 + k)).substring(i, j + 1);
+            }
+
+            return astring;
+        }
+    }
+
+     static int firstNonSpace(String row) {
+        int i;
+        for(i = 0; i < row.length() && row.charAt(i) == ' '; ++i) {
+        }
+
+        return i;
+    }
+
+     static int lastNonSpace(String row) {
+        int i;
+        for(i = row.length() - 1; i >= 0 && row.charAt(i) == ' '; --i) {
+        }
+
+        return i;
     }
 
 
-    public ResearchConfig() {
-        Research t1 = new Research();
-        t1.id = "example Research 1";
-        t1.ticksRequired = 100;
-        t1.requiredItems.add(new RecipePart("c:ingots/iron",4));
-        researchList.add(t1);
-
-        t1 = new Research();
-        t1.id = "example Research 2";
-        t1.ticksRequired = 300;
-        t1.requiredResearches.add("example Research 1");
-        t1.requiredItems.add(new RecipePart("minecraft:string",128));
-        researchList.add(t1);
+    public EngineeringConfig() {
+        Recipe t1 = new Recipe();
+        t1.requiredResearch = "example Research 1";
+        t1.pattern = List.of("   ","ABA","   ");
+        t1.keys.put("A", new RecipeInput(new RecipePart("c:ingots/iron",2), new RecipePart("minecraft:stone")));
+        t1.keys.put("B", new RecipeInput(new RecipePart("minecraft:string")));
+        recipeList.add(t1);
     }
 
     public void SyncConfig(ServerPlayer p) {
@@ -75,25 +119,24 @@ public class ResearchConfig {
     }
 
     public void loadConfig(String configString) {
-        ResearchConfig.INSTANCE = new Gson().fromJson(configString, ResearchConfig.class);
+        EngineeringConfig.INSTANCE = new Gson().fromJson(configString, EngineeringConfig.class);
         System.out.println("load config:" + configString);
     }
 
-    public static ResearchConfig loadConfig() {
-        String filename = "research_list.json";
+    public static EngineeringConfig loadConfig() {
+        String filename = "research_recipe_list.json";
         Path configDir = Paths.get(FMLPaths.CONFIGDIR.get().toString());
         Path filePath = configDir.resolve(filename);
         try {
             // Create the config directory if it doesn't exist
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
-                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new ResearchConfig()).getBytes(StandardCharsets.UTF_8));
+                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new EngineeringConfig()).getBytes(StandardCharsets.UTF_8));
             }
             // Load JSON from the file
             String jsonContent = Files.readString(filePath);
             Gson gson = new Gson();
-            ResearchConfig c = gson.fromJson(jsonContent, ResearchConfig.class);
-            c.makeResearchMap();
+            EngineeringConfig c = gson.fromJson(jsonContent, EngineeringConfig.class);
             return c;
         } catch (JsonSyntaxException e) {
             System.err.println("Failed to parse config JSON");
@@ -109,7 +152,7 @@ public class ResearchConfig {
     public static class PacketConfigSync implements CustomPacketPayload {
 
         public static final Type<PacketConfigSync> TYPE =
-                new Type<>(ResourceLocation.fromNamespaceAndPath("research_station", "packet_research_config_sync"));
+                new Type<>(ResourceLocation.fromNamespaceAndPath("research_station", "packet_engineering_config_sync"));
 
 
         public PacketConfigSync(String config) {
@@ -130,7 +173,7 @@ public class ResearchConfig {
 
         public static void readClient(final PacketConfigSync data, final IPayloadContext context) {
             String config = data.getConfig();
-            ResearchConfig.INSTANCE.loadConfig(config);
+            EngineeringConfig.INSTANCE.loadConfig(config);
         }
         public static void readServer(final PacketConfigSync data, final IPayloadContext context) {
         }

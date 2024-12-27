@@ -15,6 +15,7 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,23 +48,35 @@ public class ItemUtils {
         return stack.is(BuiltInRegistries.FLUID.get(ResourceLocation.tryParse(identifier)));
     }
 
-    // id is the item ID string, e.g., "minecraft:diamond"
-    public static ItemStack getItemStackFromId(String id, int count, RegistryAccess registry) {
-        ResourceLocation itemId = ResourceLocation.tryParse(id);
 
-        if(itemId != null) {
-            TagKey<Item> tagKey = TagKey.create(Registries.ITEM, itemId);
-
+    public static List<Item> getItemsFromTag(String tag, RegistryAccess registry){
+        ResourceLocation Id = ResourceLocation.tryParse(tag);
+        if(Id != null) {
+            TagKey<Item> tagKey = TagKey.create(Registries.ITEM, Id);
             HolderSet.Named<Item> itemsInTag = registry.lookupOrThrow(BuiltInRegistries.ITEM.key()).get(tagKey).orElse(null);
             if(itemsInTag!=null) {
                 List<Holder<Item>> itemsInTagList = itemsInTag.stream().toList();
-                if (!itemsInTagList.isEmpty()) {
-                    return new ItemStack(itemsInTagList.getFirst().value(), count);
+                List<Item> res = new ArrayList<>();
+                for(Holder<Item> i:itemsInTagList){
+                    res.add(i.value().asItem());
                 }
+                return res;
             }
 
         }
+        return null;
+    }
 
+    // id is the item ID string, e.g., "minecraft:diamond"
+    public static ItemStack getItemStackFromId(String id, int count, RegistryAccess registry) {
+
+
+      List<Item> itemsInTag = getItemsFromTag(id,registry);
+        if(itemsInTag!=null && !itemsInTag.isEmpty()){
+            return new ItemStack(itemsInTag.getFirst(),count);
+        }
+
+        ResourceLocation itemId = ResourceLocation.tryParse(id);
         Item item = BuiltInRegistries.ITEM.get(itemId);
         if(item == Items.AIR)return null;
         return new ItemStack(item, count);

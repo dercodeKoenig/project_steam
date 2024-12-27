@@ -1,19 +1,20 @@
 package ResearchSystem.EngineeringStation;
 
+import ARLib.ARLib;
+import ARLib.utils.ItemUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.CraftingInput;
-import net.minecraft.world.item.crafting.CraftingRecipe;
-import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.item.crafting.RecipeType;
+import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.Optional;
+import java.util.*;
 
 import static ResearchSystem.Registry.ENTITY_ENGINEERING_STATION;
 
@@ -26,6 +27,7 @@ public class EntityEngineeringStation extends BlockEntity {
             updateCraftingContainerFromCraftingInventory();
         }
     };
+
     void updateCraftingContainerFromCraftingInventory() {
         if (ServerLifecycleHooks.getCurrentServer() == null || level == null) return;
 
@@ -36,15 +38,45 @@ public class EntityEngineeringStation extends BlockEntity {
             resultContainer.setRecipeUsed(icraftingrecipe);
 
             ItemStack result = icraftingrecipe.value().assemble(craftInput, level.registryAccess());
-            resultContainer.setItem(0,result);
-        }else{
-            resultContainer.setItem(0,ItemStack.EMPTY);
+            resultContainer.setItem(0, result);
+        } else {
+            boolean foundMatch = false;
+            for (EngineeringConfig.Recipe r : EngineeringConfig.INSTANCE.recipeList) {
+                String[] shrinkedPattern = EngineeringConfig.shrink(r.pattern);
+                if (craftInput.width() == shrinkedPattern[0].length() && craftInput.height() == shrinkedPattern.length) {
+                    boolean matches = true;
+                    for (int i = 0; i < craftInput.height(); ++i) {
+                        for (int j = 0; j < craftInput.width(); ++j) {
+                            EngineeringConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
+                            String id = inp.input.id;
+                            ItemStack itemstack = craftInput.getItem(j, i);
+                            if (!ItemUtils.matches(id, itemstack) || itemstack.getCount() < inp.input.amount) {
+                                matches = false;
+                            }
+                        }
+                    }
+                    if (matches) {
+                        resultContainer.setItem(0, ItemUtils.getItemStackFromId(r.output.id, r.output.amount, level.registryAccess()));
+                        foundMatch = true;
+                        break;
+                    }
+                }
+            }
+            if (!foundMatch) {
+                resultContainer.setItem(0, ItemStack.EMPTY);
+            }
         }
-
     }
     public ResultContainer resultContainer = new ResultContainer();
 
     ItemStackHandler bookInventory = new ItemStackHandler(1){
+        @Override
+        public void onContentsChanged(int slot){
+            setChanged();
+        }
+    };
+
+    ItemStackHandler inputInventory = new ItemStackHandler(18){
         @Override
         public void onContentsChanged(int slot){
             setChanged();
@@ -56,8 +88,10 @@ public class EntityEngineeringStation extends BlockEntity {
         super(ENTITY_ENGINEERING_STATION.get(), pos, blockState);
     }
 @Override
-public void onLoad(){
-updateCraftingContainerFromCraftingInventory();
+public void onLoad() {
+    if (!level.isClientSide) {
+        updateCraftingContainerFromCraftingInventory();
+    }
 }
 
     public void tick(){

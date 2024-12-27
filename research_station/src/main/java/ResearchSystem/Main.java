@@ -1,5 +1,6 @@
 package ResearchSystem;
 
+import ResearchSystem.EngineeringStation.EngineeringConfig;
 import ResearchSystem.EngineeringStation.ScreenEngineeringStation;
 import ResearchSystem.ResearchStation.ResearchConfig;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,11 +56,13 @@ public class Main {
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
         ResearchConfig.PacketConfigSync.register(registrar);
+        EngineeringConfig.PacketConfigSync.register(registrar);
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
         if(login.getEntity() instanceof ServerPlayer p){
             ResearchConfig.INSTANCE.SyncConfig(p);
+            EngineeringConfig.INSTANCE.SyncConfig(p);
         }
     }
 

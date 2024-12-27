@@ -1,14 +1,12 @@
 package ResearchStation;
 
-import ResearchStation.Config.Config;
-import ResearchStation.Config.PacketConfigSync;
+import ResearchStation.Config.ResearchConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
-import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
@@ -49,12 +47,12 @@ public class ResearchStation {
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
-        PacketConfigSync.register(registrar);
+        ResearchConfig.PacketConfigSync.register(registrar);
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
         if(login.getEntity() instanceof ServerPlayer p){
-            Config.INSTANCE.SyncConfig(p);
+            ResearchConfig.INSTANCE.SyncConfig(p);
         }
     }
 

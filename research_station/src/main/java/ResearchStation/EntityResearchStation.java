@@ -6,7 +6,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
-import ResearchStation.Config.Config;
+import ResearchStation.Config.ResearchConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -205,7 +205,7 @@ guiHandler.getModules().add(progressBar);
                 researchQueue.modules.add(db);
             }
 
-            List<Config.Research> available = irb.getAvailableResearches(bookStack);
+            List<ResearchConfig.Research> available = irb.getAvailableResearches(bookStack);
             for (int i = 0; i < available.size(); i++) {
                 String name = available.get(i).id;
                 int y = 14 * i + 2;
@@ -281,7 +281,7 @@ guiHandler.getModules().add(progressBar);
                 double progress = 0;
                 String currentResearch = irb.getCurrentResearch(book);
                 if(!currentResearch.isEmpty()) {
-                    progress = (double) irb.getCurrentProgress(book) / Config.INSTANCE.getResearchMap().get(currentResearch).ticksRequired;
+                    progress = (double) irb.getCurrentProgress(book) / ResearchConfig.INSTANCE.getResearchMap().get(currentResearch).ticksRequired;
                     targetResearchText.setTextAndSync(currentResearch);
                 }else {
                     List<String> queue = irb.getQueuedResearches_readOnly(book);

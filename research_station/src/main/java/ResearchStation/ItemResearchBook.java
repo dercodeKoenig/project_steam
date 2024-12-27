@@ -7,7 +7,7 @@ import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleScrollContainer;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
-import ResearchStation.Config.Config;
+import ResearchStation.Config.ResearchConfig;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
@@ -34,8 +34,8 @@ public class ItemResearchBook extends Item {
 
     void makeGui() {
         List<GuiModuleBase> modules = new ArrayList<>();
-        for (int n = 0; n < Config.INSTANCE.researchList.size(); n++) {
-            Config.Research i = Config.INSTANCE.researchList.get(n);
+        for (int n = 0; n < ResearchConfig.INSTANCE.researchList.size(); n++) {
+            ResearchConfig.Research i = ResearchConfig.INSTANCE.researchList.get(n);
             guiModuleDefaultButton b = new guiModuleDefaultButton(n, i.id, guiHandler, 10, (int) (n * 20), 130, 16) {
                 @Override
                 public void onButtonClicked() {
@@ -166,7 +166,7 @@ public class ItemResearchBook extends Item {
 
         for (int i = 0; i < queuedResearches.size(); i++) {
             String name = queuedResearches.get(i);
-            Config.Research r = Config.INSTANCE.getResearchMap().get(name);
+            ResearchConfig.Research r = ResearchConfig.INSTANCE.getResearchMap().get(name);
 
             if (!completedResearches.containsAll(r.requiredResearches)) {
                 queuedResearches.remove(name);
@@ -189,7 +189,7 @@ public class ItemResearchBook extends Item {
         List<String> completedResearches = getCompletedResearches_readOnly(stack);
 
 
-        Config.Research r = Config.INSTANCE.getResearchMap().get(researchId);
+        ResearchConfig.Research r = ResearchConfig.INSTANCE.getResearchMap().get(researchId);
         boolean hasAllRequired = completedResearches.containsAll(r.requiredResearches);
         setCurrentResearch(stack, "");
         setCurrentProgress(stack, 0);
@@ -206,7 +206,7 @@ public class ItemResearchBook extends Item {
             List<String> queued = getQueuedResearches_readOnly(stack);
             if (!queued.isEmpty()) {
                 String first = queued.removeFirst();
-                Config.Research i = Config.INSTANCE.getResearchMap().get(first);
+                ResearchConfig.Research i = ResearchConfig.INSTANCE.getResearchMap().get(first);
                 if(i==null){
                     setCurrentResearch(stack,"");
                     setQueuedResearches(stack, queued);
@@ -229,7 +229,7 @@ public class ItemResearchBook extends Item {
             List<String> queued = getQueuedResearches_readOnly(stack);
             if (!queued.isEmpty()) {
                 String first = queued.getFirst();
-                Config.Research c = Config.INSTANCE.getResearchMap().get(first);
+                ResearchConfig.Research c = ResearchConfig.INSTANCE.getResearchMap().get(first);
                 if(c!=null) // can happen if config was changes. dont want it to crash the game
                     return c.requiredItems;
                 else return List.of();
@@ -244,7 +244,7 @@ public class ItemResearchBook extends Item {
             int progress = getCurrentProgress(stack);
             progress += increment;
             setCurrentProgress(stack, progress);
-            Config.Research i = Config.INSTANCE.getResearchMap().get(currentResearch);
+            ResearchConfig.Research i = ResearchConfig.INSTANCE.getResearchMap().get(currentResearch);
             if (i == null)
                 // can happen if config was changed
                 setCurrentResearch(stack, "");
@@ -254,8 +254,8 @@ public class ItemResearchBook extends Item {
         }
     }
 
-    List<Config.Research> getAvailableResearches(ItemStack stack) {
-        List<Config.Research> availableResearch = new ArrayList<>();
+    List<ResearchConfig.Research> getAvailableResearches(ItemStack stack) {
+        List<ResearchConfig.Research> availableResearch = new ArrayList<>();
         List<String> completedAndQueuedResearches = new ArrayList<>();
         completedAndQueuedResearches.addAll(getCompletedResearches_readOnly(stack));
         completedAndQueuedResearches.addAll(getQueuedResearches_readOnly(stack));
@@ -263,7 +263,7 @@ public class ItemResearchBook extends Item {
             // assume it will be completed next
             completedAndQueuedResearches.add(getCurrentResearch(stack));
 
-        for (Config.Research r : Config.INSTANCE.researchList) {
+        for (ResearchConfig.Research r : ResearchConfig.INSTANCE.researchList) {
             if (completedAndQueuedResearches.containsAll(r.requiredResearches) && !completedAndQueuedResearches.contains(r.id) && !r.id.equals(getCurrentResearch(stack))) {
                 // return all except already completed or already in queue or currently researched
                 availableResearch.add(r);

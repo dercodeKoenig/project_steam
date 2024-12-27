@@ -1,33 +1,46 @@
 package ResearchSystem.EngineeringStation;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.NonNullList;
 import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.ResultSlot;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.crafting.CraftingInput;
+import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.minecraft.world.item.crafting.RecipeHolder;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+
+import java.util.Optional;
 
 import static ResearchSystem.Registry.ENTITY_ENGINEERING_STATION;
 
 public class EntityEngineeringStation extends BlockEntity {
 
-    public ItemStackHandlerWithStackAccess craftingInventory = new ItemStackHandlerWithStackAccess(9){
+    public CraftingContainerItemStackHandler craftingInventory = new CraftingContainerItemStackHandler(3,3){
         @Override
         public void onContentsChanged(int slot){
-            setChanged();
+            EntityEngineeringStation.super.setChanged();
             updateCraftingContainerFromCraftingInventory();
-            resultContainer.setItem(0,new ItemStack(Items.COAL,1));
         }
     };
-    public AFuckingCraftingContainer craftingContainer = new AFuckingCraftingContainer(3,3,craftingInventory.getStacks());
-    void updateCraftingContainerFromCraftingInventory(){
-        for (int i = 0; i < craftingInventory.getSlots(); i++) {
-            craftingContainer.setItem(i,craftingInventory.getStackInSlot(i));
+    void updateCraftingContainerFromCraftingInventory() {
+        if (ServerLifecycleHooks.getCurrentServer() == null || level == null) return;
+
+        CraftingInput craftInput = craftingInventory.asCraftInput();
+        Optional<RecipeHolder<CraftingRecipe>> optional = ServerLifecycleHooks.getCurrentServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftInput, level);
+        if (optional.isPresent()) {
+            RecipeHolder<CraftingRecipe> icraftingrecipe = optional.get();
+            resultContainer.setRecipeUsed(icraftingrecipe);
+
+            ItemStack result = icraftingrecipe.value().assemble(craftInput, level.registryAccess());
+            resultContainer.setItem(0,result);
+        }else{
+            resultContainer.setItem(0,ItemStack.EMPTY);
         }
+
     }
     public ResultContainer resultContainer = new ResultContainer();
 
@@ -42,6 +55,10 @@ public class EntityEngineeringStation extends BlockEntity {
     public EntityEngineeringStation( BlockPos pos, BlockState blockState) {
         super(ENTITY_ENGINEERING_STATION.get(), pos, blockState);
     }
+@Override
+public void onLoad(){
+updateCraftingContainerFromCraftingInventory();
+}
 
     public void tick(){
 

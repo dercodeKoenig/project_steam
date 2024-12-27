@@ -29,7 +29,12 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                         i, craftingx+i%3*18, craftingy+i/3*18));
             }
 
-        addSlot(new ResultSlot(playerInv.player,station!=null?station.craftingContainer:new AFuckingCraftingContainer(3,3),station!=null?station.resultContainer:new ResultContainer(),0,10,30));
+        addSlot(new SlotItemHandler(station!=null?station.bookInventory:new ItemStackHandler(1),0,10,35));
+        addSlot(new ResultSlot(
+                playerInv.player,station!=null?station.craftingInventory:new CraftingContainerItemStackHandler(3,3),
+                station!=null?station.resultContainer:new ResultContainer(),
+                0,150,35
+                ));
 
         int yoffset = 65;
         for (int i = 9; i < 9*4; i++) {

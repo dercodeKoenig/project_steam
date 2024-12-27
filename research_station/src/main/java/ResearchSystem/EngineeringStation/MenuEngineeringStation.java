@@ -17,6 +17,8 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
@@ -49,6 +51,13 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
             @Override
             public void onTake(Player player, ItemStack stack) {
                 if (station != null) {
+
+                    // store items to re-stock them from inventory
+                    List<ItemStack> savedStacks = new ArrayList<>();
+                    for (int i = 0; i < station.craftingInventory.getSlots(); i++) {
+                        savedStacks.add(station.craftingInventory.getStackInSlot(i).copy());
+                    }
+
                     CraftingInput craftInput = station.craftingInventory.asCraftInput();
                     Optional<RecipeHolder<CraftingRecipe>> optional = ServerLifecycleHooks.getCurrentServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftInput, station.getLevel());
                     if (optional.isPresent()) {
@@ -70,11 +79,13 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                                             itemstack.shrink(inp.input.amount);
                                             ItemStack toProduce = ItemUtils.getItemStackFromId(inp.onComplete.id,inp.onComplete.amount,station.getLevel().registryAccess());
                                             if(toProduce!=null){
-                                                moveItemStackTo(toProduce,11,11+4*9,false);
+                                                moveItemStackTo(toProduce,11,11+4*9+18,false);
                                                 if(!toProduce.isEmpty()){
                                                     Block.popResource(station.getLevel(),station.getBlockPos(),toProduce);
                                                 }
                                             }
+                                            // so that it recomputes the recipe slot and sets itself changed
+                                            station.craftingInventory.setChanged();
                                         }
                                     }
                                 }
@@ -83,16 +94,41 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                             }
                         }
                     }
+
+                    // now re-stock from inventory
+                    for (int i = 0; i < station.craftingInventory.getSlots(); i++) {
+                        ItemStack stackInSlot = station.craftingInventory.getStackInSlot(i);
+                        ItemStack savedStack = savedStacks.get(i);
+                        for (int j = 0; j < station.inputInventory.getSlots(); j++) {
+                            int diff = savedStack.getCount()-stackInSlot.getCount();
+                            if(diff == 0)break;
+                            ItemStack availableStack = station.inputInventory.getStackInSlot(j);
+                            if(ItemStack.isSameItemSameComponents(availableStack,savedStack)){
+                               ItemStack remaining = station.craftingInventory.insertItem(i,availableStack,true);
+                               int toInsert = Math.min(diff, availableStack.getCount()-remaining.getCount());
+                               if(toInsert > 0){
+                                   ItemStack extracted = station.inputInventory.extractItem(j,toInsert,false);
+                                   station.craftingInventory.insertItem(i,extracted,false);
+                               }
+                            }
+                        }
+                    }
                 }
             }
         });
         //10+
-        int yoffset = 65;
+
+        int yoffset2 = 105;
         for (int i = 0; i < 9; i++) {
-            addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, 75 + yoffset));
+            addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, 75 + yoffset2));
         }
         for (int i = 9; i < 9 * 4; i++) {
-            addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, yoffset + i / 9 * 18));
+            addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, yoffset2 + i / 9 * 18));
+        }
+        
+        int yoffset = 75;
+        for (int i = 0; i < 18; i++) {
+            addSlot(new SlotItemHandler(station!=null?station.inputInventory:new ItemStackHandler(18), i, 10 + i % 9 * 18, yoffset + i / 9 * 18));
         }
     }
 
@@ -104,7 +140,7 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
             stack = slot.getItem();
             ItemStack stack1 = stack.copy();
             if (index == 10) {
-                if(!moveItemStackTo(stack1, 11, 11 + 4 * 9, false)){
+                if(!moveItemStackTo(stack1, 11, 11 + 4 * 9+18, false)){
                  return ItemStack.EMPTY;
                 }
                 slots.get(index).onQuickCraft(stack, stack1);

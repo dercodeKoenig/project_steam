@@ -12,6 +12,8 @@ public class ScreenEngineeringStation extends AbstractContainerScreen<MenuEngine
         super(menu, playerInventory, title);
 
         this.imageWidth = 180;
+        this.imageHeight=205;
+        this.inventoryLabelY = this.imageHeight - 94;
     }
 
     @Override

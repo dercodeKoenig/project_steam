@@ -2,6 +2,7 @@ package ResearchSystem.EngineeringStation;
 
 import ARLib.ARLib;
 import ARLib.utils.ItemUtils;
+import ResearchSystem.ItemResearchBook;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
@@ -56,9 +57,14 @@ public class EntityEngineeringStation extends BlockEntity {
                         }
                     }
                     if (matches) {
-                        resultContainer.setItem(0, ItemUtils.getItemStackFromId(r.output.id, r.output.amount, level.registryAccess()));
-                        foundMatch = true;
-                        break;
+                        ItemStack bookStack = bookInventory.getStackInSlot(0);
+                        if(bookStack.getItem() instanceof ItemResearchBook irb) {
+                            if (irb.getCompletedResearches_readOnly(bookStack).contains(r.requiredResearch)) {
+                                resultContainer.setItem(0, ItemUtils.getItemStackFromId(r.output.id, r.output.amount, level.registryAccess()));
+                                foundMatch = true;
+                                break;
+                            }
+                        }
                     }
                 }
             }
@@ -72,7 +78,12 @@ public class EntityEngineeringStation extends BlockEntity {
     ItemStackHandler bookInventory = new ItemStackHandler(1){
         @Override
         public void onContentsChanged(int slot){
-            setChanged();
+            EntityEngineeringStation.super.setChanged();
+            updateCraftingContainerFromCraftingInventory();
+        }
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            return stack.getItem() instanceof ItemResearchBook;
         }
     };
 

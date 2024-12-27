@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=south": { "model": "research_station:block/engineering_station" },
+    "facing=west": { "model": "research_station:block/engineering_station", "y": 90 },
+    "facing=north": { "model": "research_station:block/engineering_station", "y": 180 },
+    "facing=east": { "model": "research_station:block/engineering_station", "y": 270 }
+  }
+}

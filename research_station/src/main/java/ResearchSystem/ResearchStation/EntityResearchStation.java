@@ -1,4 +1,4 @@
-package ResearchStation;
+package ResearchSystem.ResearchStation;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.*;
@@ -6,7 +6,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
-import ResearchStation.Config.ResearchConfig;
+import ResearchSystem.ItemResearchBook;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -22,7 +22,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ResearchStation.Registry.ENTITY_RESEARCH_STATION;
+import static ResearchSystem.Registry.ENTITY_RESEARCH_STATION;
 
 
 public class EntityResearchStation extends BlockEntity implements INetworkTagReceiver {

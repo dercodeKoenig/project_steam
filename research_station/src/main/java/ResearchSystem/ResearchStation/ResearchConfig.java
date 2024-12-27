@@ -1,4 +1,4 @@
-package ResearchStation.Config;
+package ResearchSystem.ResearchStation;
 
 import ARLib.utils.RecipePart;
 import com.google.gson.Gson;

@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static ARLib.utils.ItemUtils.getFluidStackFromId;
-import static ARLib.utils.ItemUtils.getItemStackFromId;
+import static ARLib.utils.ItemUtils.getItemStackFromIdOrTag;
 
 public class MultiblockMachineRecipeManager<T extends EntityMultiblockMachineMaster> {
 
@@ -31,7 +31,7 @@ public class MultiblockMachineRecipeManager<T extends EntityMultiblockMachineMas
         ItemFluidStacks r = new ItemFluidStacks();
         if(currentRecipe != null){
             for (RecipePartWithProbability i:currentRecipe.outputs){
-                ItemStack istack = getItemStackFromId(i.id, i.getRandomAmount(),master.getLevel().registryAccess());
+                ItemStack istack = getItemStackFromIdOrTag(i.id, i.getRandomAmount(),master.getLevel().registryAccess());
                 FluidStack fstack = getFluidStackFromId(i.id, i.getRandomAmount());
                 if(istack!=null)
                     r.itemStacks.add(istack);

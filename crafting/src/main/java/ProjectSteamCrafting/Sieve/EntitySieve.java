@@ -347,7 +347,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
                         ++actual_num;
                     }
                 }
-                ItemStack output = ItemUtils.getItemStackFromId(item.id, actual_num,level.registryAccess());
+                ItemStack output = ItemUtils.getItemStackFromIdOrTag(item.id, actual_num,level.registryAccess());
                 for (Direction i : Direction.values()) {
                     if(i==Direction.UP)continue;
                     IItemHandler inv = level.getCapability(Capabilities.ItemHandler.BLOCK, getBlockPos().relative(i), i.getOpposite());

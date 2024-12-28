@@ -301,7 +301,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
                 w.currentInput = stack.copyWithCount(1);
                 for (RecipePartWithProbability i : r.outputItems) {
                     i.computeRandomAmount();
-                    w.outputStacks.add(ItemUtils.getItemStackFromId(i.id, i.getRandomAmount(), level.registryAccess()));
+                    w.outputStacks.add(ItemUtils.getItemStackFromIdOrTag(i.id, i.getRandomAmount(), level.registryAccess()));
                 }
                 w.additionalResistance = r.additionalResistance;
                 stack.shrink(1);

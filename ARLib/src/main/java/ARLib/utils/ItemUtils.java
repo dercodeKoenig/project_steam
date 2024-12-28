@@ -68,14 +68,20 @@ public class ItemUtils {
     }
 
     // id is the item ID string, e.g., "minecraft:diamond"
-    public static ItemStack getItemStackFromId(String id, int count, RegistryAccess registry) {
-
-
-      List<Item> itemsInTag = getItemsFromTag(id,registry);
+    public static ItemStack getItemStackFromIdOrTag(String id, int count, RegistryAccess registry) {
+        List<Item> itemsInTag = getItemsFromTag(id,registry);
         if(itemsInTag!=null && !itemsInTag.isEmpty()){
             return new ItemStack(itemsInTag.getFirst(),count);
         }
 
+        ResourceLocation itemId = ResourceLocation.tryParse(id);
+        Item item = BuiltInRegistries.ITEM.get(itemId);
+        if(item == Items.AIR)return null;
+        return new ItemStack(item, count);
+    }
+
+    // id is the item ID string, e.g., "minecraft:diamond"
+    public static ItemStack getItemStackFromid(String id, int count) {
         ResourceLocation itemId = ResourceLocation.tryParse(id);
         Item item = BuiltInRegistries.ITEM.get(itemId);
         if(item == Items.AIR)return null;

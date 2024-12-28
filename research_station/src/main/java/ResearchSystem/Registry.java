@@ -1,6 +1,7 @@
 package ResearchSystem;
 
 import ResearchSystem.EngineeringStation.BlockEngineeringStation;
+import ResearchSystem.EngineeringStation.recipeConfig;
 import ResearchSystem.EngineeringStation.EntityEngineeringStation;
 import ResearchSystem.EngineeringStation.MenuEngineeringStation;
 import ResearchSystem.ResearchStation.BlockResearchStation;
@@ -10,6 +11,8 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;

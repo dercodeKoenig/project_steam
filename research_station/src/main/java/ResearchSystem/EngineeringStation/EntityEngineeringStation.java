@@ -1,12 +1,9 @@
 package ResearchSystem.EngineeringStation;
 
-import ARLib.ARLib;
 import ARLib.utils.ItemUtils;
 import ResearchSystem.ItemResearchBook;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
@@ -42,13 +39,13 @@ public class EntityEngineeringStation extends BlockEntity {
             resultContainer.setItem(0, result);
         } else {
             boolean foundMatch = false;
-            for (EngineeringConfig.Recipe r : EngineeringConfig.INSTANCE.recipeList) {
-                String[] shrinkedPattern = EngineeringConfig.shrink(r.pattern);
+            for (recipeConfig.Recipe r : recipeConfig.INSTANCE.recipeList) {
+                String[] shrinkedPattern = recipeConfig.shrink(r.pattern);
                 if (craftInput.width() == shrinkedPattern[0].length() && craftInput.height() == shrinkedPattern.length) {
                     boolean matches = true;
                     for (int i = 0; i < craftInput.height(); ++i) {
                         for (int j = 0; j < craftInput.width(); ++j) {
-                            EngineeringConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
+                            recipeConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
                             String id = inp.input.id;
                             ItemStack itemstack = craftInput.getItem(j, i);
                             if (!ItemUtils.matches(id, itemstack) || itemstack.getCount() < inp.input.amount) {
@@ -60,7 +57,7 @@ public class EntityEngineeringStation extends BlockEntity {
                         ItemStack bookStack = bookInventory.getStackInSlot(0);
                         if(bookStack.getItem() instanceof ItemResearchBook irb) {
                             if (irb.getCompletedResearches_readOnly(bookStack).contains(r.requiredResearch)) {
-                                resultContainer.setItem(0, ItemUtils.getItemStackFromId(r.output.id, r.output.amount, level.registryAccess()));
+                                resultContainer.setItem(0, ItemUtils.getItemStackFromIdOrTag(r.output.id, r.output.amount, level.registryAccess()));
                                 foundMatch = true;
                                 break;
                             }

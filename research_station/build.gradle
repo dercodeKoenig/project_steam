@@ -120,7 +120,7 @@ dependencies {
 
     implementation 'com.google.code.gson:gson:2.10'
 
-    //implementation "curse.maven:jei-238222:5846880"
+    implementation "curse.maven:jei-238222:5846880"
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

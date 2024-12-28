@@ -64,20 +64,20 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                         super.onTake(player,stack);
                     }else{
                         // it was a research recipe, consume inputs and produce outputs.
-                        for (EngineeringConfig.Recipe r : EngineeringConfig.INSTANCE.recipeList) {
-                            String[] shrinkedPattern = EngineeringConfig.shrink(r.pattern);
+                        for (recipeConfig.Recipe r : recipeConfig.INSTANCE.recipeList) {
+                            String[] shrinkedPattern = recipeConfig.shrink(r.pattern);
                             if (craftInput.width() == shrinkedPattern[0].length() && craftInput.height() == shrinkedPattern.length) {
                                 boolean matches = true;
                                 for (int i = 0; i < craftInput.height(); ++i) {
                                     for (int j = 0; j < craftInput.width(); ++j) {
-                                        EngineeringConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
+                                        recipeConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
                                         String id = inp.input.id;
                                         ItemStack itemstack = craftInput.getItem(j, i);
                                         if (!ItemUtils.matches(id, itemstack) || itemstack.getCount() < inp.input.amount) {
                                             matches = false;
                                         }else{
                                             itemstack.shrink(inp.input.amount);
-                                            ItemStack toProduce = ItemUtils.getItemStackFromId(inp.onComplete.id,inp.onComplete.amount,station.getLevel().registryAccess());
+                                            ItemStack toProduce = ItemUtils.getItemStackFromIdOrTag(inp.onComplete.id,inp.onComplete.amount,station.getLevel().registryAccess());
                                             if(toProduce!=null){
                                                 moveItemStackTo(toProduce,11,11+4*9+18,false);
                                                 if(!toProduce.isEmpty()){

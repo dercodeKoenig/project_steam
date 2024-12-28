@@ -19,7 +19,7 @@ public class InventoryUtils {
         for (RecipePart part : elements) {
             int num = part.amount;
             String id = part.id;
-            ItemStack istack = getItemStackFromId(id, num, registry);
+            ItemStack istack = getItemStackFromIdOrTag(id, num, registry);
             if (istack != null) {
                 itemStacks.add(istack);
             }
@@ -158,7 +158,7 @@ public class InventoryUtils {
 
 
     public static <F extends IFluidHandler, I extends IItemHandler> void createElements(List<F> fluidHandlers, List<I> itemHandlers, String id_or_tag_to_produce, int num, RegistryAccess registry) {
-        ItemStack istack = getItemStackFromId(id_or_tag_to_produce, num, registry);
+        ItemStack istack = getItemStackFromIdOrTag(id_or_tag_to_produce, num, registry);
         if(istack != null){
             for (int i = 0; i < itemHandlers.size(); i++) {
                 for (int o = 0; o < itemHandlers.get(i).getSlots(); o++) {

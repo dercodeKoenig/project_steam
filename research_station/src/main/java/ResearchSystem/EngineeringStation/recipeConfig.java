@@ -10,6 +10,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
@@ -28,19 +29,19 @@ import java.util.List;
 import java.util.Map;
 
 
-public class EngineeringConfig {
+public class recipeConfig {
 
-    public static EngineeringConfig INSTANCE = loadConfig();
+    public static recipeConfig INSTANCE = loadConfig();
 
     public static class Recipe {
         public String requiredResearch = "";
-        RecipePart output = new RecipePart("minecraft:air",1);
-        List<String> pattern = new ArrayList<>();
-        Map<String,RecipeInput> keys = new HashMap<>();
+        public RecipePart output = new RecipePart("minecraft:air",1);
+        public List<String> pattern = new ArrayList<>();
+        public Map<String,RecipeInput> keys = new HashMap<>();
     }
     public static class RecipeInput{
-        RecipePart input = new RecipePart("");
-        RecipePart onComplete = new RecipePart("",0);
+        public RecipePart input = new RecipePart("");
+        public RecipePart onComplete = new RecipePart("",0);
         public RecipeInput(RecipePart in, RecipePart out){
             this.input = in;this.onComplete = out;
         }
@@ -103,12 +104,13 @@ public class EngineeringConfig {
     }
 
 
-    public EngineeringConfig() {
+    public recipeConfig() {
         Recipe t1 = new Recipe();
         t1.requiredResearch = "example Research 1";
         t1.pattern = List.of("   ","ABA","   ");
         t1.keys.put("A", new RecipeInput(new RecipePart("c:ingots/iron",2), new RecipePart("minecraft:stone")));
         t1.keys.put("B", new RecipeInput(new RecipePart("minecraft:string")));
+        t1.output = new RecipePart("minecraft:dirt",10);
         recipeList.add(t1);
     }
 
@@ -118,12 +120,19 @@ public class EngineeringConfig {
         }
     }
 
+    // because i can not call the direct jei method from here (the class may not be found if not installed),
+    // i let the plugin insert a runnable here and i execute it on recipe load.
+    // this way it should not crash when jei is not found.
+    public static Runnable jeiRunnableOnConfigLoad = null;
+
     public void loadConfig(String configString) {
-        EngineeringConfig.INSTANCE = new Gson().fromJson(configString, EngineeringConfig.class);
+        recipeConfig.INSTANCE = new Gson().fromJson(configString, recipeConfig.class);
         System.out.println("load config:" + configString);
+        if(jeiRunnableOnConfigLoad!=null)
+            jeiRunnableOnConfigLoad.run();
     }
 
-    public static EngineeringConfig loadConfig() {
+    public static recipeConfig loadConfig() {
         String filename = "research_recipe_list.json";
         Path configDir = Paths.get(FMLPaths.CONFIGDIR.get().toString());
         Path filePath = configDir.resolve(filename);
@@ -131,12 +140,12 @@ public class EngineeringConfig {
             // Create the config directory if it doesn't exist
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
-                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new EngineeringConfig()).getBytes(StandardCharsets.UTF_8));
+                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new recipeConfig()).getBytes(StandardCharsets.UTF_8));
             }
             // Load JSON from the file
             String jsonContent = Files.readString(filePath);
             Gson gson = new Gson();
-            EngineeringConfig c = gson.fromJson(jsonContent, EngineeringConfig.class);
+            recipeConfig c = gson.fromJson(jsonContent, recipeConfig.class);
             return c;
         } catch (JsonSyntaxException e) {
             System.err.println("Failed to parse config JSON");
@@ -173,7 +182,7 @@ public class EngineeringConfig {
 
         public static void readClient(final PacketConfigSync data, final IPayloadContext context) {
             String config = data.getConfig();
-            EngineeringConfig.INSTANCE.loadConfig(config);
+            recipeConfig.INSTANCE.loadConfig(config);
         }
         public static void readServer(final PacketConfigSync data, final IPayloadContext context) {
         }

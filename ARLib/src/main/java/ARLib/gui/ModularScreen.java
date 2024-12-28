@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ListIterator;
 import java.util.UUID;
 
 public class ModularScreen extends Screen {
@@ -54,7 +55,9 @@ public class ModularScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-        for (GuiModuleBase m : c.getModules()) {
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
             m.client_onMouseScrolled(mouseX, mouseY, scrollX, scrollY);
         }
         return false;
@@ -62,7 +65,9 @@ public class ModularScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double x, double y, int button) {
-        for (GuiModuleBase m : c.getModules()) {
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
             m.client_onMouseCLick(x, y, button);
         }
 
@@ -84,7 +89,9 @@ public class ModularScreen extends Screen {
     public void calculateGuiOffsetAndNotifyModules() {
         leftOffset = (this.width - guiW) / 2;
         topOffset = (this.height - guiH) / 2;
-        for (GuiModuleBase m : c.getModules()) {
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
             m.client_setGuiOffset(leftOffset, topOffset);
         }
     }
@@ -107,7 +114,9 @@ public class ModularScreen extends Screen {
                     guiW, guiH, 0, 0, 176, 171, 176, 171
             );
         }
-        for (GuiModuleBase m : c.getModules()) {
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
             m.render(guiGraphics, mouseX, mouseY, partialTick);
         }
         guiGraphics.pose().translate(0, 0, 100);

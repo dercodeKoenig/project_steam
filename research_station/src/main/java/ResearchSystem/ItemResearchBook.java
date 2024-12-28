@@ -34,45 +34,92 @@ public class ItemResearchBook extends Item {
     }
 
     public void makeGui(ItemStack bookStack) {
-        List<GuiModuleBase> modules = new ArrayList<>();
-
-        List<String> researchInQueue = getQueuedResearches_readOnly(bookStack);
-        List<String> researchCompleted = getCompletedResearches_readOnly(bookStack);
-
-        for (int n = 0; n < ResearchConfig.INSTANCE.researchList.size(); n++) {
-            ResearchConfig.Research i = ResearchConfig.INSTANCE.researchList.get(n);
-
-            String name = i.id;
-            int y = 14 * n + 2;
-            guiModuleText t = new guiModuleText(10000 + n, name, guiHandler, 2, y + 3, 0xFF000000, false);
-            modules.add(t);
-
-            guiModuleButton db = new guiModuleButton(20000 + n, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
-                @Override
-                public void onButtonClicked() {
-                    researchButtonCLicked(i.id);
-                }
-            };
-
-            db.color = 0xFFFFA0A0;
-            if(researchInQueue.contains(i.id) || i.id.equals(getCurrentResearch(bookStack))){
-                db.color = 0xFFF0F080;
-            }
-            if(researchCompleted.contains(i.id)){
-                db.color = 0xFFA0FFA0;
-            }
-            modules.add(db);
-        }
 
         guiHandler.getModules().clear();
         guiModuleImage i1 = new guiModuleImage(guiHandler, 0, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/book.png"), 148, 180);
         guiHandler.getModules().add(i1);
         guiModuleImage i2 = new guiModuleImage(guiHandler, 190, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/book.png"), 148, 180);
         guiHandler.getModules().add(i2);
-        guiModuleScrollContainer c = new guiModuleScrollContainer(modules, 0x00000000, guiHandler, 18, 7, 173, 183);
+
+        List<String> researchInQueue = getQueuedResearches_readOnly(bookStack);
+        List<String> researchCompleted = getCompletedResearches_readOnly(bookStack);
+
+        List<GuiModuleBase> researchList = new ArrayList<>();
+        for (int n = 0; n < ResearchConfig.INSTANCE.researchList.size(); n++) {
+            ResearchConfig.Research i = ResearchConfig.INSTANCE.researchList.get(n);
+
+            String name = i.id;
+            int y = 14 * n + 2;
+            guiModuleText t = new guiModuleText(10000 + n, name, guiHandler, 2, y + 3, 0xFF000000, false);
+            researchList.add(t);
+
+            guiModuleButton db = new guiModuleButton(20000 + n, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                @Override
+                public void onButtonClicked() {
+                    setSelectedResearchPreview(bookStack, i.id);
+                    makeGui(bookStack);
+                }
+            };
+
+            db.color = 0xFFFFA0A0;
+            if (researchInQueue.contains(i.id) || i.id.equals(getCurrentResearch(bookStack))) {
+                db.color = 0xFFF0F080;
+            }
+            if (researchCompleted.contains(i.id)) {
+                db.color = 0xFFA0FFA0;
+            }
+            researchList.add(db);
+        }
+
+        guiModuleScrollContainer c = new guiModuleScrollContainer(researchList, 0x00000000, guiHandler, 18, 7, 173, 183);
         guiHandler.getModules().add(c);
 
-        if(guiHandler.screen instanceof ModularScreen m)
+        List<GuiModuleBase> infoContainerModules = new ArrayList<>();
+
+        String previewId = getSelectedResearchPreview(bookStack);
+        if (!previewId.isEmpty()) {
+            ResearchConfig.Research selected = ResearchConfig.INSTANCE.getResearchMap().get(previewId);
+
+            //title
+            infoContainerModules.add(
+                    new guiModuleText(-1, previewId, guiHandler, 5, 10, 0xFF000000, false)
+            );
+
+
+            // requirements
+            int y = 30;
+            infoContainerModules.add(
+                    new guiModuleText(-2, "requirements:", guiHandler, 5, y, 0xFF000000, false)
+            );
+            y += 10;
+            for (String r : selected.requiredResearches) {
+                infoContainerModules.add(
+                        new guiModuleText(-y, r, guiHandler, 5, y+3, 0xFF000000, false)
+                );
+                guiModuleButton db = new guiModuleButton(-20000 -y, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                    @Override
+                    public void onButtonClicked() {
+                        setSelectedResearchPreview(bookStack, r);
+                        makeGui(bookStack);
+                    }
+                };
+
+                db.color = 0xFFFFA0A0;
+                if (researchInQueue.contains(r) || r.equals(getCurrentResearch(bookStack))) {
+                    db.color = 0xFFF0F080;
+                }
+                if (researchCompleted.contains(r)) {
+                    db.color = 0xFFA0FFA0;
+                }
+                infoContainerModules.add(db);
+
+                y += 10;
+            }
+        }
+        guiModuleScrollContainer infoContainer = new guiModuleScrollContainer(infoContainerModules,0x00000000,guiHandler,190+18,7,173,183);
+        guiHandler.getModules().add(infoContainer);
+
+        if (guiHandler.screen instanceof ModularScreen m)
             m.calculateGuiOffsetAndNotifyModules();
     }
 
@@ -326,9 +373,5 @@ public class ItemResearchBook extends Item {
             openGui(itemstack);
         }
         return InteractionResultHolder.success(itemstack);
-    }
-
-    void researchButtonCLicked(String name) {
-        System.out.println(name + " button clicked");
     }
 }

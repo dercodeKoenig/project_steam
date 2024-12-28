@@ -127,28 +127,28 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-super.saveAdditional(tag,registries);
-        tag.put("craftingInventory",craftingInventory.serializeNBT(registries));
-        tag.put("inputInventory",inputInventory.serializeNBT(registries));
-        tag.put("bookInventory",bookInventory.serializeNBT(registries));
+        super.saveAdditional(tag, registries);
+        tag.put("craftingInventory", craftingInventory.serializeNBT(registries));
+        tag.put("inputInventory", inputInventory.serializeNBT(registries));
+        tag.put("bookInventory", bookInventory.serializeNBT(registries));
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
-super.loadAdditional(tag,registries);
+        super.loadAdditional(tag, registries);
 
-        craftingInventory.deserializeNBT(registries,tag.getCompound ("craftingInventory"));
-        inputInventory.deserializeNBT(registries,tag.getCompound ("inputInventory"));
-        bookInventory.deserializeNBT(registries,tag.getCompound ("bookInventory"));
+        craftingInventory.deserializeNBT(registries, tag.getCompound("craftingInventory"));
+        inputInventory.deserializeNBT(registries, tag.getCompound("inputInventory"));
+        bookInventory.deserializeNBT(registries, tag.getCompound("bookInventory"));
     }
 
 
-        public void JEItransferResearchRecipe(
+    public void JEItransferResearchRecipe(
             List<List<String>> recipe,
             ServerPlayer player
     ) {
         if (recipe.size() != 9) return; // it should be 3x3
-            Inventory playerInv = player.getInventory();
+        Inventory playerInv = player.getInventory();
 
         for (int n = 0; n < 9; n++) {
             List<String> allowedInputsAtThisPosition = recipe.get(n);
@@ -156,7 +156,7 @@ super.loadAdditional(tag,registries);
             boolean needsClearSlot = true;
             ItemStack stackInSlot = craftingInventory.getStackInSlot(n);
             for (int i = 0; i < allowedInputsAtThisPosition.size(); i++) {
-                RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(i),RecipePart.class) ;
+                RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(i), RecipePart.class);
                 if (ItemUtils.matches(allowed.id, stackInSlot)) {
                     needsClearSlot = false;
                 }
@@ -165,16 +165,16 @@ super.loadAdditional(tag,registries);
             if (needsClearSlot) {
                 for (int i = 0; i < inputInventory.getSlots(); i++) {
                     stackInSlot = craftingInventory.getStackInSlot(n);
-                    int numBefore =stackInSlot.getCount();
+                    int numBefore = stackInSlot.getCount();
                     ItemStack remaining = inputInventory.insertItem(i, stackInSlot.copy(), false);
                     int wasInserted = numBefore - remaining.getCount();
                     stackInSlot.shrink(wasInserted);
                 }
 
-                    stackInSlot = craftingInventory.getStackInSlot(n);
-                    playerInv.placeItemBackInInventory(stackInSlot);
+                stackInSlot = craftingInventory.getStackInSlot(n);
+                playerInv.placeItemBackInInventory(stackInSlot);
 
-                if (!stackInSlot.isEmpty()){
+                if (!stackInSlot.isEmpty()) {
                     continue;
                 }
             }
@@ -184,7 +184,7 @@ super.loadAdditional(tag,registries);
                 ItemStack stackAvailable = inputInventory.getStackInSlot(i);
 
                 for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
-                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p),RecipePart.class) ;
+                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p), RecipePart.class);
                     if (ItemUtils.matches(allowed.id, stackAvailable)) {
                         int required = Math.max(0, allowed.amount - stackInSlot.getCount());
                         if (required == 0) {
@@ -196,8 +196,8 @@ super.loadAdditional(tag,registries);
                         extracted = inputInventory.extractItem(i, canInsert, false);
                         notInserted = craftingInventory.insertItem(n, extracted, false);
                         if (!notInserted.isEmpty()) {
-                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n+". Moving it back to input inventory");
-                            inputInventory.insertItem(i,notInserted,false);
+                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n + ". Moving it back to input inventory");
+                            inputInventory.insertItem(i, notInserted, false);
                         }
                     }
                 }
@@ -208,7 +208,7 @@ super.loadAdditional(tag,registries);
                 ItemStack stackAvailable = playerInv.getItem(i);
 
                 for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
-                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p),RecipePart.class) ;
+                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p), RecipePart.class);
                     if (ItemUtils.matches(allowed.id, stackAvailable)) {
                         int required = Math.max(0, allowed.amount - stackInSlot.getCount());
                         if (required == 0) {
@@ -221,7 +221,7 @@ super.loadAdditional(tag,registries);
                         playerInv.getItem(i).shrink(canInsert);
                         notInserted = craftingInventory.insertItem(n, extracted, false);
                         if (!notInserted.isEmpty()) {
-                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n+". Moving it back to player inventory");
+                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n + ". Moving it back to player inventory");
                             playerInv.getItem(i).grow(notInserted.getCount());
                         }
                     }

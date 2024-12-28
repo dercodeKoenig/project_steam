@@ -67,7 +67,7 @@ public class myPlugin implements IModPlugin {
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(ITEM_ENGINEERING_STATION.get()), RecipeTypes.CRAFTING);
-        registration.addRecipeCatalyst(ITEM_ENGINEERING_STATION.get(),RealNiceJeiCategory.recipeType);
+        registration.addRecipeCatalyst(ITEM_ENGINEERING_STATION.get(), RealNiceJeiCategory.recipeType);
     }
 
     @Override
@@ -135,6 +135,31 @@ public class myPlugin implements IModPlugin {
                                 List<String> allowedParts = new ArrayList<>();
                                 if (i < ings.size()) {
                                     for (ItemStack allowed : ings.get(i).getItems()) {
+                                        allowedParts.add(gson.toJson(new RecipePart(BuiltInRegistries.ITEM.getKey(allowed.getItem()).toString(), 1)));
+                                    }
+                                } else {
+                                    allowedParts.add(gson.toJson(new RecipePart()));
+                                }
+                                requiredItems.add(allowedParts);
+                            }
+                            data = gson.toJson(requiredItems);
+                        }
+
+                        if (h.value() instanceof ShapedRecipe s) {
+                            List<List<String>> requiredItems = new ArrayList<>();
+                            ShapedRecipePattern pattern = s.pattern;
+
+                            // if pattern is 2x2 the list is of size 4
+                            // if pattern is 3x3 the list is of size 9
+                            List<Ingredient> ings = pattern.ingredients();
+
+                            for (int i = 0; i < 9; i++) {
+                                List<String> allowedParts = new ArrayList<>();
+                                int y = i / 3;
+                                int x = i % 3;
+                                if (x < pattern.width() && y < pattern.height()) {
+                                    int patternIndex = x + pattern.width() * y;
+                                    for (ItemStack allowed : ings.get(patternIndex).getItems()) {
                                         allowedParts.add(gson.toJson(new RecipePart(BuiltInRegistries.ITEM.getKey(allowed.getItem()).toString(), 1)));
                                     }
                                 } else {

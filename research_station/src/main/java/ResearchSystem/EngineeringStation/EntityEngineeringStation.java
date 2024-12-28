@@ -233,7 +233,7 @@ super.loadAdditional(tag,registries);
 
     @Override
     public void readServer(CompoundTag compoundTag) {
-
+//System.out.println(compoundTag);
         if (compoundTag.contains("moveItems")) {
             CompoundTag moveItems = compoundTag.getCompound("moveItems");
             String data = moveItems.getString("data");

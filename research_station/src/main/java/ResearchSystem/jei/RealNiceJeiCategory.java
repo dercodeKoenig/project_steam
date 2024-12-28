@@ -1,7 +1,7 @@
 package ResearchSystem.jei;
 
 import ARLib.utils.ItemUtils;
-import ResearchSystem.EngineeringStation.recipeConfig;
+import ResearchSystem.Config.RecipeConfig;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
@@ -20,18 +20,18 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
 import org.jetbrains.annotations.Nullable;
 
-public  class RealNiceJeiCategory implements IRecipeCategory<recipeConfig.Recipe> {
+public  class RealNiceJeiCategory implements IRecipeCategory<RecipeConfig.Recipe> {
 
     public RealNiceJeiCategory() {
     }
 
-    public static final RecipeType<recipeConfig.Recipe> recipeType = new RecipeType<>(
+    public static final RecipeType<RecipeConfig.Recipe> recipeType = new RecipeType<>(
             ResourceLocation.fromNamespaceAndPath("research_station", "recipe_crafting"),
-            recipeConfig.Recipe.class
+            RecipeConfig.Recipe.class
     );
 
     @Override
-    public RecipeType<recipeConfig.Recipe> getRecipeType() {
+    public RecipeType<RecipeConfig.Recipe> getRecipeType() {
         return recipeType;
     }
 
@@ -56,7 +56,7 @@ public  class RealNiceJeiCategory implements IRecipeCategory<recipeConfig.Recipe
     }
 
     @Override
-    public void setRecipe(IRecipeLayoutBuilder builder, recipeConfig.Recipe recipe, IFocusGroup focuses) {
+    public void setRecipe(IRecipeLayoutBuilder builder, RecipeConfig.Recipe recipe, IFocusGroup focuses) {
 
 
         // Define inputs
@@ -64,7 +64,7 @@ public  class RealNiceJeiCategory implements IRecipeCategory<recipeConfig.Recipe
             String row = recipe.pattern.get(y);
             for (int x = 0; x < row.length(); x++) {
                 Character c = row.charAt(x);
-                recipeConfig.RecipeInput input = recipe.keys.get(String.valueOf(c));
+                RecipeConfig.RecipeInput input = recipe.keys.get(String.valueOf(c));
                 if (input == null) continue; // empty slot, (' ')
                 String id = input.input.id;
                 int num = input.input.amount;
@@ -102,7 +102,7 @@ public  class RealNiceJeiCategory implements IRecipeCategory<recipeConfig.Recipe
     }
 
     @Override
-    public void draw(recipeConfig.Recipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
+    public void draw(RecipeConfig.Recipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         // Optional: Draw custom text or graphics, such as energy cost.
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
@@ -148,7 +148,7 @@ public  class RealNiceJeiCategory implements IRecipeCategory<recipeConfig.Recipe
     }
 
     @Override
-    public boolean isHandled(recipeConfig.Recipe recipe) {
+    public boolean isHandled(RecipeConfig.Recipe recipe) {
         // Define whether this recipe should be shown or filtered out.
         return true;
     }

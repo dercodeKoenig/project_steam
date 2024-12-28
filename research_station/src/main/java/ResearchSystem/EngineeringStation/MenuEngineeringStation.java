@@ -1,6 +1,7 @@
 package ResearchSystem.EngineeringStation;
 
 import ARLib.utils.ItemUtils;
+import ResearchSystem.Config.RecipeConfig;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
@@ -68,13 +69,13 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                         super.onTake(player, stack);
                     } else {
                         // it was a research recipe, consume inputs and produce outputs.
-                        for (recipeConfig.Recipe r : recipeConfig.INSTANCE.recipeList) {
-                            String[] shrinkedPattern = recipeConfig.shrink(r.pattern);
+                        for (RecipeConfig.Recipe r : RecipeConfig.INSTANCE.recipeList) {
+                            String[] shrinkedPattern = RecipeConfig.shrink(r.pattern);
                             if (craftInput.width() == shrinkedPattern[0].length() && craftInput.height() == shrinkedPattern.length) {
                                 boolean matches = true;
                                 for (int i = 0; i < craftInput.height(); ++i) {
                                     for (int j = 0; j < craftInput.width(); ++j) {
-                                        recipeConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
+                                        RecipeConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
                                         String id = inp.input.id;
                                         ItemStack itemstack = craftInput.getItem(j, i);
                                         if (!ItemUtils.matches(id, itemstack) || itemstack.getCount() < inp.input.amount) {

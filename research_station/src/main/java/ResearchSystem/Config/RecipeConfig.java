@@ -1,4 +1,4 @@
-package ResearchSystem.EngineeringStation;
+package ResearchSystem.Config;
 
 import ARLib.utils.RecipePart;
 import com.google.gson.Gson;
@@ -10,7 +10,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
@@ -29,9 +28,9 @@ import java.util.List;
 import java.util.Map;
 
 
-public class recipeConfig {
+public class RecipeConfig {
 
-    public static recipeConfig INSTANCE = loadConfig();
+    public static RecipeConfig INSTANCE = loadConfig();
 
     public static class Recipe {
         public String requiredResearch = "";
@@ -104,7 +103,7 @@ public class recipeConfig {
     }
 
 
-    public recipeConfig() {
+    public RecipeConfig() {
         Recipe t1 = new Recipe();
         t1.requiredResearch = "example Research 1";
         t1.pattern = List.of("   ","ABA","   ");
@@ -126,13 +125,13 @@ public class recipeConfig {
     public static Runnable jeiRunnableOnConfigLoad = null;
 
     public void loadConfig(String configString) {
-        recipeConfig.INSTANCE = new Gson().fromJson(configString, recipeConfig.class);
+        RecipeConfig.INSTANCE = new Gson().fromJson(configString, RecipeConfig.class);
         System.out.println("load config:" + configString);
         if(jeiRunnableOnConfigLoad!=null)
             jeiRunnableOnConfigLoad.run();
     }
 
-    public static recipeConfig loadConfig() {
+    public static RecipeConfig loadConfig() {
         String filename = "research_recipe_list.json";
         Path configDir = Paths.get(FMLPaths.CONFIGDIR.get().toString());
         Path filePath = configDir.resolve(filename);
@@ -140,12 +139,12 @@ public class recipeConfig {
             // Create the config directory if it doesn't exist
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
-                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new recipeConfig()).getBytes(StandardCharsets.UTF_8));
+                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new RecipeConfig()).getBytes(StandardCharsets.UTF_8));
             }
             // Load JSON from the file
             String jsonContent = Files.readString(filePath);
             Gson gson = new Gson();
-            recipeConfig c = gson.fromJson(jsonContent, recipeConfig.class);
+            RecipeConfig c = gson.fromJson(jsonContent, RecipeConfig.class);
             return c;
         } catch (JsonSyntaxException e) {
             System.err.println("Failed to parse config JSON");
@@ -182,7 +181,7 @@ public class recipeConfig {
 
         public static void readClient(final PacketConfigSync data, final IPayloadContext context) {
             String config = data.getConfig();
-            recipeConfig.INSTANCE.loadConfig(config);
+            RecipeConfig.INSTANCE.loadConfig(config);
         }
         public static void readServer(final PacketConfigSync data, final IPayloadContext context) {
         }

@@ -7,6 +7,7 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
+import ResearchSystem.Config.ResearchConfig;
 import ResearchSystem.ItemResearchBook;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -209,7 +210,7 @@ guiHandler.getModules().add(progressBar);
                 researchQueue.modules.add(db);
             }
 
-            List<ResearchConfig.Research> available = irb.getAvailableResearches(bookStack);
+            List<ResearchSystem.Config.ResearchConfig.Research> available = irb.getAvailableResearches(bookStack);
             for (int i = 0; i < available.size(); i++) {
                 String name = available.get(i).id;
                 int y = 14 * i + 2;

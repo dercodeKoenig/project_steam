@@ -1,8 +1,8 @@
 package ResearchSystem;
 
-import ResearchSystem.EngineeringStation.recipeConfig;
+import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.EngineeringStation.ScreenEngineeringStation;
-import ResearchSystem.ResearchStation.ResearchConfig;
+import ResearchSystem.Config.ResearchConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -56,13 +56,13 @@ public class Main {
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
         ResearchConfig.PacketConfigSync.register(registrar);
-        recipeConfig.PacketConfigSync.register(registrar);
+        RecipeConfig.PacketConfigSync.register(registrar);
     }
 
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
         if(login.getEntity() instanceof ServerPlayer p){
             ResearchConfig.INSTANCE.SyncConfig(p);
-            recipeConfig.INSTANCE.SyncConfig(p);
+            RecipeConfig.INSTANCE.SyncConfig(p);
         }
     }
 

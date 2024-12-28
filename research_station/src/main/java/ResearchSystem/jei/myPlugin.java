@@ -1,13 +1,10 @@
 package ResearchSystem.jei;
 
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.DimensionUtils;
-import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.EngineeringStation.MenuEngineeringStation;
-import ResearchSystem.EngineeringStation.recipeConfig;
+import ResearchSystem.Config.RecipeConfig;
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.constants.RecipeTypes;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
@@ -19,7 +16,6 @@ import mezz.jei.api.registration.IRecipeRegistration;
 import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
-import net.minecraft.core.NonNullList;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -29,14 +25,10 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.apache.commons.compress.harmony.unpack200.IMatcher;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.awt.*;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -110,14 +102,14 @@ public class myPlugin implements IModPlugin {
                 if (doTransfer) {
                     Gson gson = new Gson();
                     String data = "";
-                    if (recipe instanceof recipeConfig.Recipe h) {
+                    if (recipe instanceof RecipeConfig.Recipe h) {
                         List<List<String>> requiredItems = new ArrayList<>();
                         for (int y = 0; y < h.pattern.size(); y++) {
                             for (int x = 0; x < h.pattern.get(y).length(); x++) {
                                 List<String> allowedParts = new ArrayList<>();
                                 String c = String.valueOf(h.pattern.get(y).charAt(x));
                                 if (h.keys.containsKey(c)) {
-                                    recipeConfig.RecipeInput i = h.keys.get(c);
+                                    RecipeConfig.RecipeInput i = h.keys.get(c);
                                     allowedParts.add(gson.toJson(i.input));
                                 } else {
                                     allowedParts.add(gson.toJson(new RecipePart()));
@@ -191,13 +183,13 @@ public class myPlugin implements IModPlugin {
     // I refuse to use the built in recipe system because it is complicated and i like to do things my way
     // so i made the recipe config execute this runnable on config sync
     public void onConfigReceived() {
-        runtime.getRecipeManager().addRecipes(RealNiceJeiCategory.recipeType, recipeConfig.INSTANCE.recipeList);
+        runtime.getRecipeManager().addRecipes(RealNiceJeiCategory.recipeType, RecipeConfig.INSTANCE.recipeList);
         System.out.println("delayed jei registration completed");
     }
 
     @Override
     public void onRuntimeAvailable(IJeiRuntime jeiRuntime) {
         runtime = jeiRuntime;
-        recipeConfig.jeiRunnableOnConfigLoad = this::onConfigReceived;
+        RecipeConfig.jeiRunnableOnConfigLoad = this::onConfigReceived;
     }
 }

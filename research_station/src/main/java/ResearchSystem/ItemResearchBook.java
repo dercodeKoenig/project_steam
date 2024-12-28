@@ -5,9 +5,12 @@ import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
+import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
+import ResearchSystem.EngineeringStation.recipeConfig;
 import ResearchSystem.ResearchStation.EntityResearchStation;
 import ResearchSystem.ResearchStation.ResearchConfig;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
 import net.minecraft.resources.ResourceLocation;
@@ -16,6 +19,7 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -86,8 +90,28 @@ public class ItemResearchBook extends Item {
             );
 
 
+            //unlocked items
+            infoContainerModules.add(
+                    new guiModuleText(-2, "Unlocked Items:", guiHandler, 5, 25, 0xFF000000, false)
+            );
+
+            int itemsInRow = 5;
+            int baseX = 5;
+            int baseY = 35;
+            int n = 0;
+            for(recipeConfig.Recipe i : recipeConfig.INSTANCE.recipeList) {
+                int x = n % itemsInRow * 18 + baseX;
+                int y = n/itemsInRow*18+baseY;
+                if (i.requiredResearch.equals(previewId)) {
+                    infoContainerModules.add(
+new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.output.id,1, Minecraft.getInstance().player.level().registryAccess()).getItem())
+                    );
+                }
+                n++;
+            }
+
             // requirements
-            int y = 30;
+            int y = 30+n/itemsInRow*18+baseY;
             infoContainerModules.add(
                     new guiModuleText(-2, "requirements:", guiHandler, 5, y, 0xFF000000, false)
             );
@@ -115,6 +139,8 @@ public class ItemResearchBook extends Item {
 
                 y += 10;
             }
+
+
         }
         guiModuleScrollContainer infoContainer = new guiModuleScrollContainer(infoContainerModules,0x00000000,guiHandler,190+18,7,173,183);
         guiHandler.getModules().add(infoContainer);

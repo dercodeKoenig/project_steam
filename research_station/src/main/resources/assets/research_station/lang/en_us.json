@@ -1,5 +1,10 @@
 {
-  "block.projectsteam_aw2_generators.waterwheel_generator": "Water Wheel Generator",
-  "item.projectsteam_aw2_generators.waterwheel_generator": "Water Wheel Generator"
+  "block.research_station.research_station": "Research Station",
+  "item.research_station.research_station": "Research Station",
+
+  "block.research_station.engineering_station": "Engineering Station",
+  "item.research_station.engineering_station": "Engineering Station",
+
+  "item.research_station.research_book": "Research Book"
 }
 

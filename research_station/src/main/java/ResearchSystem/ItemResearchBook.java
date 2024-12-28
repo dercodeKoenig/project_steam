@@ -3,13 +3,11 @@ package ResearchSystem;
 import ARLib.gui.GuiHandlerMainHandItem;
 import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
-import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
-import ResearchSystem.EngineeringStation.recipeConfig;
-import ResearchSystem.ResearchStation.EntityResearchStation;
-import ResearchSystem.ResearchStation.ResearchConfig;
+import ResearchSystem.Config.RecipeConfig;
+import ResearchSystem.Config.ResearchConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
@@ -19,11 +17,9 @@ import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -99,28 +95,28 @@ public class ItemResearchBook extends Item {
             int baseX = 5;
             int baseY = 35;
             int n = 0;
-            for(recipeConfig.Recipe i : recipeConfig.INSTANCE.recipeList) {
+            for (RecipeConfig.Recipe i : RecipeConfig.INSTANCE.recipeList) {
                 int x = n % itemsInRow * 18 + baseX;
-                int y = n/itemsInRow*18+baseY;
+                int y = n / itemsInRow * 18 + baseY;
                 if (i.requiredResearch.equals(previewId)) {
                     infoContainerModules.add(
-new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.output.id,1, Minecraft.getInstance().player.level().registryAccess()).getItem())
+                            new guiModuleItemPreview(guiHandler, x, y, ItemUtils.getItemStackFromIdOrTag(i.output.id, 1, Minecraft.getInstance().player.level().registryAccess()).getItem())
                     );
                 }
                 n++;
             }
 
             // requirements
-            int y = 30+n/itemsInRow*18+baseY;
+            int y = 30 + n / itemsInRow * 18 + baseY;
             infoContainerModules.add(
                     new guiModuleText(-2, "requirements:", guiHandler, 5, y, 0xFF000000, false)
             );
             y += 10;
             for (String r : selected.requiredResearches) {
                 infoContainerModules.add(
-                        new guiModuleText(-y, r, guiHandler, 5, y+3, 0xFF000000, false)
+                        new guiModuleText(-y, r, guiHandler, 5, y + 3, 0xFF000000, false)
                 );
-                guiModuleButton db = new guiModuleButton(-20000 -y, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                guiModuleButton db = new guiModuleButton(-20000 - y, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         setSelectedResearchPreview(bookStack, r);
@@ -142,7 +138,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
 
 
         }
-        guiModuleScrollContainer infoContainer = new guiModuleScrollContainer(infoContainerModules,0x00000000,guiHandler,190+18,7,173,183);
+        guiModuleScrollContainer infoContainer = new guiModuleScrollContainer(infoContainerModules, 0x00000000, guiHandler, 190 + 18, 7, 173, 183);
         guiHandler.getModules().add(infoContainer);
 
         if (guiHandler.screen instanceof ModularScreen m)
@@ -192,7 +188,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
     public void setSelectedResearchPreview(ItemStack stack, String researchId) {
         CompoundTag itemTag = getStackTagOrEmpty(stack);
         itemTag.putString("selectedResearchPreview", researchId);
-        setStackTag(stack,itemTag);
+        setStackTag(stack, itemTag);
     }
 
     public String getCurrentResearch(CompoundTag itemTag) {
@@ -207,7 +203,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
     public void setCurrentResearch(ItemStack stack, String researchId) {
         CompoundTag itemTag = getStackTagOrEmpty(stack);
         itemTag.putString("currentResearch", researchId);
-        setStackTag(stack,itemTag);
+        setStackTag(stack, itemTag);
     }
 
     public int getCurrentProgress(CompoundTag itemTag) {
@@ -222,7 +218,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
     public void setCurrentProgress(ItemStack stack, int progress) {
         CompoundTag itemTag = getStackTagOrEmpty(stack);
         itemTag.putInt("currentProgress", progress);
-        setStackTag(stack,itemTag);
+        setStackTag(stack, itemTag);
     }
 
     public List<String> getCompletedResearches_readOnly(CompoundTag itemTag) {
@@ -278,7 +274,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
     public void removeInvalidQueuedResearches(ItemStack stack) {
         List<String> queuedResearches = getQueuedResearches_readOnly(stack);
         List<String> completedResearches = getCompletedResearches_readOnly(stack);
-        if(!getCurrentResearch(stack).isEmpty())
+        if (!getCurrentResearch(stack).isEmpty())
             // if a research is in progress, assume it is completed to step to the next one
             completedResearches.add(getCurrentResearch(stack));
 
@@ -325,8 +321,8 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
             if (!queued.isEmpty()) {
                 String first = queued.removeFirst();
                 ResearchConfig.Research i = ResearchConfig.INSTANCE.getResearchMap().get(first);
-                if(i==null){
-                    setCurrentResearch(stack,"");
+                if (i == null) {
+                    setCurrentResearch(stack, "");
                     setQueuedResearches(stack, queued);
                     return; // cam happen if config was changed
                 }
@@ -348,7 +344,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
             if (!queued.isEmpty()) {
                 String first = queued.getFirst();
                 ResearchConfig.Research c = ResearchConfig.INSTANCE.getResearchMap().get(first);
-                if(c!=null) // can happen if config was changes. dont want it to crash the game
+                if (c != null) // can happen if config was changes. dont want it to crash the game
                     return c.requiredItems;
                 else return List.of();
             }
@@ -377,7 +373,7 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
         List<String> completedAndQueuedResearches = new ArrayList<>();
         completedAndQueuedResearches.addAll(getCompletedResearches_readOnly(stack));
         completedAndQueuedResearches.addAll(getQueuedResearches_readOnly(stack));
-        if(!getCurrentResearch(stack).isEmpty())
+        if (!getCurrentResearch(stack).isEmpty())
             // assume it will be completed next
             completedAndQueuedResearches.add(getCurrentResearch(stack));
 
@@ -392,10 +388,9 @@ new guiModuleItemPreview(guiHandler,x,y, ItemUtils.getItemStackFromIdOrTag(i.out
     }
 
 
-
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
-        if (level.isClientSide && itemstack.getItem() instanceof  ItemResearchBook) {
+        if (level.isClientSide && itemstack.getItem() instanceof ItemResearchBook) {
             openGui(itemstack);
         }
         return InteractionResultHolder.success(itemstack);

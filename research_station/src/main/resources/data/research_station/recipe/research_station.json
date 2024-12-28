@@ -1,0 +1,28 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IWI",
+    "GTG",
+    "ICI"
+  ],
+  "key": {
+    "C": {
+      "item": "minecraft:chest"
+    },
+    "T": {
+      "item": "minecraft:crafting_table"
+    },
+    "W": {
+      "tag": "minecraft:planks"
+    },
+    "G": {
+      "tag": "c:ingots/gold"
+    },
+    "I": {
+      "tag": "c:ingots/iron"
+    }
+  },
+  "result": {
+    "id": "research_station:research_station"
+  }
+}

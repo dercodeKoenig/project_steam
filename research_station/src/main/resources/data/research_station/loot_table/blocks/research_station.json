@@ -6,7 +6,7 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "projectsteam_aw2_generators:stirling_generator"
+          "name": "research_station:research_station"
         }
       ]
     }

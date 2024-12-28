@@ -3,18 +3,14 @@ package ResearchSystem.EngineeringStation;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
+import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.ItemResearchBook;
 import com.google.gson.Gson;
-import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -51,13 +47,13 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
             resultContainer.setItem(0, result);
         } else {
             boolean foundMatch = false;
-            for (recipeConfig.Recipe r : recipeConfig.INSTANCE.recipeList) {
-                String[] shrinkedPattern = recipeConfig.shrink(r.pattern);
+            for (RecipeConfig.Recipe r : RecipeConfig.INSTANCE.recipeList) {
+                String[] shrinkedPattern = RecipeConfig.shrink(r.pattern);
                 if (craftInput.width() == shrinkedPattern[0].length() && craftInput.height() == shrinkedPattern.length) {
                     boolean matches = true;
                     for (int i = 0; i < craftInput.height(); ++i) {
                         for (int j = 0; j < craftInput.width(); ++j) {
-                            recipeConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
+                            RecipeConfig.RecipeInput inp = r.keys.get(String.valueOf(shrinkedPattern[i].charAt(j)));
                             String id = inp.input.id;
                             ItemStack itemstack = craftInput.getItem(j, i);
                             if (!ItemUtils.matches(id, itemstack) || itemstack.getCount() < inp.input.amount) {
@@ -145,7 +141,7 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
 
     public void JEItransferResearchRecipe(
             List<List<String>> recipe, // the target recipe, the List<String> holds valid ids for the slot
-            ServerPlayer player 
+            ServerPlayer player
     ) {
         if (recipe.size() != 9) return; // it should be 3x3
         Inventory playerInv = player.getInventory();
@@ -155,8 +151,8 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
 
             boolean needsClearSlot = true;
             ItemStack stackInSlot = craftingInventory.getStackInSlot(n);
-            for (int i = 0; i < allowedInputsAtThisPosition.size(); i++) {
-                RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(i), RecipePart.class);
+            for (String s : allowedInputsAtThisPosition) {
+                RecipePart allowed = new Gson().fromJson(s, RecipePart.class);
                 if (ItemUtils.matches(allowed.id, stackInSlot)) {
                     needsClearSlot = false;
                 }
@@ -207,8 +203,8 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
                 stackInSlot = craftingInventory.getStackInSlot(n);
                 ItemStack stackAvailable = playerInv.getItem(i);
 
-                for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
-                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p), RecipePart.class);
+                for (String s : allowedInputsAtThisPosition) {
+                    RecipePart allowed = new Gson().fromJson(s, RecipePart.class);
                     if (ItemUtils.matches(allowed.id, stackAvailable)) {
                         int required = Math.max(0, allowed.amount - stackInSlot.getCount());
                         if (required == 0) {

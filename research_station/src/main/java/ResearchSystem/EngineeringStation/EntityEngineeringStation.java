@@ -144,8 +144,8 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
 
 
     public void JEItransferResearchRecipe(
-            List<List<String>> recipe,
-            ServerPlayer player
+            List<List<String>> recipe, // the target recipe, the List<String> holds valid ids for the slot
+            ServerPlayer player 
     ) {
         if (recipe.size() != 9) return; // it should be 3x3
         Inventory playerInv = player.getInventory();

@@ -24,26 +24,29 @@ public  class RealNiceJeiCategory implements IRecipeCategory<recipeConfig.Recipe
 
     public RealNiceJeiCategory() {
     }
-     public static final RecipeType<recipeConfig.Recipe> recipeType = new RecipeType<>(
-             ResourceLocation.fromNamespaceAndPath("research_station", "recipe_crafting"),
-    recipeConfig.Recipe.class
-        );
+
+    public static final RecipeType<recipeConfig.Recipe> recipeType = new RecipeType<>(
+            ResourceLocation.fromNamespaceAndPath("research_station", "recipe_crafting"),
+            recipeConfig.Recipe.class
+    );
 
     @Override
     public RecipeType<recipeConfig.Recipe> getRecipeType() {
-return recipeType;
+        return recipeType;
     }
 
     @Override
     public Component getTitle() {
         return Component.translatable("Research Recipe");
     }
+
     @Override
-    public int getWidth(){
+    public int getWidth() {
         return 140;
     }
+
     @Override
-    public int getHeight(){
+    public int getHeight() {
         return 90;
     }
 
@@ -66,7 +69,7 @@ return recipeType;
                 String id = input.input.id;
                 int num = input.input.amount;
                 ItemStack required = ItemUtils.getItemStackFromid(id, num);
-                IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, x * 18+10, y * 18+30);
+                IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, x * 18 + 10, y * 18 + 30);
                 if (required != null) {
                     slot.addItemStack(required);
                 } else {
@@ -105,20 +108,20 @@ return recipeType;
                 Minecraft.getInstance().font,
                 Component.translatable("Required Research:"),
                 0, 0,
-                0xFF404040,false
+                0xFF404040, false
         );
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
                 Component.translatable(recipe.requiredResearch),
                 0, 10,
-                0xFF404040,false
+                0xFF404040, false
         );
 
         for (int y = 0; y < 3; y++) {
             for (int x = 0; x < 3; x++) {
                 guiGraphics.blit(
                         ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background.png"),
-                        x*18+10, y*18+30,
+                        x * 18 + 10, y * 18 + 30,
                         18, 18,
                         0, 0,
                         18, 18,

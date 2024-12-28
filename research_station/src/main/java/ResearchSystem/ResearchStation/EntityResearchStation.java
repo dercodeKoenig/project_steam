@@ -1,6 +1,7 @@
 package ResearchSystem.ResearchStation;
 
 import ARLib.gui.GuiHandlerBlockEntity;
+import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
@@ -225,7 +226,7 @@ guiHandler.getModules().add(progressBar);
             }
         }
         if(guiHandlerResearchQueue.screen != null)
-            guiHandlerResearchQueue.screen.calculateGuiOffsetAndNotifyModules();
+            ((ModularScreen)guiHandlerResearchQueue.screen).calculateGuiOffsetAndNotifyModules();
     }
 
     public void popInventory() {

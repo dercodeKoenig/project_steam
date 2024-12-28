@@ -3,6 +3,7 @@ package ARLib.gui;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.network.PacketBlockEntity;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.MinecraftServer;
@@ -74,7 +75,7 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
     public List<GuiModuleBase> modules;
     public int last_ping = 0;
     public BlockEntity parentBE;
-    public ModularScreen screen;
+    public Object screen; // this will hold modularScreen in case you need to access it but server shits itself when loading the class so i use object
 
     public GuiHandlerBlockEntity(BlockEntity parentBlockEntity) {
         this.playersTrackingGui = new HashMap<>();
@@ -93,7 +94,7 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
         if (Minecraft.getInstance().player != null)
             Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
         screen = new ModularScreen(this, w, h,renderBackground);
-        Minecraft.getInstance().setScreen(screen);
+        Minecraft.getInstance().setScreen((Screen) screen);
     }
 
     @Override

@@ -1,12 +1,12 @@
 package ResearchSystem;
 
 import ARLib.gui.GuiHandlerMainHandItem;
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleDefaultButton;
-import ARLib.gui.modules.guiModuleImage;
-import ARLib.gui.modules.guiModuleScrollContainer;
+import ARLib.gui.ModularScreen;
+import ARLib.gui.modules.*;
+import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
+import ResearchSystem.ResearchStation.EntityResearchStation;
 import ResearchSystem.ResearchStation.ResearchConfig;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
@@ -19,6 +19,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,29 +30,55 @@ public class ItemResearchBook extends Item {
 
     public ItemResearchBook() {
         super(new Properties().stacksTo(1));
-        makeGui();
+        //makeGui();
     }
 
-    void makeGui() {
+    public void makeGui(ItemStack bookStack) {
         List<GuiModuleBase> modules = new ArrayList<>();
+
+        List<String> researchInQueue = getQueuedResearches_readOnly(bookStack);
+        List<String> researchCompleted = getCompletedResearches_readOnly(bookStack);
+
         for (int n = 0; n < ResearchConfig.INSTANCE.researchList.size(); n++) {
             ResearchConfig.Research i = ResearchConfig.INSTANCE.researchList.get(n);
-            guiModuleDefaultButton b = new guiModuleDefaultButton(n, i.id, guiHandler, 10, (int) (n * 20), 130, 16) {
+
+            String name = i.id;
+            int y = 14 * n + 2;
+            guiModuleText t = new guiModuleText(10000 + n, name, guiHandler, 2, y + 3, 0xFF000000, false);
+            modules.add(t);
+
+            guiModuleButton db = new guiModuleButton(20000 + n, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                 @Override
                 public void onButtonClicked() {
                     researchButtonCLicked(i.id);
                 }
             };
-            modules.add(b);
+
+            db.color = 0xFFFFA0A0;
+            if(researchInQueue.contains(i.id) || i.id.equals(getCurrentResearch(bookStack))){
+                db.color = 0xFFF0F080;
+            }
+            if(researchCompleted.contains(i.id)){
+                db.color = 0xFFA0FFA0;
+            }
+            modules.add(db);
         }
 
         guiHandler.getModules().clear();
-        guiModuleImage i1 = new guiModuleImage(guiHandler, 0, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/book.png"), 148, 180);
+        guiModuleImage i1 = new guiModuleImage(guiHandler, 0, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/book.png"), 148, 180);
         guiHandler.getModules().add(i1);
-        guiModuleImage i2 = new guiModuleImage(guiHandler, 150, 0, 150, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/book.png"), 148, 180);
+        guiModuleImage i2 = new guiModuleImage(guiHandler, 190, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/book.png"), 148, 180);
         guiHandler.getModules().add(i2);
-        guiModuleScrollContainer c = new guiModuleScrollContainer(modules, 0x00000000, guiHandler, 0, 7, 150, 180);
+        guiModuleScrollContainer c = new guiModuleScrollContainer(modules, 0x00000000, guiHandler, 18, 7, 173, 183);
         guiHandler.getModules().add(c);
+
+        if(guiHandler.screen instanceof ModularScreen m)
+            m.calculateGuiOffsetAndNotifyModules();
+    }
+
+    public void openGui(ItemStack bookStack) {
+        makeGui(bookStack);
+        guiHandler.openGui(380, 200, false);
     }
 
     public CompoundTag getStackTagOrEmpty(ItemStack stack) {
@@ -68,6 +95,8 @@ public class ItemResearchBook extends Item {
             itemTag.put("currentResearch", currentResearch);
             IntTag currentProgress = IntTag.valueOf(0);
             itemTag.put("currentProgress", currentProgress);
+            StringTag selectedResearchPreview = StringTag.valueOf("");
+            itemTag.put("selectedResearchPreview", selectedResearchPreview);
 
             return itemTag;
         }
@@ -75,6 +104,22 @@ public class ItemResearchBook extends Item {
 
     public void setStackTag(ItemStack stack, CompoundTag tag) {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
+    }
+
+
+    public String getSelectedResearchPreview(CompoundTag itemTag) {
+        return itemTag.getString("selectedResearchPreview");
+    }
+
+    public String getSelectedResearchPreview(ItemStack stack) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        return getSelectedResearchPreview(itemTag);
+    }
+
+    public void setSelectedResearchPreview(ItemStack stack, String researchId) {
+        CompoundTag itemTag = getStackTagOrEmpty(stack);
+        itemTag.putString("selectedResearchPreview", researchId);
+        setStackTag(stack,itemTag);
     }
 
     public String getCurrentResearch(CompoundTag itemTag) {
@@ -273,15 +318,12 @@ public class ItemResearchBook extends Item {
         return availableResearch;
     }
 
-    public void openGui() {
-        //makeGui();
-        guiHandler.openGui(300, 180, false);
-    }
+
 
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
-        if (level.isClientSide) {
-            openGui();
+        if (level.isClientSide && itemstack.getItem() instanceof  ItemResearchBook) {
+            openGui(itemstack);
         }
         return InteractionResultHolder.success(itemstack);
     }

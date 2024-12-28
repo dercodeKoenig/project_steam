@@ -100,6 +100,9 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
 
                 // re-build the gui when something changes. The book-itemStack will be synced while gui is open
                 updateResearchQueueGuiFromBookStack(this.client_getItemStackToRender());
+                if(client_getItemStackToRender().getItem() instanceof  ItemResearchBook irb){
+                    irb.makeGui(client_getItemStackToRender());
+                }
             }
             };
 
@@ -109,7 +112,7 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
                 // the stack in the item handler slot is synced to client during guiHandler.servertick()
                 if (bookSlot.client_getItemStackToRender().getItem() instanceof ItemResearchBook irb) {
                     if (level.isClientSide) {
-                        irb.openGui();
+                        irb.openGui(bookSlot.client_getItemStackToRender());
                     }
                 }
             }
@@ -172,9 +175,9 @@ guiHandler.getModules().add(progressBar);
         guiModuleImage i2 = new guiModuleImage(guiHandlerResearchQueue, 190, 0, 190, 200, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/research_queue.png"), 148, 180);
         guiHandlerResearchQueue.getModules().add(i2);
 
-        guiModuleText rqt = new guiModuleText(10000, "Research in queue", guiHandlerResearchQueue, 30, 20, 0xff000000, false);
+        guiModuleText rqt = new guiModuleText(100000, "Research in queue", guiHandlerResearchQueue, 30, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rqt);
-        guiModuleText rat = new guiModuleText(10001, "Research available", guiHandlerResearchQueue, 220, 20, 0xff000000, false);
+        guiModuleText rat = new guiModuleText(100010, "Research available", guiHandlerResearchQueue, 220, 20, 0xff000000, false);
         guiHandlerResearchQueue.getModules().add(rat);
         researchQueue = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, guiHandler, 24, 39, 143, 135);
         guiHandlerResearchQueue.getModules().add(researchQueue);
@@ -191,10 +194,10 @@ guiHandler.getModules().add(progressBar);
             for (int i = 0; i < queued.size(); i++) {
                 String name = queued.get(i);
                 int y = 14 * i + 2;
-                guiModuleText t = new guiModuleText(1000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
+                guiModuleText t = new guiModuleText(10000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 researchQueue.modules.add(t);
 
-                guiModuleButton db = new guiModuleButton(1000 + i, "-", guiHandlerResearchQueue, 130, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                guiModuleButton db = new guiModuleButton(20000 + i, "-", guiHandlerResearchQueue, 130, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         CompoundTag requestTag = new CompoundTag();
@@ -210,10 +213,10 @@ guiHandler.getModules().add(progressBar);
             for (int i = 0; i < available.size(); i++) {
                 String name = available.get(i).id;
                 int y = 14 * i + 2;
-                guiModuleText t = new guiModuleText(2000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
+                guiModuleText t = new guiModuleText(30000 + i, name, guiHandlerResearchQueue, 2, y + 2, 0xFF000000, false);
                 availableResearch.modules.add(t);
 
-                guiModuleButton db = new guiModuleButton(2000 + i, "+", guiHandlerResearchQueue, 130, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                guiModuleButton db = new guiModuleButton(40000 + i, "+", guiHandlerResearchQueue, 130, y, 10, 10, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                     @Override
                     public void onButtonClicked() {
                         CompoundTag requestTag = new CompoundTag();

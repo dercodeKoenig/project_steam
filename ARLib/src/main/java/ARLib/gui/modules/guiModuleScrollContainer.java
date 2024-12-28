@@ -25,8 +25,9 @@ public class guiModuleScrollContainer extends GuiModuleBase {
 
     @Override
     public void client_onMouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
-
-        this.top_extra_offset += scrollY * 10;
+if(client_isMouseOver(mouseX,mouseY,onGuiX,onGuiY,w,h)) {
+    this.top_extra_offset += scrollY * 10;
+}
         this.top_extra_offset = Math.min(0,this.top_extra_offset);
         int maxY = 0;
         for (GuiModuleBase i : modules) {

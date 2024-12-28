@@ -4,6 +4,7 @@ import ARLib.gui.modules.GuiModuleBase;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketPlayerMainHand;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.item.ItemStack;
@@ -21,6 +22,7 @@ import java.util.*;
 public class GuiHandlerMainHandItem implements IGuiHandler {
 
     List<GuiModuleBase> modules;
+    public Object screen; // this will hold modularScreen in case you need to access it but server shits itself when loading the class so i use object
 
     public GuiHandlerMainHandItem() {
         modules = new ArrayList<>();
@@ -52,7 +54,8 @@ public class GuiHandlerMainHandItem implements IGuiHandler {
         if(Minecraft.getInstance().player != null)
             Minecraft.getInstance().player.inventoryMenu.setCarried(ItemStack.EMPTY);
 
-        Minecraft.getInstance().setScreen(new ModularScreen(this, w, h, renderBackground));
+        this.screen = new ModularScreen(this, w, h, renderBackground);
+        Minecraft.getInstance().setScreen((Screen) screen);
     }
 
 }

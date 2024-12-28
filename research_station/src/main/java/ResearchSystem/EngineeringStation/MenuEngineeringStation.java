@@ -1,12 +1,11 @@
 package ResearchSystem.EngineeringStation;
 
 import ARLib.utils.ItemUtils;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.AbstractContainerMenu;
-import net.minecraft.world.inventory.ResultContainer;
-import net.minecraft.world.inventory.ResultSlot;
-import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
@@ -25,29 +24,34 @@ import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
 
 public class MenuEngineeringStation extends AbstractContainerMenu {
 
-    public MenuEngineeringStation(int containerId, Inventory playerInventory) {
-        this(containerId, playerInventory, null);
+    public EntityEngineeringStation station;
+    public BlockPos CLIENT_myBlockPos;
+
+    public MenuEngineeringStation(int containerId, Inventory playerInventory, FriendlyByteBuf extraData) {
+        this(containerId, playerInventory, (EntityEngineeringStation) null);
+        CLIENT_myBlockPos = extraData.readBlockPos();
     }
 
     public MenuEngineeringStation(int containerId, Inventory playerInv, EntityEngineeringStation station) {
         super(MENU_ENGINEERING_STATION.get(), containerId);
+        this.station = station;
 
         int craftingx = 65;
         int craftingy = 17;
-        // 0 - 9
+        // 0 - 9, craftingInventory
         for (int i = 0; i < 9; i++) {
             addSlot(new SlotItemHandler(
                     station != null ? station.craftingInventory : new ItemStackHandler(9),
                     i, craftingx + i % 3 * 18, craftingy + i / 3 * 18));
         }
-        //9
+        //9 bookInventory
         addSlot(new SlotItemHandler(station != null ? station.bookInventory : new ItemStackHandler(1), 0, 10, 35));
-        //10
+        //10 resultSlot
         addSlot(new ResultSlot(
                 playerInv.player, station != null ? station.craftingInventory : new CraftingContainerItemStackHandler(3, 3),
                 station != null ? station.resultContainer : new ResultContainer(),
                 0, 150, 35
-        ){
+        ) {
             @Override
             public void onTake(Player player, ItemStack stack) {
                 if (station != null) {
@@ -61,8 +65,8 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                     CraftingInput craftInput = station.craftingInventory.asCraftInput();
                     Optional<RecipeHolder<CraftingRecipe>> optional = ServerLifecycleHooks.getCurrentServer().getRecipeManager().getRecipeFor(RecipeType.CRAFTING, craftInput, station.getLevel());
                     if (optional.isPresent()) {
-                        super.onTake(player,stack);
-                    }else{
+                        super.onTake(player, stack);
+                    } else {
                         // it was a research recipe, consume inputs and produce outputs.
                         for (recipeConfig.Recipe r : recipeConfig.INSTANCE.recipeList) {
                             String[] shrinkedPattern = recipeConfig.shrink(r.pattern);
@@ -75,13 +79,13 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                                         ItemStack itemstack = craftInput.getItem(j, i);
                                         if (!ItemUtils.matches(id, itemstack) || itemstack.getCount() < inp.input.amount) {
                                             matches = false;
-                                        }else{
+                                        } else {
                                             itemstack.shrink(inp.input.amount);
-                                            ItemStack toProduce = ItemUtils.getItemStackFromIdOrTag(inp.onComplete.id,inp.onComplete.amount,station.getLevel().registryAccess());
-                                            if(toProduce!=null){
-                                                moveItemStackTo(toProduce,11,11+4*9+18,false);
-                                                if(!toProduce.isEmpty()){
-                                                    Block.popResource(station.getLevel(),station.getBlockPos(),toProduce);
+                                            ItemStack toProduce = ItemUtils.getItemStackFromIdOrTag(inp.onComplete.id, inp.onComplete.amount, station.getLevel().registryAccess());
+                                            if (toProduce != null) {
+                                                moveItemStackTo(toProduce, 11, 11 + 4 * 9 + 18, false);
+                                                if (!toProduce.isEmpty()) {
+                                                    Block.popResource(station.getLevel(), station.getBlockPos(), toProduce);
                                                 }
                                             }
                                             // so that it recomputes the recipe slot and sets itself changed
@@ -89,7 +93,7 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                                         }
                                     }
                                 }
-                                if(matches)
+                                if (matches)
                                     break;
                             }
                         }
@@ -97,19 +101,19 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
 
                     // now re-stock from inventory
                     for (int i = 0; i < station.craftingInventory.getSlots(); i++) {
-                        ItemStack stackInSlot = station.craftingInventory.getStackInSlot(i);
                         ItemStack savedStack = savedStacks.get(i);
                         for (int j = 0; j < station.inputInventory.getSlots(); j++) {
-                            int diff = savedStack.getCount()-stackInSlot.getCount();
-                            if(diff == 0)break;
+                            ItemStack stackInSlot = station.craftingInventory.getStackInSlot(i);
+                            int diff = savedStack.getCount() - stackInSlot.getCount();
+                            if (diff == 0) break;
                             ItemStack availableStack = station.inputInventory.getStackInSlot(j);
-                            if(ItemStack.isSameItemSameComponents(availableStack,savedStack)){
-                               ItemStack remaining = station.craftingInventory.insertItem(i,availableStack,true);
-                               int toInsert = Math.min(diff, availableStack.getCount()-remaining.getCount());
-                               if(toInsert > 0){
-                                   ItemStack extracted = station.inputInventory.extractItem(j,toInsert,false);
-                                   station.craftingInventory.insertItem(i,extracted,false);
-                               }
+                            if (ItemStack.isSameItemSameComponents(availableStack, savedStack)) {
+                                ItemStack remaining = station.craftingInventory.insertItem(i, availableStack, true);
+                                int toInsert = Math.min(diff, availableStack.getCount() - remaining.getCount());
+                                if (toInsert > 0) {
+                                    ItemStack extracted = station.inputInventory.extractItem(j, toInsert, false);
+                                    station.craftingInventory.insertItem(i, extracted, false);
+                                }
                             }
                         }
                     }
@@ -118,6 +122,7 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
         });
         //10+
 
+        // 11 - 11+4*9 playerInventory
         int yoffset2 = 105;
         for (int i = 0; i < 9; i++) {
             addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, 75 + yoffset2));
@@ -126,9 +131,10 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
             addSlot(new Slot(playerInv, i, 10 + i % 9 * 18, yoffset2 + i / 9 * 18));
         }
 
+        // 11+4*9 - 11+4*9*18 inputInventory
         int yoffset = 75;
         for (int i = 0; i < 18; i++) {
-            addSlot(new SlotItemHandler(station!=null?station.inputInventory:new ItemStackHandler(18), i, 10 + i % 9 * 18, yoffset + i / 9 * 18));
+            addSlot(new SlotItemHandler(station != null ? station.inputInventory : new ItemStackHandler(18), i, 10 + i % 9 * 18, yoffset + i / 9 * 18));
         }
     }
 
@@ -140,28 +146,36 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
             stack = slot.getItem();
             ItemStack stack1 = stack.copy();
             if (index == 10) {
-                if(!moveItemStackTo(stack1, 11, 11 + 4 * 9+18, false)){
-                 return ItemStack.EMPTY;
+                if (!moveItemStackTo(stack1, 11, 11 + 4 * 9 + 18, false)) {
+                    return ItemStack.EMPTY;
                 }
                 slots.get(index).onQuickCraft(stack, stack1);
 
             }
-            if(index < 10){
-                if(!moveItemStackTo(stack, 11, 11 + 4 * 9+18, false)){
+            if (index == 9) {
+                if (!moveItemStackTo(stack, 11, 11 + 4 * 9, false)) {
                     return ItemStack.EMPTY;
                 }
             }
-            if(index > 10 && index < 11+4*9){
-                if(!moveItemStackTo(stack, 11+4*9, 11 + 4 * 9+18, false)){
+            if (index < 10) {
+                if (!moveItemStackTo(stack, 11, 11 + 4 * 9 + 18, false)) {
                     return ItemStack.EMPTY;
                 }
             }
-            if(index >= 11+4*9){
-                if(!moveItemStackTo(stack, 11, 11 + 4 * 9, false)){
+            if (index > 10 && index < 11 + 4 * 9) {
+                // try to insert into bookslot first
+                moveItemStackTo(stack, 9, 10, false);
+                // if no book, insert into input inventory slots
+                if (!moveItemStackTo(stack, 11 + 4 * 9, 11 + 4 * 9 + 18, false)) {
                     return ItemStack.EMPTY;
                 }
             }
-            if(stack1.getCount() == stack.getCount()){
+            if (index >= 11 + 4 * 9) {
+                if (!moveItemStackTo(stack, 11, 11 + 4 * 9, false)) {
+                    return ItemStack.EMPTY;
+                }
+            }
+            if (stack1.getCount() == stack.getCount()) {
                 return ItemStack.EMPTY;
             }
             slot.setChanged();

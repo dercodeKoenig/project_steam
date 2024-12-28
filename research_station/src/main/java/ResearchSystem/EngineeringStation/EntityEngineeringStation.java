@@ -1,8 +1,20 @@
 package ResearchSystem.EngineeringStation;
 
+import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.ItemUtils;
+import ARLib.utils.RecipePart;
 import ResearchSystem.ItemResearchBook;
+import com.google.gson.Gson;
+import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
+import mezz.jei.api.recipe.transfer.IRecipeTransferError;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
@@ -16,11 +28,11 @@ import java.util.*;
 
 import static ResearchSystem.Registry.ENTITY_ENGINEERING_STATION;
 
-public class EntityEngineeringStation extends BlockEntity {
+public class EntityEngineeringStation extends BlockEntity implements INetworkTagReceiver {
 
-    public CraftingContainerItemStackHandler craftingInventory = new CraftingContainerItemStackHandler(3,3){
+    public CraftingContainerItemStackHandler craftingInventory = new CraftingContainerItemStackHandler(3, 3) {
         @Override
-        public void onContentsChanged(int slot){
+        public void onContentsChanged(int slot) {
             EntityEngineeringStation.super.setChanged();
             updateCraftingContainerFromCraftingInventory();
         }
@@ -55,7 +67,7 @@ public class EntityEngineeringStation extends BlockEntity {
                     }
                     if (matches) {
                         ItemStack bookStack = bookInventory.getStackInSlot(0);
-                        if(bookStack.getItem() instanceof ItemResearchBook irb) {
+                        if (bookStack.getItem() instanceof ItemResearchBook irb) {
                             if (irb.getCompletedResearches_readOnly(bookStack).contains(r.requiredResearch)) {
                                 resultContainer.setItem(0, ItemUtils.getItemStackFromIdOrTag(r.output.id, r.output.amount, level.registryAccess()));
                                 foundMatch = true;
@@ -70,42 +82,175 @@ public class EntityEngineeringStation extends BlockEntity {
             }
         }
     }
+
     public ResultContainer resultContainer = new ResultContainer();
 
-    ItemStackHandler bookInventory = new ItemStackHandler(1){
+    public ItemStackHandler bookInventory = new ItemStackHandler(1) {
         @Override
-        public void onContentsChanged(int slot){
+        public void onContentsChanged(int slot) {
             EntityEngineeringStation.super.setChanged();
             updateCraftingContainerFromCraftingInventory();
         }
+
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return stack.getItem() instanceof ItemResearchBook;
         }
     };
 
-    ItemStackHandler inputInventory = new ItemStackHandler(18){
+    public ItemStackHandler inputInventory = new ItemStackHandler(18) {
         @Override
-        public void onContentsChanged(int slot){
+        public void onContentsChanged(int slot) {
             setChanged();
         }
     };
 
 
-    public EntityEngineeringStation( BlockPos pos, BlockState blockState) {
+    public EntityEngineeringStation(BlockPos pos, BlockState blockState) {
         super(ENTITY_ENGINEERING_STATION.get(), pos, blockState);
     }
-@Override
-public void onLoad() {
-    if (!level.isClientSide) {
-        updateCraftingContainerFromCraftingInventory();
-    }
-}
 
-    public void tick(){
+    @Override
+    public void onLoad() {
+        if (!level.isClientSide) {
+            updateCraftingContainerFromCraftingInventory();
+        }
+    }
+
+    public void tick() {
 
     }
+
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
         ((EntityEngineeringStation) t).tick();
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+super.saveAdditional(tag,registries);
+        tag.put("craftingInventory",craftingInventory.serializeNBT(registries));
+        tag.put("inputInventory",inputInventory.serializeNBT(registries));
+        tag.put("bookInventory",bookInventory.serializeNBT(registries));
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+super.loadAdditional(tag,registries);
+
+        craftingInventory.deserializeNBT(registries,tag.getCompound ("craftingInventory"));
+        inputInventory.deserializeNBT(registries,tag.getCompound ("inputInventory"));
+        bookInventory.deserializeNBT(registries,tag.getCompound ("bookInventory"));
+    }
+
+
+        public void JEItransferResearchRecipe(
+            List<List<String>> recipe,
+            ServerPlayer player
+    ) {
+        if (recipe.size() != 9) return; // it should be 3x3
+            Inventory playerInv = player.getInventory();
+
+        for (int n = 0; n < 9; n++) {
+            List<String> allowedInputsAtThisPosition = recipe.get(n);
+
+            boolean needsClearSlot = true;
+            ItemStack stackInSlot = craftingInventory.getStackInSlot(n);
+            for (int i = 0; i < allowedInputsAtThisPosition.size(); i++) {
+                RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(i),RecipePart.class) ;
+                if (ItemUtils.matches(allowed.id, stackInSlot)) {
+                    needsClearSlot = false;
+                }
+            }
+
+            if (needsClearSlot) {
+                for (int i = 0; i < inputInventory.getSlots(); i++) {
+                    stackInSlot = craftingInventory.getStackInSlot(n);
+                    int numBefore =stackInSlot.getCount();
+                    ItemStack remaining = inputInventory.insertItem(i, stackInSlot.copy(), false);
+                    int wasInserted = numBefore - remaining.getCount();
+                    stackInSlot.shrink(wasInserted);
+                }
+
+                    stackInSlot = craftingInventory.getStackInSlot(n);
+                    playerInv.placeItemBackInInventory(stackInSlot);
+
+                if (!stackInSlot.isEmpty()){
+                    continue;
+                }
+            }
+
+            for (int i = 0; i < inputInventory.getSlots(); i++) {
+                stackInSlot = craftingInventory.getStackInSlot(n);
+                ItemStack stackAvailable = inputInventory.getStackInSlot(i);
+
+                for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
+                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p),RecipePart.class) ;
+                    if (ItemUtils.matches(allowed.id, stackAvailable)) {
+                        int required = Math.max(0, allowed.amount - stackInSlot.getCount());
+                        if (required == 0) {
+                            break;
+                        }
+                        ItemStack extracted = inputInventory.extractItem(i, required, true);
+                        ItemStack notInserted = craftingInventory.insertItem(n, extracted, true);
+                        int canInsert = extracted.getCount() - notInserted.getCount();
+                        extracted = inputInventory.extractItem(i, canInsert, false);
+                        notInserted = craftingInventory.insertItem(n, extracted, false);
+                        if (!notInserted.isEmpty()) {
+                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n+". Moving it back to input inventory");
+                            inputInventory.insertItem(i,notInserted,false);
+                        }
+                    }
+                }
+            }
+
+            for (int i = 0; i < playerInv.getContainerSize(); i++) {
+                stackInSlot = craftingInventory.getStackInSlot(n);
+                ItemStack stackAvailable = playerInv.getItem(i);
+
+                for (int p = 0; p < allowedInputsAtThisPosition.size(); p++) {
+                    RecipePart allowed = new Gson().fromJson(allowedInputsAtThisPosition.get(p),RecipePart.class) ;
+                    if (ItemUtils.matches(allowed.id, stackAvailable)) {
+                        int required = Math.max(0, allowed.amount - stackInSlot.getCount());
+                        if (required == 0) {
+                            break;
+                        }
+                        ItemStack extracted = playerInv.getItem(i).copyWithCount(required);
+                        ItemStack notInserted = craftingInventory.insertItem(n, extracted, true);
+                        int canInsert = extracted.getCount() - notInserted.getCount();
+                        extracted = playerInv.getItem(i).copyWithCount(canInsert);
+                        playerInv.getItem(i).shrink(canInsert);
+                        notInserted = craftingInventory.insertItem(n, extracted, false);
+                        if (!notInserted.isEmpty()) {
+                            System.out.println("error - could not insert all into craftingInventory," + i + ":" + n+". Moving it back to player inventory");
+                            playerInv.getItem(i).grow(notInserted.getCount());
+                        }
+                    }
+                }
+            }
+        }
+        craftingInventory.setChanged(); // to re-compute output
+    }
+
+    @Override
+    public void readServer(CompoundTag compoundTag) {
+
+        if (compoundTag.contains("moveItems")) {
+            CompoundTag moveItems = compoundTag.getCompound("moveItems");
+            String data = moveItems.getString("data");
+            UUID uuid = moveItems.getUUID("uuid");
+            ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(uuid);
+            if (player != null) {
+                Gson gson = new Gson();
+                List<List<String>> recipes = gson.fromJson(data, List.class);
+                if (recipes != null) {
+                    JEItransferResearchRecipe(recipes, player);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void readClient(CompoundTag compoundTag) {
+
     }
 }

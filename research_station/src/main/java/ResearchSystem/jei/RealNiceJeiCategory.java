@@ -44,7 +44,7 @@ return recipeType;
     }
     @Override
     public int getHeight(){
-        return 100;
+        return 90;
     }
 
     @Override
@@ -66,7 +66,7 @@ return recipeType;
                 String id = input.input.id;
                 int num = input.input.amount;
                 ItemStack required = ItemUtils.getItemStackFromid(id, num);
-                IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, x * 18, y * 18);
+                IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, x * 18+10, y * 18+30);
                 if (required != null) {
                     slot.addItemStack(required);
                 } else {
@@ -83,7 +83,7 @@ return recipeType;
         String id = recipe.output.id;
         int num = recipe.output.amount;
         ItemStack required = ItemUtils.getItemStackFromid(id, num);
-        IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.OUTPUT, 0, 50);
+        IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.OUTPUT, 108, 49);
 
         if (required != null) {
             slot.addItemStack(required);
@@ -103,11 +103,45 @@ return recipeType;
         // Optional: Draw custom text or graphics, such as energy cost.
         guiGraphics.drawString(
                 Minecraft.getInstance().font,
-                Component.translatable("Research: "+recipe.requiredResearch),
+                Component.translatable("Required Research:"),
                 0, 0,
                 0xFF404040,false
         );
-        guiGraphics.blit(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"), 65, 70, 10, 12, 0f, 0f, 12, 16, 12, 16);
+        guiGraphics.drawString(
+                Minecraft.getInstance().font,
+                Component.translatable(recipe.requiredResearch),
+                0, 10,
+                0xFF404040,false
+        );
+
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                guiGraphics.blit(
+                        ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background.png"),
+                        x*18+10, y*18+30,
+                        18, 18,
+                        0, 0,
+                        18, 18,
+                        18, 18
+                );
+            }
+        }
+        guiGraphics.blit(
+                ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"),
+                70, 45,
+                24, 18,
+                0f, 0f,
+                16, 12,
+                16, 12
+        );
+        guiGraphics.blit(
+                ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background.png"),
+                105, 45,
+                24, 24,
+                0, 0,
+                18, 18,
+                18, 18
+        );
     }
 
     @Override

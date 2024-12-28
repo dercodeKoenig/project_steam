@@ -16,6 +16,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -53,11 +54,11 @@ public class Registry {
             () -> new ItemResearchBook()
     );
 
-    public static final Supplier<MenuType<MenuEngineeringStation>> MENU_ENGINEERING_STATION = MENUS.register("menu_engineering_station", () -> new MenuType<>(MenuEngineeringStation::new, FeatureFlags.DEFAULT_FLAGS));
+    public static final Supplier<MenuType<MenuEngineeringStation>> MENU_ENGINEERING_STATION = MENUS.register("menu_engineering_station", () -> IMenuTypeExtension.create(MenuEngineeringStation::new));
 
+    public static Supplier<Item> ITEM_ENGINEERING_STATION =registerBlockItem("engineering_station", ENGINEERING_STATION);
     static {
         registerBlockItem("research_station", RESEARCH_STATION);
-        registerBlockItem("engineering_station", ENGINEERING_STATION);
     }
 
     public static void register(IEventBus modBus) {

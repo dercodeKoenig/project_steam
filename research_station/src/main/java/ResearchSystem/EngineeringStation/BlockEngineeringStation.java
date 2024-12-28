@@ -7,6 +7,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -45,10 +46,15 @@ public class BlockEngineeringStation extends Block implements EntityBlock {
 
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(player instanceof ServerPlayer s){
+        if(player instanceof ServerPlayer s) {
             BlockEntity station = level.getBlockEntity(pos);
-            if(station instanceof EntityEngineeringStation e) {
-                s.openMenu(new SimpleMenuProvider((x, y, z) -> new MenuEngineeringStation(x, y, e), Component.literal("Engineering Station")));
+            if (station instanceof EntityEngineeringStation e) {
+                s.openMenu(
+                        new SimpleMenuProvider(
+                                (x, y, z) ->
+                                        new MenuEngineeringStation(x, y, e), Component.literal("Engineering Station")
+                        ),pos
+                );
             }
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;

@@ -6,6 +6,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
+
+import static ResearchSystem.Registry.ITEM_RESEARCH_BOOK;
 
 public class ScreenEngineeringStation extends AbstractContainerScreen<MenuEngineeringStation> {
     public ScreenEngineeringStation(MenuEngineeringStation menu, Inventory playerInventory, Component title) {
@@ -42,14 +45,25 @@ public class ScreenEngineeringStation extends AbstractContainerScreen<MenuEngine
          * integer u/v coordinates inside the PNG file, whose size is
          * represented by the last two integers (typically 256 x 256).
          */
-        guiGraphics.blit(
-                ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_gui_background.png"),
-                this.leftPos, this.topPos,
-                this.imageWidth, this.imageHeight,
-                0, 0,
-                176, 171,
-                176, 171
-        );
+           guiGraphics.blit(
+                   ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/simple_gui_background.png"),
+                   this.leftPos, this.topPos,
+                   this.imageWidth, this.imageHeight,
+                   0, 0,
+                   176, 171,
+                   176, 171
+           );
+
+           guiGraphics.blit(
+                   ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"),
+                   this.leftPos+125, this.topPos+36,
+                   16, 12,
+                   0, 0,
+                   16, 12,
+                   16, 12
+           );
+
+        guiGraphics.renderItem(new ItemStack(ITEM_RESEARCH_BOOK.get()),leftPos+10,topPos+18);
 
     }
 }

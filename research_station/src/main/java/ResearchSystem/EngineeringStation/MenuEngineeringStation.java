@@ -43,10 +43,24 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
         for (int i = 0; i < 9; i++) {
             addSlot(new SlotItemHandler(
                     station != null ? station.craftingInventory : new ItemStackHandler(9),
-                    i, craftingx + i % 3 * 18, craftingy + i / 3 * 18));
+                    i, craftingx + i % 3 * 18, craftingy + i / 3 * 18){
+                        @Override
+                        public void setChanged() {
+                            if (station != null) {
+                                station.craftingInventory.setChanged();
+                            }
+                        }
+            });
         }
         //9 bookInventory
-        addSlot(new SlotItemHandler(station != null ? station.bookInventory : new ItemStackHandler(1), 0, 10, 35));
+        addSlot(new SlotItemHandler(station != null ? station.bookInventory : new ItemStackHandler(1), 0, 10, 35){
+            @Override
+            public void setChanged(){
+                if(station!=null) {
+                    station.onBookContentChanged();
+                }
+            }
+        });
         //10 resultSlot
         addSlot(new ResultSlot(
                 playerInv.player, station != null ? station.craftingInventory : new CraftingContainerItemStackHandler(3, 3),
@@ -157,17 +171,17 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                 slots.get(index).onQuickCraft(stack, stack1);
 
             }
-            if (index == 9) {
+            else if (index == 9) {
                 if (!moveItemStackTo(stack, 11, 11 + 4 * 9, false)) {
                     return ItemStack.EMPTY;
                 }
             }
-            if (index < 10) {
+            else if (index < 10) {
                 if (!moveItemStackTo(stack, 11, 11 + 4 * 9 + 18, false)) {
                     return ItemStack.EMPTY;
                 }
             }
-            if (index > 10 && index < 11 + 4 * 9) {
+            else if (index > 10 && index < 11 + 4 * 9) {
                 // try to insert into bookslot first
                 moveItemStackTo(stack, 9, 10, false);
                 // if no book, insert into input inventory slots
@@ -175,7 +189,7 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                     return ItemStack.EMPTY;
                 }
             }
-            if (index >= 11 + 4 * 9) {
+            else if (index >= 11 + 4 * 9) {
                 if (!moveItemStackTo(stack, 11, 11 + 4 * 9, false)) {
                     return ItemStack.EMPTY;
                 }

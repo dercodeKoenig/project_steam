@@ -8,6 +8,7 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.ResearchConfig;
+import ResearchSystem.EngineeringStation.BlockEngineeringStation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -79,8 +80,9 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
                 setChanged();
 
                 //update blockstate to show/hide book
+                // do not use my own blockstate, it could have changed on remove after pop-inventory
                 if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockResearchStation) {
-                    if (getStackInSlot(0).getItem() instanceof ItemResearchBook irb) {
+                    if (getStackInSlot(0).getItem() instanceof ItemResearchBook irb && getStackInSlot(0).getCount()>0) {
                         level.setBlock(getBlockPos(), getBlockState().setValue(BlockResearchStation.HAS_BOOK, true), 3);
                         // also update the bookstack that it is in station
                         irb.setIsInStation(getStackInSlot(0), EntityResearchStation.this);

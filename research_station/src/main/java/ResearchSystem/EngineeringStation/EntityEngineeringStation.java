@@ -84,20 +84,25 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
 
     public ResultContainer resultContainer = new ResultContainer();
 
+    public void onBookContentChanged(){
+        EntityEngineeringStation.super.setChanged();
+        updateCraftingContainerFromCraftingInventory();
+
+        //update blockstate to show/hide book
+        // do not use my own blockstate, it could have changed on remove after pop-inventory
+        if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockEngineeringStation) {
+            if (bookInventory.getStackInSlot(0).getItem() instanceof ItemResearchBook && bookInventory.getStackInSlot(0).getCount()>0) {
+                level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, true), 3);
+            } else {
+                level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, false), 3);
+            }
+        }
+    }
+
     public ItemStackHandler bookInventory = new ItemStackHandler(1) {
         @Override
         public void onContentsChanged(int slot) {
-            EntityEngineeringStation.super.setChanged();
-            updateCraftingContainerFromCraftingInventory();
-
-            //update blockstate to show/hide book
-            if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockEngineeringStation) {
-                if (getStackInSlot(0).getItem() instanceof ItemResearchBook) {
-                    level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, true), 3);
-                } else {
-                    level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, false), 3);
-                }
-            }
+onBookContentChanged();
         }
 
         @Override
@@ -130,6 +135,10 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
         bookInventory.setStackInSlot(0, ItemStack.EMPTY);
         for (int i = 0; i < inputInventory.getSlots(); i++) {
             Block.popResource(level, getBlockPos(), inputInventory.getStackInSlot(i));
+            inputInventory.setStackInSlot(i, ItemStack.EMPTY);
+        }
+        for (int i = 0; i < craftingInventory.getSlots(); i++) {
+            Block.popResource(level, getBlockPos(), craftingInventory.getStackInSlot(i));
             inputInventory.setStackInSlot(i, ItemStack.EMPTY);
         }
         setChanged();

@@ -244,13 +244,12 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
                 }
 
                 if (getEnergyStored() > 0) {
-                    int toExtract = getEnergyStored();
-                    for (Direction i : Direction.values()) {
+                    for (Direction i : Direction.allShuffled(level.random)) {
+                        int toExtract = getEnergyStored();
                         BlockPos o = getBlockPos().relative(i);
                         IEnergyStorage e = level.getCapability(Capabilities.EnergyStorage.BLOCK, o, null);
                         if (e != null) {
                             int extracted = e.receiveEnergy(toExtract, false);
-                            toExtract -= extracted;
                             extractEnergy(extracted, false);
                         }
                     }

@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.biome.Biome;
+import net.minecraft.world.level.material.Fluids;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -27,18 +28,20 @@ public class Main {
 
     private void onSourceCreate(CreateFluidSourceEvent e) {
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
-        if(server != null) {
-            Holder<Biome> h = e.getLevel().getBiome(e.getPos());
-            ResourceLocation id =  server.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
-            String idString = id.toString();
+        if (server != null) {
+            if (e.getFluidState().getType().isSame(Fluids.WATER)) {
+                Holder<Biome> h = e.getLevel().getBiome(e.getPos());
+                ResourceLocation id = server.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
+                String idString = id.toString();
 
-            if(Config.INSTANCE.biomes.contains(idString)){
-                if(Config.INSTANCE.isBlackList){
-                    e.setCanConvert(false);
-                }
-            }else{
-                if(!Config.INSTANCE.isBlackList){
-                    e.setCanConvert(false);
+                if (Config.INSTANCE.biomes.contains(idString)) {
+                    if (Config.INSTANCE.isBlackList) {
+                        e.setCanConvert(false);
+                    }
+                } else {
+                    if (!Config.INSTANCE.isBlackList) {
+                        e.setCanConvert(false);
+                    }
                 }
             }
         }

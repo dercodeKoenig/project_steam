@@ -3,11 +3,11 @@ package BetterPipes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.StringRepresentable;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
@@ -25,9 +25,8 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -98,30 +97,27 @@ public class BlockPipe extends Block implements EntityBlock {
         return ENTITY_PIPE.get().create(pos, state);
     }
 
-    @Override
-    protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if (!level.isClientSide && player.getMainHandItem().isEmpty()) {
-            BlockEntity tile = level.getBlockEntity(pos);
-            if (tile instanceof EntityPipe pipe) {
-                if (player.isShiftKeyDown()) {
-                    pipe.toggleExtractionMode();
-                } else {
-                    pipe.toggleExtractionActive();
+
+        @Override
+        public InteractionResult use(BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hitResult) {
+            if (!level.isClientSide && player.getMainHandItem().isEmpty() && hand == InteractionHand.MAIN_HAND) {
+                BlockEntity tile = level.getBlockEntity(pos);
+                if (tile instanceof EntityPipe pipe) {
+                    if (player.isShiftKeyDown()) {
+                        pipe.toggleExtractionMode();
+                    } else {
+                        pipe.toggleExtractionActive();
+                    }
+                    return InteractionResult.SUCCESS;
                 }
-                return InteractionResult.PASS;
             }
+            return InteractionResult.PASS;
         }
-        return InteractionResult.PASS;
-    }
 
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3) ;
-    }
-
-    protected int getLightBlock(BlockState state, BlockGetter level, BlockPos pos) {
-        return 2;
     }
 
     @Override
@@ -145,7 +141,7 @@ public class BlockPipe extends Block implements EntityBlock {
 
             pipe.connections.get(direction).tank.setFluid(FluidStack.EMPTY);
             pipe.connections.get(direction).update();
-            pipe.connections.get(direction).syncTanks();
+            pipe.connections.get(direction).sync();
 
             boolean hasAnyExtraction = false;
             for (Direction i : Direction.values()) {

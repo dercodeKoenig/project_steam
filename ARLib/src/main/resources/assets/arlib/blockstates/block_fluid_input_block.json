@@ -1,6 +1,0 @@
-{
-    "variants": {
-        "state=false": { "model": "arlib:block/block_fluid_input_block" },
-        "state=true": { "model": "minecraft:block/air" }
-    }
-}

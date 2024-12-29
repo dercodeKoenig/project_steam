@@ -1,8 +1,0 @@
-{
-    "parent": "minecraft:block/orientable",
-    "textures": {
-        "top": "arlib:block/coiltop",
-        "front": "arlib:block/coilside",
-        "side": "arlib:block/coilside"
-    }
-}

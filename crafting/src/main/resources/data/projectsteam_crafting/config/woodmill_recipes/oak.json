@@ -1,5 +1,0 @@
-{
-  "inputItem": { "id": "minecraft:oak_log", "amount": 1 },
-  "outputItems": [{ "id": "minecraft:oak_planks", "amount": 8 }],
-  "additionalResistance": 20.0
-}

@@ -1,6 +1,0 @@
-{
-  "parent": "block/cube_all",
-  "textures": {
-    "all": "projectsteam:block/andesite_casing"
-  }
-}

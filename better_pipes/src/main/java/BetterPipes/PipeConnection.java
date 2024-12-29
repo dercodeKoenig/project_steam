@@ -1,21 +1,26 @@
 package BetterPipes;
 
+import com.sun.jdi.connect.spi.TransportService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.loading.FMLEnvironment;
-import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.minecraftforge.common.capabilities.CapabilityManager;
+import net.minecraftforge.common.capabilities.ForgeCapabilities;
+import net.minecraftforge.common.util.LazyOptional;
+import net.minecraftforge.fluids.FluidStack;
+import net.minecraftforge.fluids.capability.IFluidHandler;
+
+import java.util.concurrent.atomic.AtomicReference;
 
 import static BetterPipes.EntityPipe.*;
 
@@ -36,6 +41,8 @@ public class PipeConnection implements IFluidHandler {
 
     simpleBlockEntityTank tank;
     int lastFill;
+    public final LazyOptional<IFluidHandler> fluidHandlerOptional = LazyOptional.of(() -> this);
+
 
     fluidRenderData renderData;
     EntityPipe parent;
@@ -46,7 +53,12 @@ public class PipeConnection implements IFluidHandler {
 
     IFluidHandler neighborFluidHandler() {
         BlockPos neighborPos = parent.getBlockPos().relative(myDirection);
-        return parent.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, neighborPos, myDirection.getOpposite());
+        BlockEntity be = parent.getLevel().getBlockEntity(neighborPos);
+        if(be==null)return null;
+        LazyOptional<IFluidHandler> fluidHandlerOptional = be.getCapability(ForgeCapabilities.FLUID_HANDLER,myDirection.getOpposite());
+        AtomicReference<IFluidHandler> result = new AtomicReference<>(null);
+        fluidHandlerOptional.ifPresent(result::set);
+        return result.get();
     }
 
     public PipeConnection(EntityPipe parent, Direction myDirection) {
@@ -62,71 +74,73 @@ public class PipeConnection implements IFluidHandler {
     boolean last_outputsToOutside;
     FluidStack last_tankFluid = FluidStack.EMPTY;
 
-    public boolean needsSync() {
-        boolean needsUpdate = false;
 
-        // Check if the input from inside state has changed
-        if (last_getsInputFromInside != getsInputFromInside) {
-            needsUpdate = true;
-            last_getsInputFromInside = getsInputFromInside;
-        }
 
-        // Check if the input from outside state has changed
-        if (last_getsInputFromOutside != getsInputFromOutside) {
-            needsUpdate = true;
-            last_getsInputFromOutside = getsInputFromOutside;
-        }
+    public void saveAdditional(CompoundTag tag){
+        CompoundTag myTag = new CompoundTag();
+        myTag.putBoolean("getsInputFromInside", getsInputFromInside);
+        myTag.putBoolean("getsInputFromOutside", getsInputFromOutside);
+        myTag.putBoolean("outputsToInside", outputsToInside);
+        myTag.putBoolean("outputsToOutside", outputsToOutside);
 
-        // Check if the output to inside state has changed
-        if (last_outputsToInside != outputsToInside) {
-            needsUpdate = true;
-            last_outputsToInside = outputsToInside;
-        }
-
-        // Check if the output to outside state has changed
-        if (last_outputsToOutside != outputsToOutside) {
-            needsUpdate = true;
-            last_outputsToOutside = outputsToOutside;
-        }
-        return needsUpdate;
-    }
-    public void saveAdditional(HolderLookup.Provider registries,CompoundTag tag){
-        CompoundTag myTag = getUpdateTag(registries);
-        tank.writeToNBT(registries, myTag);
+        tank.writeToNBT(myTag);
         tag.put(myDirection.getName(), myTag);
     }
-    public void loadAdditional(HolderLookup.Provider registries,CompoundTag tag){
+    public void loadAdditional(CompoundTag tag){
         CompoundTag myTag = tag.getCompound(myDirection.getName());
-        tank.readFromNBT(registries, myTag);
-        handleUpdateTag(myTag,registries);
-    }
-    public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-        CompoundTag tag = new CompoundTag();
-        tag.putBoolean("getsInputFromInside", getsInputFromInside);
-        tag.putBoolean("getsInputFromOutside", getsInputFromOutside);
-        tag.putBoolean("outputsToInside", outputsToInside);
-        tag.putBoolean("outputsToOutside", outputsToOutside);
-        return tag;
-    }
+        tank.readFromNBT(myTag);
 
-    public void handleUpdateTag(CompoundTag tag, HolderLookup.Provider registries) {
-        getsInputFromInside = tag.getBoolean("getsInputFromInside");
-        getsInputFromOutside = tag.getBoolean("getsInputFromOutside");
-        outputsToInside = tag.getBoolean("outputsToInside");
-        outputsToOutside = tag.getBoolean("outputsToOutside");
+        getsInputFromInside = myTag.getBoolean("getsInputFromInside");
+        getsInputFromOutside = myTag.getBoolean("getsInputFromOutside");
+        outputsToInside = myTag.getBoolean("outputsToInside");
+        outputsToOutside = myTag.getBoolean("outputsToOutside");
+
     }
-void syncTanks(){
+void sync(){
     // Check if the tank fluid stack has changed
     // this has it's own packet now for efficiency
     // to not always send the large nbt
-    if (!FluidStack.isSameFluidSameComponents(last_tankFluid, tank.getFluid())) {
-        if(!tank.getFluid().isEmpty())
-            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) parent.getLevel(), new ChunkPos(parent.getBlockPos()), PacketFluidUpdate.getPacketFluidUpdate(parent.getBlockPos(),myDirection,tank.getFluid().getFluid()));
+    if (!FluidStack.areFluidStackTagsEqual(last_tankFluid, tank.getFluid()) || !last_tankFluid.getFluid().isSame(tank.getFluid().getFluid())) {
+        if(!tank.getFluid().isEmpty()) {
+            Channel.sendToPlayersTrackingBE(new PacketFluidUpdate(parent.getBlockPos(), myDirection.ordinal(), tank.getFluid().getFluid(),System.currentTimeMillis()), parent);
+        }
     }
     if(last_tankFluid.getAmount() != tank.getFluidAmount()){
-        PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) parent.getLevel(), new ChunkPos(parent.getBlockPos()), PacketFluidAmountUpdate.getPacketFluidUpdate(parent.getBlockPos(),myDirection,tank.getFluidAmount()));
+        Channel.sendToPlayersTrackingBE(new PacketFluidAmountUpdate(parent.getBlockPos(), myDirection.ordinal(), tank.getFluidAmount(),System.currentTimeMillis()), parent);
     }
     last_tankFluid = tank.getFluid().copy(); // Update the last known tank fluid
+
+
+
+    boolean needsUpdate = false;
+
+    // Check if the input from inside state has changed
+    if (last_getsInputFromInside != getsInputFromInside) {
+        needsUpdate = true;
+        last_getsInputFromInside = getsInputFromInside;
+    }
+
+    // Check if the input from outside state has changed
+    if (last_getsInputFromOutside != getsInputFromOutside) {
+        needsUpdate = true;
+        last_getsInputFromOutside = getsInputFromOutside;
+    }
+
+    // Check if the output to inside state has changed
+    if (last_outputsToInside != outputsToInside) {
+        needsUpdate = true;
+        last_outputsToInside = outputsToInside;
+    }
+
+    // Check if the output to outside state has changed
+    if (last_outputsToOutside != outputsToOutside) {
+        needsUpdate = true;
+        last_outputsToOutside = outputsToOutside;
+    }
+
+    if(needsUpdate){
+        Channel.sendToPlayersTrackingBE(new PacketFlowUpdate(parent.getBlockPos(), myDirection.ordinal(), getsInputFromOutside,getsInputFromInside, outputsToOutside, outputsToInside,System.currentTimeMillis()), parent);
+    }
 }
     void update() {
         if (lastInputFromOutside < STATE_UPDATE_TICKS + 1)
@@ -155,18 +169,31 @@ void syncTanks(){
             ticksWithFluidInTank = 0;
         }
     }
-    public void sendInitialTankUpdates(ServerPlayer player){
-        if(!tank.getFluid().isEmpty()){
-            PacketDistributor.sendToPlayer(player, PacketFluidUpdate.getPacketFluidUpdate(parent.getBlockPos(),myDirection,tank.getFluid().getFluid()));
-            PacketDistributor.sendToPlayer(player, PacketFluidAmountUpdate.getPacketFluidUpdate(parent.getBlockPos(),myDirection,tank.getFluidAmount()));
+    public void sendInitialTankUpdates(ServerPlayer player) {
+        if (!last_tankFluid.isEmpty()) {
+            Channel.sendToPlayer(new PacketFluidUpdate(parent.getBlockPos(), myDirection.ordinal(), tank.getFluid().getFluid(), System.currentTimeMillis()), player);
+            Channel.sendToPlayer(new PacketFluidAmountUpdate(parent.getBlockPos(), myDirection.ordinal(), tank.getFluidAmount(), System.currentTimeMillis()), player);
+            Channel.sendToPlayer(new PacketFlowUpdate(parent.getBlockPos(), myDirection.ordinal(), getsInputFromOutside,getsInputFromInside, outputsToOutside, outputsToInside,System.currentTimeMillis()), player);
+        }
+    }
+
+    long lastFlowUpdate;
+    public void setFlow(boolean ii,boolean io, boolean oi,boolean oo, long time){
+        if(time > lastFlowUpdate){
+            lastFlowUpdate = time;
+            getsInputFromOutside = io;
+            getsInputFromInside = ii;
+            outputsToInside = oi;
+            outputsToOutside = oo;
+            parent.setRequiresMeshUpdate();
         }
     }
 
     long lastFluidInTankUpdate;
-    public void setFluidInTank(Fluid f, long time){
+    public void setFluidInTank(ResourceLocation f, long time){
         if(time > lastFluidInTankUpdate) {
             lastFluidInTankUpdate = time;
-            tank.setFluid(new FluidStack(f, Math.max(1,tank.getFluidAmount())));
+            tank.setFluid(new FluidStack(BuiltInRegistries.FLUID.get(f), Math.max(1,tank.getFluidAmount())));
 
             parent.setRequiresMeshUpdate();
             if(neighborFluidHandler() instanceof PipeConnection p)

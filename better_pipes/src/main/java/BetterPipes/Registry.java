@@ -10,29 +10,28 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
+import net.minecraftforge.eventbus.api.IEventBus;
+import net.minecraftforge.registries.DeferredRegister;
+import net.minecraftforge.registries.ForgeRegistries;
+import net.minecraftforge.registries.RegistryObject;
 
 public class Registry {
-    public static final net.neoforged.neoforge.registries.DeferredRegister<Block> BLOCKS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK, "betterpipes");
-    public static final net.neoforged.neoforge.registries.DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, "betterpipes");
-    public static final net.neoforged.neoforge.registries.DeferredRegister<Item> ITEMS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.ITEM, "betterpipes");
+    public static final DeferredRegister<Block> BLOCKS = DeferredRegister.create(ForgeRegistries.BLOCKS, "betterpipes");
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(ForgeRegistries.BLOCK_ENTITY_TYPES, "betterpipes");
+    public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(ForgeRegistries.ITEMS, "betterpipes");
 
-    public static void registerBlockItem(String name, DeferredHolder<Block,Block> b){
-        ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
-    }
-
-    public static final DeferredHolder<Block, Block> PIPE = BLOCKS.register(
+    public static final RegistryObject<BlockPipe> PIPE = BLOCKS.register(
             "pipe",
-            () -> new BlockPipe(BlockBehaviour.Properties.of().noOcclusion().strength(1.0f).instabreak())
+            () -> new BlockPipe(BlockBehaviour.Properties.of().noOcclusion().strength(0.1f))
     );
-    public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<EntityPipe>> ENTITY_PIPE = BLOCK_ENTITIES.register(
+    public static final RegistryObject<BlockEntityType<EntityPipe>> ENTITY_PIPE = BLOCK_ENTITIES.register(
             "entity_pipe",
             () -> BlockEntityType.Builder.of(EntityPipe::new, PIPE.get()).build(null)
     );
 
     public static void register(IEventBus modBus) {
-        registerBlockItem("pipe", PIPE);
+        ITEMS.register("pipe",() -> new BlockItem(PIPE.get(), new Item.Properties()));
+
 
         BLOCKS.register(modBus);
         ITEMS.register(modBus);

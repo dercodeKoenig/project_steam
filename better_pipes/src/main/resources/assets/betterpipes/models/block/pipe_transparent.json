@@ -1,0 +1,16 @@
+{
+  "textures": {
+    "pipe": "betterpipes:block/fluid_pipe1_structure"
+  },
+
+  "elements": [
+    {
+      "from": [4, 12, 4],
+      "to": [12, 12, 12],
+      "faces": {
+        "up": {"uv": [ 8, 0, 16, 8 ],  "texture": "#pipe"},
+        "down": {"uv": [ 8, 0, 16, 8 ],  "texture": "#pipe"}
+      }
+    }
+  ]
+}

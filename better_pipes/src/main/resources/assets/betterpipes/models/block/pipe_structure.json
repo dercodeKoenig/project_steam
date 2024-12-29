@@ -1,0 +1,41 @@
+{
+  "textures": {
+    "pipe": "betterpipes:block/fluid_pipe1_structure"
+  },
+
+  "elements": [
+    {
+      "from": [4, 12, 4],
+      "to": [12, 12, 12],
+      "faces": {
+        "up": {"uv": [ 8, 8, 16, 16 ],  "texture": "#pipe"},
+        "down": {"uv": [ 8, 8, 16, 16 ],  "texture": "#pipe"}
+      }
+    }
+  ,
+
+    {
+      "from": [7, 12, 7],
+      "to": [9, 15, 9],
+      "faces": {
+        "south": { "uv": [0,0,8,4],  "texture": "#pipe"},
+        "east": {  "uv": [0,0,8,4],"texture": "#pipe"},
+        "west": {  "uv": [0,0,8,4],"texture": "#pipe"},
+        "north": {  "uv": [0,0,8,4],"texture": "#pipe"}
+      }
+    }
+  ,
+
+    {
+      "from": [6, 15, 6],
+      "to": [10, 16, 10],
+      "faces": {
+        "south": { "uv": [0,4,8,8],  "texture": "#pipe"},
+        "east": {  "uv": [0,4,8,8],"texture": "#pipe"},
+        "west": {  "uv": [0,4,8,8],"texture": "#pipe"},
+        "north": {  "uv": [0,4,8,8],"texture": "#pipe"},
+        "down": {"uv": [ 0, 8, 8, 16 ],  "texture": "#pipe"}
+      }
+    }
+  ]
+}

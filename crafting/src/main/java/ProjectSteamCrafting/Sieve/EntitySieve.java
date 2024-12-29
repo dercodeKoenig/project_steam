@@ -3,6 +3,7 @@ package ProjectSteamCrafting.Sieve;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.ItemUtils;
+import ARLib.utils.RecipePart;
 import ARLib.utils.RecipePartWithProbability;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityCrankShaftBase;
 import ProjectSteam.Static;
@@ -20,21 +21,18 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.ICrankShaftConnector;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.BlockCrankShaftBase;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -52,8 +50,6 @@ import static ProjectSteamCrafting.Registry.SIEVE_HOPPER_UPGRADE;
 
 public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
 
-    public static SieveConfig config = SieveConfigLoader.loadConfig();
-
     VertexBuffer myInputRendererBuffer;
     ItemStack lastInputStackForRender = ItemStack.EMPTY;
     ResourceLocation inputStackTexture = ResourceLocation.withDefaultNamespace("textures/block/air");
@@ -67,17 +63,17 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
     ItemStack myInputs = ItemStack.EMPTY;
     ItemStack myHopperInputs = ItemStack.EMPTY;
 
-    SieveConfig.MachineRecipe currentRecipe = null;
+    SieveConfig.SieveRecipe currentRecipe = null;
     double currentProgress;
     double client_syncedCurrentRecipeTime;
 
-    double click_force = config.clickForce;
-    double k = config.k;
-    int maxStackSizeForSieve = config.inventorySize;
-    int maxStackSizeForSieveHopper = config.inventorySizeHopper;
+    double click_force = SieveConfig.INSTANCE.clickForce;
+    double k = SieveConfig.INSTANCE.k;
+    int maxStackSizeForSieve = SieveConfig.INSTANCE.inventorySize;
+    int maxStackSizeForSieveHopper = SieveConfig.INSTANCE.inventorySizeHopper;
 
     int ticksRemainingForForce = 0;
-    double myFriction = config.baseResistance;
+    double myFriction = SieveConfig.INSTANCE.baseResistance;
     double myInertia = 1;
     double maxStress = 100;
     double myForce = 0;
@@ -326,10 +322,10 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
         }
     }
 
-    SieveConfig.MachineRecipe getRecipeForInputs(ItemStack inputs) {
-        for (SieveConfig.MachineRecipe i : config.recipes) {
+    SieveConfig.SieveRecipe getRecipeForInputs(ItemStack inputs) {
+        for (SieveConfig.SieveRecipe i : SieveConfig.INSTANCE.recipes) {
             if (ItemUtils.matches(i.requiredMesh, myMesh)) {
-                RecipePartWithProbability input = i.inputItem;
+                RecipePart input = i.inputItem;
                 if (ItemUtils.matches(input.id, inputs)) {
                     return i;
                 }
@@ -367,7 +363,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
             broadcastChangeOfInventoryAndSetChanged();
             currentRecipe = null;
         }
-        myFriction = config.baseResistance;
+        myFriction = SieveConfig.INSTANCE.baseResistance;
     }
 
     public  boolean tryAddElementToSieveInventory(ItemStack stack) {
@@ -492,7 +488,7 @@ public class EntitySieve extends BlockEntity implements ProjectSteam.Core.IMecha
                 if (!myInputs.isEmpty() && !myMesh.isEmpty()) {
                     currentRecipe = getRecipeForInputs(myInputs);
                     if (currentRecipe != null) {
-                        myFriction = config.baseResistance + currentRecipe.additionalResistance;
+                        myFriction = SieveConfig.INSTANCE.baseResistance + currentRecipe.additionalResistance;
                         CompoundTag timeRequiredTag = new CompoundTag();
                         timeRequiredTag.putDouble("timeRequired", currentRecipe.timeRequired);
                         PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, timeRequiredTag));

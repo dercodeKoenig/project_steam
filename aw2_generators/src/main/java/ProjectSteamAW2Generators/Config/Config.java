@@ -19,7 +19,7 @@ public class Config {
     public static Config INSTANCE = loadConfig();
 
     public double stirlingGenerator_maxForceMultiplier = 50;
-    public  double stirlingGenerator_k = 5;
+    public  double stirlingGenerator_k = 3;
     public  double stirlingGenerator_burnTimeMultiplier = 10;
     public  double stirlingGenerator_friction = 1;
     public  double stirlingGenerator_inertia = 20;

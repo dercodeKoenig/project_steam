@@ -19,6 +19,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -53,20 +54,7 @@ public class ResearchConfig {
     }
 
 
-    public ResearchConfig() {
-        Research t1 = new Research();
-        t1.id = "example Research 1";
-        t1.ticksRequired = 100;
-        t1.requiredItems.add(new RecipePart("c:ingots/iron",4));
-        researchList.add(t1);
-
-        t1 = new Research();
-        t1.id = "example Research 2";
-        t1.ticksRequired = 300;
-        t1.requiredResearches.add("example Research 1");
-        t1.requiredItems.add(new RecipePart("minecraft:string",128));
-        researchList.add(t1);
-    }
+    public ResearchConfig() {}
 
     public void SyncConfig(ServerPlayer p) {
         if (p != null) {
@@ -76,34 +64,55 @@ public class ResearchConfig {
 
     public void loadConfig(String configString) {
         ResearchConfig.INSTANCE = new Gson().fromJson(configString, ResearchConfig.class);
-        System.out.println("load config:" + configString);
+        ResearchConfig.INSTANCE.makeResearchMap();
+        System.out.println("client loaded config:" + configString);
     }
 
     public static ResearchConfig loadConfig() {
-        String filename = "research_list.json";
+        String folderName = "researches";
         Path configDir = Paths.get(FMLPaths.CONFIGDIR.get().toString());
-        Path filePath = configDir.resolve(filename);
+        Path folderPath = configDir.resolve(folderName);
+
+        ResearchConfig researchConfig = new ResearchConfig();
+
         try {
-            // Create the config directory if it doesn't exist
-            if (!Files.exists(filePath)) {
-                Files.createFile(filePath);
-                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new ResearchConfig()).getBytes(StandardCharsets.UTF_8));
+            // Create the folder if it doesn't exist
+            if (!Files.exists(folderPath)) {
+                Files.createDirectories(folderPath);
+                System.out.println("Created recipes folder: " + folderPath);
             }
-            // Load JSON from the file
-            String jsonContent = Files.readString(filePath);
-            Gson gson = new Gson();
-            ResearchConfig c = gson.fromJson(jsonContent, ResearchConfig.class);
-            c.makeResearchMap();
-            return c;
-        } catch (JsonSyntaxException e) {
-            System.err.println("Failed to parse config JSON");
-            throw new RuntimeException(e);
+
+            // Scan for recipe files in the folder
+            DirectoryStream<Path> researchFiles = Files.newDirectoryStream(folderPath, "*.json");
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .excludeFieldsWithModifiers(Modifier.PRIVATE)
+                    .create();
+
+            for (Path filePath : researchFiles) {
+                try {
+                    // Read each recipe file
+                    String jsonContent = Files.readString(filePath);
+                    ResearchConfig.Research research = gson.fromJson(jsonContent, ResearchConfig.Research.class); // Assuming individual recipe files correspond to a Recipe class
+
+                    if (research != null) {
+                        researchConfig.researchList.add(research); // Add the parsed recipe to RecipeConfig
+                        System.out.println("added research:"+filePath.getFileName());
+                    }
+                } catch (JsonSyntaxException e) {
+                    System.err.println("Failed to parse recipe file: " + filePath);
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    System.err.println("Failed to read recipe file: " + filePath);
+                    e.printStackTrace();
+                }
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error accessing recipes folder", e);
         }
+researchConfig.makeResearchMap();
+        return researchConfig;
     }
-
-
 
 
     public static class PacketConfigSync implements CustomPacketPayload {

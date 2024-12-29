@@ -3,15 +3,23 @@ package ResearchSystem;
 import ARLib.gui.GuiHandlerMainHandItem;
 import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
+import ARLib.network.INetworkItemStackTagReceiver;
+import ARLib.network.PacketBlockEntity;
+import ARLib.network.PacketPlayerMainHand;
+import ARLib.utils.DimensionUtils;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.Config.ResearchConfig;
+import ResearchSystem.ResearchStation.EntityResearchStation;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -19,14 +27,61 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-public class ItemResearchBook extends Item {
+public class ItemResearchBook extends Item implements INetworkItemStackTagReceiver {
 
-    GuiHandlerMainHandItem guiHandler = new GuiHandlerMainHandItem();
+    ItemStack client_currentBookStackOpen = ItemStack.EMPTY;
+
+    GuiHandlerMainHandItem guiHandler = new GuiHandlerMainHandItem() {
+        @Override
+        public void onGuiClose() {
+            // this happens on client side
+            if (client_currentBookStackOpen.getItem() instanceof ItemResearchBook irb) {
+                CompoundTag t = getStackTagOrEmpty(client_currentBookStackOpen);
+                if (t.getBoolean("isInStation")) {
+                    // re-open the gui from the station
+                    BlockPos pos = new BlockPos(t.getInt("sx"), t.getInt("sy"), t.getInt("sz"));
+                    BlockEntity station = Minecraft.getInstance().player.level().getBlockEntity(pos);
+                    if (station instanceof EntityResearchStation r) {
+                        r.openGui();
+                    }
+                }
+            }
+        }
+        @Override
+        public void onGuiClientTick() {
+            if (client_currentBookStackOpen.getItem() instanceof ItemResearchBook irb) {
+                CompoundTag t = getStackTagOrEmpty(client_currentBookStackOpen);
+                if (!t.getBoolean("isInStation")) {
+                    // if the item is in main hand, check if the stack changed to update gui
+                    ItemStack stackInHand = Minecraft.getInstance().player.getMainHandItem();
+                    if (!ItemStack.isSameItemSameComponents(client_currentBookStackOpen, stackInHand)) {
+                        // probably updated nbt so update gui
+                        client_currentBookStackOpen = stackInHand;
+                        makeGui(stackInHand);
+                    }
+                }else{
+                    BlockPos pos = new BlockPos(t.getInt("sx"), t.getInt("sy"), t.getInt("sz"));
+                    BlockEntity station = Minecraft.getInstance().player.level().getBlockEntity(pos);
+if(station instanceof EntityResearchStation r){
+    // this will ping the server to notify that i am still tracking the gui.
+    // i am not really tracking the gui but as long as the server thinks i am tracking the gui it will
+    // update the book stack nbt
+    r.guiHandler.onGuiClientTick();
+}
+                }
+            }
+        }
+        };
 
     public ItemResearchBook() {
         super(new Properties().stacksTo(1));
@@ -56,8 +111,7 @@ public class ItemResearchBook extends Item {
             guiModuleButton db = new guiModuleButton(20000 + n, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
                 @Override
                 public void onButtonClicked() {
-                    setSelectedResearchPreview(bookStack, i.id);
-                    makeGui(bookStack);
+                    client_updateResearchPreview(bookStack, i.id);
                 }
             };
 
@@ -79,64 +133,77 @@ public class ItemResearchBook extends Item {
         String previewId = getSelectedResearchPreview(bookStack);
         if (!previewId.isEmpty()) {
             ResearchConfig.Research selected = ResearchConfig.INSTANCE.getResearchMap().get(previewId);
-
-            //title
-            infoContainerModules.add(
-                    new guiModuleText(-1, previewId, guiHandler, 5, 10, 0xFF000000, false)
-            );
-
-
-            //unlocked items
-            infoContainerModules.add(
-                    new guiModuleText(-2, "Unlocked Items:", guiHandler, 5, 25, 0xFF000000, false)
-            );
-
-            int itemsInRow = 5;
-            int baseX = 5;
-            int baseY = 35;
-            int n = 0;
-            for (RecipeConfig.Recipe i : RecipeConfig.INSTANCE.recipeList) {
-                int x = n % itemsInRow * 18 + baseX;
-                int y = n / itemsInRow * 18 + baseY;
-                if (i.requiredResearch.equals(previewId)) {
-                    infoContainerModules.add(
-                            new guiModuleItemPreview(guiHandler, x, y, ItemUtils.getItemStackFromIdOrTag(i.output.id, 1, Minecraft.getInstance().player.level().registryAccess()).getItem())
-                    );
-                }
-                n++;
-            }
-
-            // requirements
-            int y = 30 + n / itemsInRow * 18 + baseY;
-            infoContainerModules.add(
-                    new guiModuleText(-2, "requirements:", guiHandler, 5, y, 0xFF000000, false)
-            );
-            y += 10;
-            for (String r : selected.requiredResearches) {
+            if (selected == null) {
+                // can happen when you change config
+            } else {
+                //title
                 infoContainerModules.add(
-                        new guiModuleText(-y, r, guiHandler, 5, y + 3, 0xFF000000, false)
+                        new guiModuleText(-1, previewId, guiHandler, 5, 10, 0xFF000000, false)
                 );
-                guiModuleButton db = new guiModuleButton(-20000 - y, "?", guiHandler, 140, y, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
-                    @Override
-                    public void onButtonClicked() {
-                        setSelectedResearchPreview(bookStack, r);
-                        makeGui(bookStack);
+
+
+                //unlocked items
+                infoContainerModules.add(
+                        new guiModuleText(-2, "Unlocked Items:", guiHandler, 5, 25, 0xFF000000, false)
+                );
+
+                int itemsInRow = 5;
+                int baseX = 5;
+                int baseY = 35;
+                int n = 0;
+                for (RecipeConfig.Recipe i : RecipeConfig.INSTANCE.recipeList) {
+                    int x = n % itemsInRow * 18 + baseX;
+                    int y = n / itemsInRow * 18 + baseY;
+                    if (i.requiredResearch.equals(previewId)) {
+                        infoContainerModules.add(
+                                new guiModuleItemPreview(guiHandler, x, y, ItemUtils.getItemStackFromIdOrTag(i.output.id, 1, Minecraft.getInstance().player.level().registryAccess()))
+                        );
+                        n++;
                     }
-                };
-
-                db.color = 0xFFFFA0A0;
-                if (researchInQueue.contains(r) || r.equals(getCurrentResearch(bookStack))) {
-                    db.color = 0xFFF0F080;
                 }
-                if (researchCompleted.contains(r)) {
-                    db.color = 0xFFA0FFA0;
-                }
-                infoContainerModules.add(db);
 
-                y += 10;
+                // requirements
+                int ty = 30 + n / itemsInRow * 18 + baseY;
+                infoContainerModules.add(
+                        new guiModuleText(-2, "requirements:", guiHandler, 5, ty, 0xFF000000, false)
+                );
+                ty += 10;
+
+                n = 0;
+                for (RecipePart i : selected.requiredItems) {
+                    int x = n % itemsInRow * 18 + baseX;
+                    int y = n / itemsInRow * 18 + ty;
+                    infoContainerModules.add(
+                            new guiModuleItemPreview(guiHandler, x, y, ItemUtils.getItemStackFromIdOrTag(i.id, i.amount, Minecraft.getInstance().player.level().registryAccess()))
+                    );
+
+                    n++;
+                }
+                ty += (n / itemsInRow+1) * 18;
+
+                for (String r : selected.requiredResearches) {
+                    infoContainerModules.add(
+                            new guiModuleText(-ty, r, guiHandler, 5, ty + 3, 0xFF000000, false)
+                    );
+                    guiModuleButton db = new guiModuleButton(-20000 - ty, "?", guiHandler, 140, ty, 12, 12, ResourceLocation.fromNamespaceAndPath("research_station", "textures/gui/btn.png"), 10, 10) {
+                        @Override
+                        public void onButtonClicked() {
+                            client_updateResearchPreview(bookStack, r);
+                        }
+                    };
+
+                    db.color = 0xFFFFA0A0;
+                    if (researchInQueue.contains(r) || r.equals(getCurrentResearch(bookStack))) {
+                        db.color = 0xFFF0F080;
+                    }
+                    if (researchCompleted.contains(r)) {
+                        db.color = 0xFFA0FFA0;
+                    }
+                    infoContainerModules.add(db);
+
+                    ty += 10;
+                }
             }
-
-
         }
         guiModuleScrollContainer infoContainer = new guiModuleScrollContainer(infoContainerModules, 0x00000000, guiHandler, 190 + 18, 7, 173, 183);
         guiHandler.getModules().add(infoContainer);
@@ -147,6 +214,7 @@ public class ItemResearchBook extends Item {
 
     public void openGui(ItemStack bookStack) {
         makeGui(bookStack);
+        this.client_currentBookStackOpen = bookStack;
         guiHandler.openGui(380, 200, false);
     }
 
@@ -160,12 +228,20 @@ public class ItemResearchBook extends Item {
             ListTag queued = new ListTag();
             itemTag.put("queued", queued);
 
-            StringTag currentResearch = StringTag.valueOf("");
-            itemTag.put("currentResearch", currentResearch);
-            IntTag currentProgress = IntTag.valueOf(0);
-            itemTag.put("currentProgress", currentProgress);
-            StringTag selectedResearchPreview = StringTag.valueOf("");
-            itemTag.put("selectedResearchPreview", selectedResearchPreview);
+            itemTag.putString("currentResearch", "");
+            itemTag.putInt("currentProgress", 0);
+
+            itemTag.putString("selectedResearchPreview", "");
+
+            // this is required to set the selected research.
+            // if the book is in station the update packet to server needs to target the station
+            // if not in station, player holds it in hand and it needs to target the item in player hand
+            itemTag.putBoolean("isInStation", false);
+            itemTag.put("slevelId", StringTag.valueOf(""));
+            itemTag.put("sx", IntTag.valueOf(0));
+            itemTag.put("sy", IntTag.valueOf(0));
+            itemTag.put("sz", IntTag.valueOf(0));
+
 
             return itemTag;
         }
@@ -175,6 +251,20 @@ public class ItemResearchBook extends Item {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
+
+    public void setIsInStation(ItemStack bookstack, @Nullable BlockEntity station) {
+        CompoundTag itemTag = getStackTagOrEmpty(bookstack);
+        if (station == null) {
+            itemTag.putBoolean("isInStation", false);
+        } else {
+            itemTag.putBoolean("isInStation", true);
+            itemTag.putString("slevelId", DimensionUtils.getLevelId(station.getLevel()));
+            itemTag.putInt("sx", station.getBlockPos().getX());
+            itemTag.putInt("sy", station.getBlockPos().getY());
+            itemTag.putInt("sz", station.getBlockPos().getZ());
+        }
+        setStackTag(bookstack, itemTag);
+    }
 
     public String getSelectedResearchPreview(CompoundTag itemTag) {
         return itemTag.getString("selectedResearchPreview");
@@ -390,9 +480,41 @@ public class ItemResearchBook extends Item {
 
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
+
         if (level.isClientSide && itemstack.getItem() instanceof ItemResearchBook) {
             openGui(itemstack);
+        } else {
+            setIsInStation(itemstack, null);
         }
+
         return InteractionResultHolder.success(itemstack);
+    }
+
+    public void client_updateResearchPreview(ItemStack bookStack, String id) {
+        CompoundTag info = new CompoundTag();
+        info.putString("setPreviewResearch", id);
+        CustomPacketPayload p = null;
+        CompoundTag t = getStackTagOrEmpty(bookStack);
+        //System.out.println(t);
+        if (t.getBoolean("isInStation")) {
+            BlockPos pos = new BlockPos(t.getInt("sx"), t.getInt("sy"), t.getInt("sz"));
+            p = PacketBlockEntity.getBlockEntityPacket(Minecraft.getInstance().player.level(), pos, info);
+        } else {
+            p = PacketPlayerMainHand.packetToServer(Minecraft.getInstance().player.getUUID(), info);
+        }
+        PacketDistributor.sendToServer(p);
+    }
+
+    @Override
+    public void readServer(CompoundTag compoundTag, ItemStack itemStack, UUID uuid) {
+        if (compoundTag.contains("setPreviewResearch")) {
+            String id = compoundTag.getString("setPreviewResearch");
+            setSelectedResearchPreview(itemStack, id);
+        }
+    }
+
+    @Override
+    public void readClient(CompoundTag compoundTag) {
+
     }
 }

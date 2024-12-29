@@ -175,7 +175,7 @@ public class GuiHandlerBlockEntity implements IGuiHandler {
             sendPing();
         }
     }
-    void sendPing(){
+    public void sendPing(){
         CompoundTag tag = new CompoundTag();
         tag.putUUID("guiPing", Minecraft.getInstance().player.getUUID());
         sendToServer(tag);

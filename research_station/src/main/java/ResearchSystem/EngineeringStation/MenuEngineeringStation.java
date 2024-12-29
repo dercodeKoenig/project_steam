@@ -82,11 +82,13 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                                             matches = false;
                                         } else {
                                             itemstack.shrink(inp.input.amount);
-                                            ItemStack toProduce = ItemUtils.getItemStackFromIdOrTag(inp.onComplete.id, inp.onComplete.amount, station.getLevel().registryAccess());
-                                            if (toProduce != null) {
-                                                moveItemStackTo(toProduce, 11, 11 + 4 * 9 + 18, false);
-                                                if (!toProduce.isEmpty()) {
-                                                    Block.popResource(station.getLevel(), station.getBlockPos(), toProduce);
+                                            if(inp.onComplete != null) {
+                                                ItemStack toProduce = ItemUtils.getItemStackFromIdOrTag(inp.onComplete.id, inp.onComplete.amount, station.getLevel().registryAccess());
+                                                if (toProduce != null) {
+                                                    moveItemStackTo(toProduce, 11, 11 + 4 * 9 + 18, false);
+                                                    if (!toProduce.isEmpty()) {
+                                                        Block.popResource(station.getLevel(), station.getBlockPos(), toProduce);
+                                                    }
                                                 }
                                             }
                                             // so that it recomputes the recipe slot and sets itself changed
@@ -117,7 +119,9 @@ public class MenuEngineeringStation extends AbstractContainerMenu {
                                 }
                             }
                         }
+                        //System.out.println(station.craftingInventory.getStackInSlot(i)+":"+i);
                     }
+                    //station.craftingInventory.setChanged();
                 }
             }
         });

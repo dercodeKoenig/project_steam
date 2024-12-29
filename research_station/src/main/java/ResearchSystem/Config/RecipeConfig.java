@@ -19,6 +19,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -34,12 +35,12 @@ public class RecipeConfig {
 
     public static class Recipe {
         public String requiredResearch = "";
-        public RecipePart output = new RecipePart("minecraft:air",1);
+        public RecipePart output = new RecipePart("minecraft:air",0);
         public List<String> pattern = new ArrayList<>();
         public Map<String,RecipeInput> keys = new HashMap<>();
     }
     public static class RecipeInput{
-        public RecipePart input = new RecipePart("");
+        public RecipePart input = new RecipePart("",1);
         public RecipePart onComplete = new RecipePart("",0);
         public RecipeInput(RecipePart in, RecipePart out){
             this.input = in;this.onComplete = out;
@@ -103,15 +104,7 @@ public class RecipeConfig {
     }
 
 
-    public RecipeConfig() {
-        Recipe t1 = new Recipe();
-        t1.requiredResearch = "example Research 1";
-        t1.pattern = List.of("   ","ABA","   ");
-        t1.keys.put("A", new RecipeInput(new RecipePart("c:ingots/iron",2), new RecipePart("minecraft:stone")));
-        t1.keys.put("B", new RecipeInput(new RecipePart("minecraft:string")));
-        t1.output = new RecipePart("minecraft:dirt",10);
-        recipeList.add(t1);
-    }
+    public RecipeConfig() {}
 
     public void SyncConfig(ServerPlayer p) {
         if (p != null) {
@@ -126,33 +119,57 @@ public class RecipeConfig {
 
     public void loadConfig(String configString) {
         RecipeConfig.INSTANCE = new Gson().fromJson(configString, RecipeConfig.class);
-        System.out.println("load config:" + configString);
+        System.out.println("client load config:" + configString);
         if(jeiRunnableOnConfigLoad!=null)
             jeiRunnableOnConfigLoad.run();
     }
 
     public static RecipeConfig loadConfig() {
-        String filename = "research_recipe_list.json";
+        String folderName = "research_recipes";
         Path configDir = Paths.get(FMLPaths.CONFIGDIR.get().toString());
-        Path filePath = configDir.resolve(filename);
+        Path folderPath = configDir.resolve(folderName);
+
+        RecipeConfig recipeConfig = new RecipeConfig();
+
         try {
-            // Create the config directory if it doesn't exist
-            if (!Files.exists(filePath)) {
-                Files.createFile(filePath);
-                Files.write(filePath, new GsonBuilder().setPrettyPrinting().excludeFieldsWithModifiers(Modifier.PRIVATE).create().toJson(new RecipeConfig()).getBytes(StandardCharsets.UTF_8));
+            // Create the folder if it doesn't exist
+            if (!Files.exists(folderPath)) {
+                Files.createDirectories(folderPath);
+                System.out.println("Created recipes folder: " + folderPath);
             }
-            // Load JSON from the file
-            String jsonContent = Files.readString(filePath);
-            Gson gson = new Gson();
-            RecipeConfig c = gson.fromJson(jsonContent, RecipeConfig.class);
-            return c;
-        } catch (JsonSyntaxException e) {
-            System.err.println("Failed to parse config JSON");
-            throw new RuntimeException(e);
+
+            // Scan for recipe files in the folder
+            DirectoryStream<Path> recipeFiles = Files.newDirectoryStream(folderPath, "*.json");
+            Gson gson = new GsonBuilder()
+                    .setPrettyPrinting()
+                    .excludeFieldsWithModifiers(Modifier.PRIVATE)
+                    .create();
+
+            for (Path filePath : recipeFiles) {
+                try {
+                    // Read each recipe file
+                    String jsonContent = Files.readString(filePath);
+                    Recipe recipe = gson.fromJson(jsonContent, Recipe.class); // Assuming individual recipe files correspond to a Recipe class
+
+                    if (recipe != null) {
+                        recipeConfig.recipeList.add(recipe); // Add the parsed recipe to RecipeConfig
+                        System.out.println("added recipe:"+filePath.getFileName());
+                    }
+                } catch (JsonSyntaxException e) {
+                    System.err.println("Failed to parse recipe file: " + filePath);
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    System.err.println("Failed to read recipe file: " + filePath);
+                    e.printStackTrace();
+                }
+            }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("Error accessing recipes folder", e);
         }
+
+        return recipeConfig;
     }
+
 
 
 

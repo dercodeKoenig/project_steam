@@ -15,6 +15,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.DirectionalPayloadHandler;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.lang.reflect.Modifier;
@@ -23,10 +24,9 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 
 public class ResearchConfig {
@@ -84,12 +84,16 @@ public class ResearchConfig {
 
             // Scan for recipe files in the folder
             DirectoryStream<Path> researchFiles = Files.newDirectoryStream(folderPath, "*.json");
+            List<Path> sortedFiles = StreamSupport.stream(researchFiles.spliterator(), false)
+                    .sorted(Comparator.comparing(Path::getFileName))
+                    .toList();
+
             Gson gson = new GsonBuilder()
                     .setPrettyPrinting()
                     .excludeFieldsWithModifiers(Modifier.PRIVATE)
                     .create();
 
-            for (Path filePath : researchFiles) {
+            for (Path filePath : sortedFiles) {
                 try {
                     // Read each recipe file
                     String jsonContent = Files.readString(filePath);

@@ -4,7 +4,9 @@ import ARLib.network.INetworkTagReceiver;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.RecipeConfig;
-import ResearchSystem.ItemResearchBook;
+import ResearchSystem.ResearchStation.BlockResearchStation;
+import ResearchSystem.ResearchStation.EntityResearchStation;
+import ResearchSystem.ResearchStation.ItemResearchBook;
 import com.google.gson.Gson;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
@@ -15,6 +17,7 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.*;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -86,6 +89,15 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
         public void onContentsChanged(int slot) {
             EntityEngineeringStation.super.setChanged();
             updateCraftingContainerFromCraftingInventory();
+
+            //update blockstate to show/hide book
+            if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockEngineeringStation) {
+                if (getStackInSlot(0).getItem() instanceof ItemResearchBook) {
+                    level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, true), 3);
+                } else {
+                    level.setBlock(getBlockPos(), getBlockState().setValue(BlockEngineeringStation.HAS_BOOK, false), 3);
+                }
+            }
         }
 
         @Override
@@ -111,6 +123,16 @@ public class EntityEngineeringStation extends BlockEntity implements INetworkTag
         if (!level.isClientSide) {
             updateCraftingContainerFromCraftingInventory();
         }
+    }
+
+    public void popInventory() {
+        Block.popResource(level, getBlockPos(), bookInventory.getStackInSlot(0));
+        bookInventory.setStackInSlot(0, ItemStack.EMPTY);
+        for (int i = 0; i < inputInventory.getSlots(); i++) {
+            Block.popResource(level, getBlockPos(), inputInventory.getStackInSlot(i));
+            inputInventory.setStackInSlot(i, ItemStack.EMPTY);
+        }
+        setChanged();
     }
 
     public void tick() {

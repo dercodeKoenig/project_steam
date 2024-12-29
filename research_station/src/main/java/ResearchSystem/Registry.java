@@ -5,6 +5,7 @@ import ResearchSystem.EngineeringStation.EntityEngineeringStation;
 import ResearchSystem.EngineeringStation.MenuEngineeringStation;
 import ResearchSystem.ResearchStation.BlockResearchStation;
 import ResearchSystem.ResearchStation.EntityResearchStation;
+import ResearchSystem.ResearchStation.ItemResearchBook;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;

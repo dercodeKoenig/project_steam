@@ -1,8 +1,13 @@
 {
   "variants": {
-    "facing=south": { "model": "research_station:block/engineering_station" },
-    "facing=west": { "model": "research_station:block/engineering_station", "y": 90 },
-    "facing=north": { "model": "research_station:block/engineering_station", "y": 180 },
-    "facing=east": { "model": "research_station:block/engineering_station", "y": 270 }
+    "facing=south,has_book=false": { "model": "research_station:block/engineering_station" },
+    "facing=west,has_book=false": { "model": "research_station:block/engineering_station", "y": 90 },
+    "facing=north,has_book=false": { "model": "research_station:block/engineering_station", "y": 180 },
+    "facing=east,has_book=false": { "model": "research_station:block/engineering_station", "y": 270 },
+
+    "facing=south,has_book=true": { "model": "research_station:block/engineering_station_has_book" },
+    "facing=west,has_book=true": { "model": "research_station:block/engineering_station_has_book", "y": 90 },
+    "facing=north,has_book=true": { "model": "research_station:block/engineering_station_has_book", "y": 180 },
+    "facing=east,has_book=true": { "model": "research_station:block/engineering_station_has_book", "y": 270 }
   }
 }

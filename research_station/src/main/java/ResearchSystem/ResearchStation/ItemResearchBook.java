@@ -1,4 +1,4 @@
-package ResearchSystem;
+package ResearchSystem.ResearchStation;
 
 import ARLib.gui.GuiHandlerMainHandItem;
 import ARLib.gui.ModularScreen;
@@ -12,14 +12,12 @@ import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.Config.ResearchConfig;
-import ResearchSystem.ResearchStation.EntityResearchStation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -30,7 +28,6 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;

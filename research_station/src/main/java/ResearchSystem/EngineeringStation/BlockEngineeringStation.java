@@ -1,5 +1,7 @@
 package ResearchSystem.EngineeringStation;
 
+import ResearchSystem.ResearchStation.BlockResearchStation;
+import ResearchSystem.ResearchStation.EntityResearchStation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
@@ -18,25 +20,29 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.phys.BlockHitResult;
 import org.jetbrains.annotations.Nullable;
 
 import static ResearchSystem.Registry.ENTITY_ENGINEERING_STATION;
 
 public class BlockEngineeringStation extends Block implements EntityBlock {
+    public static BooleanProperty HAS_BOOK = BooleanProperty.create("has_book");
+
     public BlockEngineeringStation() {
         super(Properties.of().noOcclusion());
-        this.registerDefaultState(this.getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH));
+        this.registerDefaultState(this.getStateDefinition().any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.SOUTH).setValue(HAS_BOOK, false));
     }
 
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite());
+        return this.defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, context.getHorizontalDirection().getOpposite()).setValue(HAS_BOOK,false);
     }
 
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);
+        builder.add(HAS_BOOK);
     }
 
     @Override
@@ -62,6 +68,12 @@ public class BlockEngineeringStation extends Block implements EntityBlock {
 
         @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+            if(!(newState.getBlock() instanceof BlockEngineeringStation)) {
+                BlockEntity e = level.getBlockEntity(pos);
+                if (e instanceof EntityEngineeringStation r) {
+                    r.popInventory();
+                }
+            }
         super.onRemove(state,level,pos,newState,movedByPiston);
     }
 

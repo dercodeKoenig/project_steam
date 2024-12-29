@@ -8,7 +8,6 @@ import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import ARLib.utils.RecipePart;
 import ResearchSystem.Config.ResearchConfig;
-import ResearchSystem.ItemResearchBook;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
@@ -83,6 +82,7 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
                 if (level.getBlockState(getBlockPos()).getBlock() instanceof BlockResearchStation) {
                     if (getStackInSlot(0).getItem() instanceof ItemResearchBook irb) {
                         level.setBlock(getBlockPos(), getBlockState().setValue(BlockResearchStation.HAS_BOOK, true), 3);
+                        // also update the bookstack that it is in station
                         irb.setIsInStation(getStackInSlot(0), EntityResearchStation.this);
                     } else {
                         level.setBlock(getBlockPos(), getBlockState().setValue(BlockResearchStation.HAS_BOOK, false), 3);
@@ -238,13 +238,10 @@ public class EntityResearchStation extends BlockEntity implements INetworkTagRec
     public void popInventory() {
         Block.popResource(level, getBlockPos(), bookInventory.getStackInSlot(0));
         bookInventory.setStackInSlot(0, ItemStack.EMPTY);
-
         for (int i = 0; i < requiredItemsInventory.getSlots(); i++) {
             Block.popResource(level, getBlockPos(), requiredItemsInventory.getStackInSlot(i));
             requiredItemsInventory.setStackInSlot(i, ItemStack.EMPTY);
         }
-
-
         setChanged();
     }
 

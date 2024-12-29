@@ -27,14 +27,12 @@ public class Main {
     }
 
     public static void onSourceCreate(BlockEvent.CreateFluidSourceEvent e) {
-        System.out.println(e);
         MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server != null) {
             if (e.getState().getFluidState().getType().isSame(Fluids.WATER)) {
                 Holder<Biome> h = e.getLevel().getBiome(e.getPos());
                 ResourceLocation id = server.registryAccess().registryOrThrow(Registries.BIOME).getKey(h.value());
                 String idString = id.toString();
-                System.out.println(idString);
                 if (Config.INSTANCE.biomes.contains(idString)) {
                     if (Config.INSTANCE.isBlackList) {
                         e.setResult(Event.Result.DENY);

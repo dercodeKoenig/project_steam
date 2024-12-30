@@ -4,6 +4,7 @@ package ProjectSteamCrafting;
 import ProjectSteamCrafting.Sieve.RenderSieve;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 import ProjectSteamCrafting.SpinningWheel.RenderSpinningWheel;
+import ProjectSteamCrafting.SpinningWheel.SpinningWheelConfig;
 import ProjectSteamCrafting.WoodMill.RenderWoodMill;
 import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.Config.ResearchConfig;
@@ -50,6 +51,7 @@ public class ProjectSteamCrafting {
     public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
         if(login.getEntity() instanceof ServerPlayer p){
             SieveConfig.INSTANCE.SyncConfig(p);
+            SpinningWheelConfig.INSTANCE.SyncConfig(p);
         }
     }
 
@@ -63,6 +65,7 @@ public class ProjectSteamCrafting {
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
         SieveConfig.PacketConfigSync.register(registrar);
+        SpinningWheelConfig.PacketConfigSync.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

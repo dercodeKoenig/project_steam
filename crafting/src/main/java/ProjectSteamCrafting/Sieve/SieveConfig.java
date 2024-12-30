@@ -146,6 +146,7 @@ public class SieveConfig {
                     // if no p set, i set it to 1
                     if(i.p==0){
                         i.p=1;
+                        System.out.println(recipeFile+" - output with id "+i.id+" has no probability set or it is set to 0. It will default to one.");
                     }
                 }
                 config.addRecipe(recipe);

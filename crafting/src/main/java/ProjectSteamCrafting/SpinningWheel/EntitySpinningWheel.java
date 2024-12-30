@@ -1,7 +1,6 @@
 package ProjectSteamCrafting.SpinningWheel;
 
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.IGuiHandler;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
@@ -10,7 +9,6 @@ import ARLib.utils.*;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
 import ProjectSteam.Static;
-import ProjectSteamCrafting.Sieve.EntitySieve;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -22,10 +20,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
@@ -35,20 +31,16 @@ import static ProjectSteamCrafting.Registry.ENTITY_SPINNING_WHEEL;
 
 public class EntitySpinningWheel extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
 
-    public static SpinningWheelConfig config = SpinningWheelConfigLoader.loadConfig();
-
-    public SpinningWheelConfig.MachineRecipe currentRecipe = null;
+    public SpinningWheelConfig.SpinningWheelRecipe currentRecipe = null;
     public double currentProgress;
 
     public BlockEntityItemStackHandler inventoryOutput;
     public BlockEntityItemStackHandler inventoryInput;
-    List<IItemHandler> itemHandlerInputs = new ArrayList<>();
-    List<IItemHandler> itemHandlerOutputs = new ArrayList<>();
 
     public GuiHandlerBlockEntity guiHandler;
 
     public int ticksRemainingForForce = 0;
-    double myFriction = config.baseResistance;
+    double myFriction = SpinningWheelConfig.INSTANCE.baseResistance;
     double myInertia = 10;
     double maxStress = 100;
     double myForce = 0;
@@ -87,8 +79,6 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
         inventoryInput = new BlockEntityItemStackHandler(9,this);
         inventoryOutput = new BlockEntityItemStackHandler(9,this);
 
-        itemHandlerInputs.add(inventoryInput);
-        itemHandlerOutputs.add(inventoryOutput);
 
         guiHandler = new GuiHandlerBlockEntity(this);
         for(guiModulePlayerInventorySlot i : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,130,100,1,0,guiHandler)){
@@ -142,8 +132,8 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     }
 
     public void scanFornewRecipe() {
-        for (SpinningWheelConfig.MachineRecipe r : config.recipes) {
-            if(InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new RecipePart(r.inputItem.id,r.inputItem.amount)))){
+        for (SpinningWheelConfig.SpinningWheelRecipe r : SpinningWheelConfig.INSTANCE.recipes) {
+            if(InventoryUtils.hasInputs(List.of(inventoryInput), new ArrayList<>(), List.of(new RecipePart(r.inputItem.id,r.inputItem.amount)))){
                 currentRecipe = r;
                 break;
             }
@@ -173,12 +163,12 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public void completeCurrentRecipe() {
         for (int i = 0; i < currentRecipe.inputItem.amount; i++) {
             if (level.random.nextFloat() < currentRecipe.inputItem.p) {
-                InventoryUtils.consumeElements(new ArrayList<>(), itemHandlerInputs, currentRecipe.inputItem.id, 1, false);
+                InventoryUtils.consumeElements(new ArrayList<>(), List.of(inventoryInput), currentRecipe.inputItem.id, 1, false);
             }
         }
         for (RecipePartWithProbability output : currentRecipe.outputItems) {
             output.computeRandomAmount();
-            InventoryUtils.createElements(new ArrayList<>(), itemHandlerOutputs, output.id, output.getRandomAmount(),level.registryAccess());
+            InventoryUtils.createElements(new ArrayList<>(), List.of(inventoryOutput), output.id, output.getRandomAmount(),level.registryAccess());
         }
         resetRecipe();
     }
@@ -191,11 +181,11 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
             if (currentRecipe == null) {
                 scanFornewRecipe();
             } else {
-                if (InventoryUtils.hasInputs(itemHandlerInputs, new ArrayList<>(), List.of(new RecipePart(currentRecipe.inputItem.id, currentRecipe.inputItem.amount)))) {
+                if (InventoryUtils.hasInputs(List.of(inventoryInput), new ArrayList<>(), List.of(new RecipePart(currentRecipe.inputItem.id, currentRecipe.inputItem.amount)))) {
                     double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS));
                     currentProgress += progressMade;
                     if (currentProgress >= currentRecipe.timeRequired) {
-                        if (InventoryUtils.canFitElements(itemHandlerOutputs, new ArrayList<>(),new ArrayList<>(currentRecipe.outputItems),level.registryAccess())) {
+                        if (InventoryUtils.canFitElements(List.of(inventoryOutput), new ArrayList<>(),new ArrayList<>(currentRecipe.outputItems),level.registryAccess())) {
                             completeCurrentRecipe();
                         }
                     }
@@ -204,14 +194,14 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
                 }
             }
             if (currentRecipe == null) {
-                myFriction = config.baseResistance;
+                myFriction = SpinningWheelConfig.INSTANCE.baseResistance;
             } else {
-                myFriction = config.baseResistance + currentRecipe.additionalResistance;
+                myFriction = SpinningWheelConfig.INSTANCE.baseResistance + currentRecipe.additionalResistance;
             }
 
             if (ticksRemainingForForce > 0) {
                 ticksRemainingForForce--;
-                myForce = config.clickForce - config.k * myMechanicalBlock.internalVelocity;
+                myForce = SpinningWheelConfig.INSTANCE.clickForce - SpinningWheelConfig.INSTANCE.k * myMechanicalBlock.internalVelocity;
             } else {
                 myForce = 0;
                 ticksRemainingForForce = 0;

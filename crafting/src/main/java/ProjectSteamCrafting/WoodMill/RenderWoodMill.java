@@ -176,7 +176,7 @@ for(EntityWoodMill.workingRecipe i : tile.currentWorkingRecipes) {
         stack.mulPose(new Quaternionf().fromAxisAngleDeg(0, 0, 1f, 90f));
         stack.translate(0.9f, 1.4f, 1.16f);
 
-        float partialOffset =Math.abs((float) (rad_to_degree(tile.myMechanicalBlock.internalVelocity) / 360f / TPS)) * EntityWoodMill.config.speedMultiplier * partialTick;
+        float partialOffset =Math.abs((float) (rad_to_degree(tile.myMechanicalBlock.internalVelocity) / 360f / TPS)) * WoodMillConfig.INSTANCE.speedMultiplier * partialTick;
         stack.translate(0f, -(i.progress+partialOffset) / tile.timeRequired * 1.6f / 0.3f, 0f);
 
         Minecraft.getInstance().getBlockRenderer().renderSingleBlock(s, stack, bufferSource, packedLight, packedOverlay, ModelData.EMPTY, null);

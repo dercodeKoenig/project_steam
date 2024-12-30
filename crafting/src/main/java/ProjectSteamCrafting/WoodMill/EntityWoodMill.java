@@ -61,9 +61,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
     List<workingRecipe> currentWorkingRecipes = new ArrayList<>();
 
-    public static WoodMillConfig config = WoodMillConfigLoader.loadConfig();
-
-    double myFriction = config.baseResistance;
+    double myFriction = WoodMillConfig.INSTANCE.baseResistance;
     double myInertia = 1;
     double maxStress = 600;
 
@@ -247,8 +245,8 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
     }
 
 
-    WoodMillConfig.MachineRecipe getRecipeForInputs(ItemStack inputs) {
-        for (WoodMillConfig.MachineRecipe i : config.recipes) {
+    WoodMillConfig.WoodMillRecipe getRecipeForInputs(ItemStack inputs) {
+        for (WoodMillConfig.WoodMillRecipe i : WoodMillConfig.INSTANCE.recipes) {
             RecipePart input = i.inputItem;
             if (ItemUtils.matches(input.id, inputs)) {
                 return i;
@@ -294,7 +292,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
         if (stack.isEmpty()) return false;
         if (!canFitInput()) return false;
 
-        WoodMillConfig.MachineRecipe r = getRecipeForInputs(stack);
+        WoodMillConfig.WoodMillRecipe r = getRecipeForInputs(stack);
         if (r != null) {
             if (!level.isClientSide) {
                 workingRecipe w = new workingRecipe();
@@ -336,10 +334,12 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
         myMechanicalBlock.mechanicalTick();
 
         if (getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
+            double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS)) * WoodMillConfig.INSTANCE.speedMultiplier;
+
             if (!level.isClientSide) {
                 List<workingRecipe> toRemove = new ArrayList<>();
                 for (workingRecipe i : currentWorkingRecipes) {
-                    i.progress += Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS)) * config.speedMultiplier;
+                    i.progress += progressMade;
                     if (i.progress >= timeRequired) {
                         completeRecipe(i);
                         toRemove.add(i);
@@ -351,9 +351,9 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
                 }
                 workingRecipe r = getRecipeAtSawblade();
                 if (r != null) {
-                    myFriction = config.baseResistance + r.additionalResistance;
+                    myFriction = WoodMillConfig.INSTANCE.baseResistance + r.additionalResistance;
                 } else {
-                    myFriction = config.baseResistance;
+                    myFriction = WoodMillConfig.INSTANCE.baseResistance;
                 }
 
 
@@ -378,14 +378,13 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
 
             } else {
                 for (workingRecipe i : currentWorkingRecipes) {
-                    i.progress += Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS)) * config.speedMultiplier;
+                    i.progress += progressMade;
                     if (i.progress >= timeRequired) {
 
                     }
                 }
             }
 
-            double progressMade = Math.abs((float) (Static.rad_to_degree(myMechanicalBlock.internalVelocity) / 360f / Static.TPS)) * config.speedMultiplier;
             workingRecipe recipeAtSawBlade = getRecipeAtSawblade();
             if (progressMade > 0.0001 && recipeAtSawBlade != null) {
                 //if(level.random.nextFloat() < progressMade) {

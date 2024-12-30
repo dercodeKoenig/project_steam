@@ -3,6 +3,8 @@ package ProjectSteamCrafting.JEI;
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.RecipePart;
 import ProjectSteamCrafting.Sieve.SieveConfig;
+import ProjectSteamCrafting.SpinningWheel.SpinningWheelConfig;
+import ProjectSteamCrafting.WoodMill.WoodMillConfig;
 import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.EngineeringStation.MenuEngineeringStation;
 import ResearchSystem.jei.RealNiceJeiCategory;
@@ -34,7 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ProjectSteamCrafting.Registry.SIEVE;
+import static ProjectSteamCrafting.Registry.*;
 import static ResearchSystem.Registry.ITEM_ENGINEERING_STATION;
 import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
 
@@ -51,17 +53,20 @@ public class myPlugin implements IModPlugin {
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         //this is delayed to register only after recipes are synced to client
-        //registration.addRecipes(RealNiceJeiCategory.recipeType, recipeConfig.INSTANCE.recipeList);
     }
 
     @Override
     public void registerCategories(IRecipeCategoryRegistration registration) {
         registration.addRecipeCategories(new SieveCategory());
+        registration.addRecipeCategories(new SpinningWheelCategory());
+        registration.addRecipeCategories(new WoodMillCategory());
     }
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
         registration.addRecipeCatalyst(new ItemStack(SIEVE.get()), SieveCategory.recipeType);
+        registration.addRecipeCatalyst(new ItemStack(SPINNING_WHEEL.get()), SpinningWheelCategory.recipeType);
+        registration.addRecipeCatalyst(new ItemStack(WOODMILL.get()), WoodMillCategory.recipeType);
     }
 
     @Override
@@ -71,6 +76,18 @@ public class myPlugin implements IModPlugin {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(SieveCategory.recipeType, SieveConfig.INSTANCE.recipes);
+            }
+        };
+        SpinningWheelConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+            @Override
+            public void run() {
+                runtime.getRecipeManager().addRecipes(SpinningWheelCategory.recipeType, SpinningWheelConfig.INSTANCE.recipes);
+            }
+        };
+        WoodMillConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+            @Override
+            public void run() {
+                runtime.getRecipeManager().addRecipes(WoodMillCategory.recipeType, WoodMillConfig.INSTANCE.recipes);
             }
         };
     }

@@ -38,7 +38,10 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
     int timeSinceConnectStart;
     boolean isFullyConnected;
     public boolean last_wasPowered = false;
-    Map<Direction, Double> current_force = new HashMap<>();
+    double currentForceA;
+    double currentForceB;
+    double currentResistanceA;
+    double currentResistanceB;
     double lastRotationDiffSign = 0;
     double lastRotationDiff = 0;
     boolean shouldConnectNextTick = false;
@@ -55,14 +58,14 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return baseFrictionPerSide;
+            return baseFrictionPerSide + currentResistanceA;
         }
 
         @Override
         public double getTorqueProduced(Direction face) {
             if (isFullyConnected) return 0;
             if (shouldConnect) {
-                return current_force.get(face);
+                return currentForceA;
             }
             return 0;
         }
@@ -227,14 +230,14 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
 
         @Override
         public double getTorqueResistance(Direction face) {
-            return baseFrictionPerSide;
+            return baseFrictionPerSide + currentResistanceB;
         }
 
         @Override
         public double getTorqueProduced(Direction face) {
             if (isFullyConnected) return 0;
             if (shouldConnect) {
-                return current_force.get(face);
+                return currentForceB;
             }
             return 0;
         }
@@ -387,9 +390,6 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
 
     public EntityClutchBase(BlockEntityType<?> type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
-        for (Direction i : Direction.values()) {
-            current_force.put(i, 0.0);
-        }
     }
 
     @Override
@@ -445,7 +445,6 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                     if (lastRotationDiffSign != newRotationDiff || shouldConnectNextTick)
                         isFullyConnected = true;
                     else {
-                        Direction myFacing = getBlockState().getValue(BlockClutchBase.FACING);
                         double rotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;
 
                         // if the rotationDiff is less than the change in rotation diff, it would over-deliver force
@@ -457,25 +456,48 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                             shouldConnectNextTick = true;
                             //System.out.println(forceMultiplier+":"+rotationDiff+":"+lastRotationDiff);
                         }else{
-                            if (timeSinceConnectStart < 1000) {
                                 timeSinceConnectStart += 1;
-                            }
                         }
                         double forceConstant = 2;
-//TODO force messes up stress calculation - make resisting force not a force but resistance
                         double outputForce = Math.signum(rotationDiff) * forceConstant *forceMultiplier * timeSinceConnectStart;
                         outputForce = Math.signum(outputForce) * Math.min(Math.abs(outputForce),maxForce);
                         //System.out.println(outputForce);
 
-                        current_force.put(myFacing, outputForce);
-                        current_force.put(myFacing.getOpposite(), -outputForce);
+                        if(Math.signum(myMechanicalBlockA.internalVelocity) == Math.signum(outputForce) || myMechanicalBlockA.internalVelocity == 0){
+                            currentForceA = outputForce;
+                            currentResistanceA = 0;
+                        }else{
+                            currentForceA = 0;
+                            currentResistanceA = Math.abs(outputForce);
+                        }
+
+                        if(Math.signum(myMechanicalBlockB.internalVelocity) == Math.signum(-outputForce) || myMechanicalBlockB.internalVelocity == 0){
+                            currentForceB = -outputForce;
+                            currentResistanceB = 0;
+                        }else{
+                            currentForceB = 0;
+                            currentResistanceB = Math.abs(outputForce);
+                        }
+                        //System.out.println(currentForceA+":"+currentResistanceA+ "   " + currentForceB+":"+currentResistanceB);
                     }
+                }else{
+                    currentForceB = 0;
+                    currentResistanceB = 0;
+                    currentForceA = 0;
+                    currentResistanceA = 0;
+                    lastRotationDiff = 0;
+                    shouldConnectNextTick = false;
                 }
             } else {
                 shouldConnectNextTick = false;
                 last_wasPowered = false;
                 isFullyConnected = false;
                 shouldConnect = false;
+                currentForceB = 0;
+                currentResistanceB = 0;
+                currentForceA = 0;
+                currentResistanceA = 0;
+                lastRotationDiff = 0;
             }
         }
         if(level.isClientSide){

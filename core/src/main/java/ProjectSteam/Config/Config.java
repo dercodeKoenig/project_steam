@@ -27,6 +27,11 @@ public class Config {
     public double WOODEN_FLYWHEEL_MAX_STRESS = 600;
 
 
+    public double WOODEN_FLYWHEEL_LARGE_FRICTION = 0.1;
+    public double WOODEN_FLYWHEEL_LARGE_INERTIA = 500;
+    public double WOODEN_FLYWHEEL_LARGE_MAX_STRESS = 600;
+
+
     public double WOODEN_CLUTCH_FRICTION_PER_SIDE = 0.1;
     public double WOODEN_CLUTCH_INERTIA_PER_SIDE = 3;
     public double WOODEN_CLUTCH_MAX_STRESS = 900;

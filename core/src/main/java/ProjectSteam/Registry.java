@@ -7,6 +7,8 @@ import ProjectSteam.Blocks.Mechanics.CrankShaft.EntityBigWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.CrankShaft.EntitySmallWoodenCrankShaft;
 import ProjectSteam.Blocks.Mechanics.DistributorGearbox.BlockWoodenDistributorGearbox;
 import ProjectSteam.Blocks.Mechanics.DistributorGearbox.EntityWoodenDistributorGearbox;
+import ProjectSteam.Blocks.Mechanics.FlyWheel.BlockWoodenFlyWheelLarge;
+import ProjectSteam.Blocks.Mechanics.FlyWheel.EntityWoodenFlyWheelLarge;
 import ProjectSteam.Blocks.Mechanics.Gearbox.BlockWoodenGearbox;
 import ProjectSteam.Blocks.Mechanics.Gearbox.EntityWoodenGearbox;
 import ProjectSteam.Blocks.Mechanics.TJunction.BlockWoodenTJunction;
@@ -69,6 +71,15 @@ public class Registry {
     public static final Supplier<BlockEntityType<EntityWoodenFlyWheel>> ENTITY_WOODEN_FLYWHEEL = BLOCK_ENTITIES.register(
             "entity_wooden_flywheel",
             () -> BlockEntityType.Builder.of(EntityWoodenFlyWheel::new, WOODEN_FLYWHEEL.get()).build(null)
+    );
+
+    public static final Supplier<Block> WOODEN_FLYWHEEL_LARGE = BLOCKS.register(
+            "wooden_flywheel_large",
+            () -> new BlockWoodenFlyWheelLarge()
+    );
+    public static final Supplier<BlockEntityType<EntityWoodenFlyWheelLarge>> ENTITY_WOODEN_FLYWHEEL_LARGE = BLOCK_ENTITIES.register(
+            "entity_wooden_flywheel_large",
+            () -> BlockEntityType.Builder.of(EntityWoodenFlyWheelLarge::new, WOODEN_FLYWHEEL_LARGE.get()).build(null)
     );
 
     public static final Supplier<Block> SMALL_WOODEN_CRANKSHAFT = BLOCKS.register(
@@ -173,6 +184,7 @@ public class Registry {
         registerBlockItem("wooden_axle_encased", WOODEN_AXLE_ENCASED);
 
         registerBlockItem("wooden_flywheel", WOODEN_FLYWHEEL);
+        registerBlockItem("wooden_flywheel_large", WOODEN_FLYWHEEL_LARGE);
 
         registerBlockItem("wooden_crankshaft_small", SMALL_WOODEN_CRANKSHAFT);
         registerBlockItem("wooden_crankshaft_big", BIG_WOODEN_CRANKSHAFT);

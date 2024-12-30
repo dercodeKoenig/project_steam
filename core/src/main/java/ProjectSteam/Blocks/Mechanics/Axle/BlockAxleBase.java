@@ -52,8 +52,6 @@ public abstract class BlockAxleBase extends Block implements EntityBlock {
             level.setBlock(pos, state.setValue(ROTATION_AXIS, newAxis), 3);
         }
 
-        super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
-
         state = level.getBlockState(pos);
         level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3) ;
     }

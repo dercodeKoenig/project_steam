@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -41,14 +42,20 @@ public abstract class BlockFlyWheelBase extends Block implements EntityBlock {
     @Override
     public void setPlacedBy(Level level, BlockPos pos, BlockState state, @Nullable LivingEntity placer, ItemStack stack) {
         if (placer != null) {
+            Vec3 lookVec = placer.getLookAngle();
             Direction.Axis newAxis;
-            newAxis = placer.getDirection().getClockWise().getAxis();
+
+            if (Math.abs(lookVec.y)< 0.8) {
+                newAxis = placer.getDirection().getClockWise().getAxis();
+            } else {
+                newAxis = Direction.Axis.Y; // Dominant Y-axis
+            }
             // Set the block state with the correct axis
             level.setBlock(pos, state.setValue(ROTATION_AXIS, newAxis), 3);
         }
 
         state = level.getBlockState(pos);
-        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
+        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3) ;
     }
 
     @Override

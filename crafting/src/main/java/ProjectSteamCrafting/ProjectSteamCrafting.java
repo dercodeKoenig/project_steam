@@ -6,6 +6,7 @@ import ProjectSteamCrafting.Sieve.SieveConfig;
 import ProjectSteamCrafting.SpinningWheel.RenderSpinningWheel;
 import ProjectSteamCrafting.SpinningWheel.SpinningWheelConfig;
 import ProjectSteamCrafting.WoodMill.RenderWoodMill;
+import ProjectSteamCrafting.WoodMill.WoodMillConfig;
 import ResearchSystem.Config.RecipeConfig;
 import ResearchSystem.Config.ResearchConfig;
 import net.minecraft.server.level.ServerPlayer;
@@ -52,6 +53,7 @@ public class ProjectSteamCrafting {
         if(login.getEntity() instanceof ServerPlayer p){
             SieveConfig.INSTANCE.SyncConfig(p);
             SpinningWheelConfig.INSTANCE.SyncConfig(p);
+            WoodMillConfig.INSTANCE.SyncConfig(p);
         }
     }
 
@@ -66,6 +68,7 @@ public class ProjectSteamCrafting {
         final PayloadRegistrar registrar = event.registrar("1");
         SieveConfig.PacketConfigSync.register(registrar);
         SpinningWheelConfig.PacketConfigSync.register(registrar);
+        WoodMillConfig.PacketConfigSync.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {

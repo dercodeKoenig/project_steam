@@ -1,5 +1,6 @@
 package ProjectSteamCrafting.WoodMill;
 
+import ARLib.utils.RecipePartWithProbability;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -93,6 +94,12 @@ public class WoodMillConfigLoader {
                 String recipeContent = Files.readString(recipeFile);
                 Gson gson = new Gson();
                 recipe = gson.fromJson(recipeContent, recipeClass);
+                for(RecipePartWithProbability i : recipe.outputItems){
+                    // if no p set, i set it to 1
+                    if(i.p==0){
+                        i.p=1;
+                    }
+                }
                 config.addRecipe(recipe);
                 System.out.println("Loaded recipe: " + recipeFile.getFileName());
             } catch (JsonSyntaxException e) {

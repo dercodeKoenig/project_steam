@@ -2,6 +2,7 @@ package ProjectSteamCrafting.SpinningWheel;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.IGuiHandler;
+import ARLib.gui.modules.guiModuleImage;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
@@ -14,6 +15,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -74,15 +76,16 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
 
         @Override
         public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
-            return 1;
+            if(receivingFace==null)return 1;
+            return receivingFace.getAxisDirection() == Direction.AxisDirection.NEGATIVE ? 1:-1;
         }
     };
 
     public EntitySpinningWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_SPINNING_WHEEL.get(), pos, blockState);
 
-        inventoryInput = new BlockEntityItemStackHandler(4,this);
-        inventoryOutput = new BlockEntityItemStackHandler(4,this);
+        inventoryInput = new BlockEntityItemStackHandler(9,this);
+        inventoryOutput = new BlockEntityItemStackHandler(9,this);
 
         itemHandlerInputs.add(inventoryInput);
         itemHandlerOutputs.add(inventoryOutput);
@@ -95,23 +98,24 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
             guiHandler.getModules().add(i);
         }
 
-        guiModuleItemHandlerSlot i1 = new guiModuleItemHandlerSlot(0,inventoryInput,0,0,1,guiHandler,20,10);
-        guiHandler.getModules().add(i1);
-        guiModuleItemHandlerSlot i2 = new guiModuleItemHandlerSlot(1,inventoryInput,1,0,1,guiHandler,20,30);
-        guiHandler.getModules().add(i2);
-        guiModuleItemHandlerSlot i3 = new guiModuleItemHandlerSlot(2,inventoryInput,2,0,1,guiHandler,40,10);
-        guiHandler.getModules().add(i3);
-        guiModuleItemHandlerSlot i4 = new guiModuleItemHandlerSlot(3,inventoryInput,3,0,1,guiHandler,40,30);
-        guiHandler.getModules().add(i4);
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                guiModuleItemHandlerSlot i1 = new guiModuleItemHandlerSlot(x+y*3+10000,inventoryInput,x+y*3,0,1,guiHandler,20+x*20,10+y*20);
+                guiHandler.getModules().add(i1);
+            }
+        }
 
-        guiModuleItemHandlerSlot o1 = new guiModuleItemHandlerSlot(4,inventoryOutput,0,2,1,guiHandler,110,10);
-        guiHandler.getModules().add(o1);
-        guiModuleItemHandlerSlot o2 = new guiModuleItemHandlerSlot(5,inventoryOutput,1,2,1,guiHandler,110,30);
-        guiHandler.getModules().add(o2);
-        guiModuleItemHandlerSlot o3 = new guiModuleItemHandlerSlot(6,inventoryOutput,2,2,1,guiHandler,130,10);
-        guiHandler.getModules().add(o3);
-        guiModuleItemHandlerSlot o4 = new guiModuleItemHandlerSlot(7,inventoryOutput,3,2,1,guiHandler,130,30);
-        guiHandler.getModules().add(o4);
+        for (int y = 0; y < 3; y++) {
+            for (int x = 0; x < 3; x++) {
+                guiModuleItemHandlerSlot o1 = new guiModuleItemHandlerSlot(x+y*3+10100,inventoryOutput,x+y*3,2,1,guiHandler,110+x*20,10+y*20);
+                guiHandler.getModules().add(o1);
+            }
+        }
+
+
+        guiHandler.getModules().add(
+                new guiModuleImage(guiHandler,80,30,20,18,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"),16,12)
+                );
     }
 
     @Override

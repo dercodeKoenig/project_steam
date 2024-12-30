@@ -35,6 +35,7 @@ public class Config {
     public double WOODEN_CLUTCH_FRICTION_PER_SIDE = 0.1;
     public double WOODEN_CLUTCH_INERTIA_PER_SIDE = 3;
     public double WOODEN_CLUTCH_MAX_STRESS = 900;
+    public double WOODEN_CLUTCH_MAX_FORCE = 590;
 
 
     public double WOODEN_CRANKSHAFT_BIG_FRICTION = 0.2;

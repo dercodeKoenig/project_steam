@@ -16,6 +16,7 @@ public class EntityWoodenClutch extends EntityClutchBase {
         super.inertiaPerSide = Config.INSTANCE.WOODEN_CLUTCH_INERTIA_PER_SIDE;
         super.baseFrictionPerSide = Config.INSTANCE.WOODEN_CLUTCH_FRICTION_PER_SIDE;
         super.maxStress = Config.INSTANCE.WOODEN_CLUTCH_MAX_STRESS;
+        super.maxForce = Config.INSTANCE.WOODEN_CLUTCH_MAX_FORCE;
     }
 
     @Override

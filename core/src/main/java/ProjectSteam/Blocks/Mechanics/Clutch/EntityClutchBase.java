@@ -25,7 +25,6 @@ import org.joml.Vector3f;
 
 import java.util.*;
 
-import static ProjectSteam.Registry.ENTITY_CLUTCH;
 import static ProjectSteam.Static.*;
 
 public abstract class EntityClutchBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
@@ -33,13 +32,16 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
     public double inertiaPerSide;
     public  double baseFrictionPerSide;
     public  double maxStress;
+    public double maxForce;
 
     boolean shouldConnect;
     int timeSinceConnectStart;
     boolean isFullyConnected;
     public boolean last_wasPowered = false;
     Map<Direction, Double> current_force = new HashMap<>();
+    double lastRotationDiffSign = 0;
     double lastRotationDiff = 0;
+    boolean shouldConnectNextTick = false;
 
     public AbstractMechanicalBlock myMechanicalBlockA = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -390,20 +392,6 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
         }
     }
 
-
-    void updateForce(BlockState state) {
-        if (state == null) state = getBlockState();
-        if (state.getBlock() instanceof BlockClutchBase) {
-            Direction myFacing = state.getValue(BlockClutchBase.FACING);
-
-            double rotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;
-            double forceConstant = 2;
-            current_force.put(myFacing, Math.signum(rotationDiff) * forceConstant * timeSinceConnectStart);
-            current_force.put(myFacing.getOpposite(), -Math.signum(rotationDiff) * forceConstant * timeSinceConnectStart);
-        }
-    }
-
-
     @Override
     public void onLoad() {
         super.onLoad();
@@ -449,19 +437,42 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                 if (!last_wasPowered) {
                     last_wasPowered = true;
                     timeSinceConnectStart = 0;
-                    lastRotationDiff =  Math.signum(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity);
+                    lastRotationDiffSign =  Math.signum(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity);
                 }
                 shouldConnect = true;
-                if (timeSinceConnectStart < 1000) {
-                    timeSinceConnectStart += 1;
-                }
-                double newRotationDiff  =  Math.signum(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity);
-                if (lastRotationDiff != newRotationDiff )
-                    isFullyConnected = true;
-                else {
-                    updateForce(getBlockState());
+                if(!isFullyConnected) {
+                    double newRotationDiff = Math.signum(myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity);
+                    if (lastRotationDiffSign != newRotationDiff || shouldConnectNextTick)
+                        isFullyConnected = true;
+                    else {
+                        Direction myFacing = getBlockState().getValue(BlockClutchBase.FACING);
+                        double rotationDiff = myMechanicalBlockB.internalVelocity - myMechanicalBlockA.internalVelocity;
+
+                        // if the rotationDiff is less than the change in rotation diff, it would over-deliver force
+                        // with this i try to scale force lower to not over-deliver. it is not perfect but better than nothing
+                        double a = lastRotationDiff - rotationDiff;
+                        lastRotationDiff = rotationDiff;
+                        double forceMultiplier = Math.min(1,Math.abs(rotationDiff/a));
+                        if(forceMultiplier < 1){
+                            shouldConnectNextTick = true;
+                            //System.out.println(forceMultiplier+":"+rotationDiff+":"+lastRotationDiff);
+                        }else{
+                            if (timeSinceConnectStart < 1000) {
+                                timeSinceConnectStart += 1;
+                            }
+                        }
+                        double forceConstant = 2;
+
+                        double outputForce = Math.signum(rotationDiff) * forceConstant *forceMultiplier * timeSinceConnectStart;
+                        //System.out.println(outputForce);
+                        outputForce = Math.signum(outputForce) * Math.min(Math.abs(outputForce),maxForce);
+
+                        current_force.put(myFacing, outputForce);
+                        current_force.put(myFacing.getOpposite(), -outputForce);
+                    }
                 }
             } else {
+                shouldConnectNextTick = false;
                 last_wasPowered = false;
                 isFullyConnected = false;
                 shouldConnect = false;

@@ -294,6 +294,7 @@ public abstract class AbstractMechanicalBlock {
             stress /= Math.abs(n.pathWithForceTransformations.get(i).forceTransformation);
             if (n.pathWithForceTransformations.get(i).block.stress > n.pathWithForceTransformations.get(i).block.getMaxStress()) {
                 n.pathWithForceTransformations.get(i).block.me.getBlockEntity().getLevel().destroyBlock(n.pathWithForceTransformations.get(i).block.me.getBlockEntity().getBlockPos(), true);
+                System.out.println("overstressed part: "+n.pathWithForceTransformations.get(i).block.me.getBlockEntity().getBlockPos()+" - "+n.pathWithForceTransformations.get(i).block.stress);
             }
         }
     }

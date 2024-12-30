@@ -462,10 +462,10 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                             }
                         }
                         double forceConstant = 2;
-
+//TODO force messes up stress calculation - make resisting force not a force but resistance
                         double outputForce = Math.signum(rotationDiff) * forceConstant *forceMultiplier * timeSinceConnectStart;
-                        //System.out.println(outputForce);
                         outputForce = Math.signum(outputForce) * Math.min(Math.abs(outputForce),maxForce);
+                        //System.out.println(outputForce);
 
                         current_force.put(myFacing, outputForce);
                         current_force.put(myFacing.getOpposite(), -outputForce);

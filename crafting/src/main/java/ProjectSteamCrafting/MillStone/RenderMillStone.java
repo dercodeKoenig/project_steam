@@ -19,6 +19,7 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
@@ -41,6 +42,7 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
     static WavefrontObject model;
     static ResourceLocation texAxle = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png");
     static ResourceLocation texStone = ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/stone.png");
+    static ResourceLocation texStoneLarge = ResourceLocation.fromNamespaceAndPath("projectsteam_crafting", "textures/block/stone_large.png");
 
     static VertexBuffer vertexBufferPlate = new VertexBuffer(VertexBuffer.Usage.STATIC);
     static MeshData meshPlate;
@@ -130,7 +132,6 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
                 directionMultiplier = -1;
             }
 
-
 double rotation = (tile.myMechanicalBlock.currentRotation + Static.rad_to_degree(tile.myMechanicalBlock.internalVelocity)/Static.TPS * partialTick ) * directionMultiplier;
 
             LIGHTMAP.setupRenderState();
@@ -169,7 +170,8 @@ double rotation = (tile.myMechanicalBlock.currentRotation + Static.rad_to_degree
             vertexBufferStone.draw();
 
             Matrix4f m3 = new Matrix4f(m1);
-
+            
+            RenderSystem.setShaderTexture(0, texStoneLarge);
             m3 = m3.rotate(new Quaternionf().fromAxisAngleDeg(0f,1f,0f,(float)-rotation*0.25f));
             shader.setDefaultUniforms(VertexFormat.Mode.TRIANGLES, m3, RenderSystem.getProjectionMatrix(), Minecraft.getInstance().getWindow());
             shader.getUniform("NormalMatrix").set((new Matrix3f(m3)).invert().transpose());

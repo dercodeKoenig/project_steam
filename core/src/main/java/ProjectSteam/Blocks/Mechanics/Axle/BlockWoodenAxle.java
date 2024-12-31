@@ -27,8 +27,8 @@ public class BlockWoodenAxle extends BlockAxleBase{
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.WOODEN_AXLE_MAX_STRESS));
-        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.WOODEN_AXLE_FRICTION));
-        tooltipComponents.add(Component.literal("Inertia: "+Config.INSTANCE.WOODEN_AXLE_INERTIA));
+        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.wooden_axle_max_stress));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.wooden_axle_friction));
+        tooltipComponents.add(Component.literal("Inertia: "+Config.INSTANCE.wooden_axle_inertia));
     }
 }

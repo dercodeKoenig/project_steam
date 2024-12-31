@@ -14,6 +14,7 @@ public class guiModuleButton extends GuiModuleBase {
     public ResourceLocation image;
     public String text;
     public int color;
+    public boolean makeShadow = false;
 
     public void onButtonClicked(){
         CompoundTag tag = new CompoundTag();
@@ -90,7 +91,7 @@ public class guiModuleButton extends GuiModuleBase {
     ) {
         if (isEnabled) {
             guiGraphics.blit(image, onGuiX, onGuiY, w, h, 0f, 0f, textureW, textureH, textureW, textureH);
-            guiGraphics.drawString(Minecraft.getInstance().font, text, onGuiX + w / 2 - Minecraft.getInstance().font.width(text) / 2, onGuiY + h / 2 - Minecraft.getInstance().font.lineHeight / 2, color, true);
+            guiGraphics.drawString(Minecraft.getInstance().font, text, onGuiX + w / 2 - Minecraft.getInstance().font.width(text) / 2, onGuiY + h / 2 - Minecraft.getInstance().font.lineHeight / 2, color, makeShadow);
         }
     }
 }

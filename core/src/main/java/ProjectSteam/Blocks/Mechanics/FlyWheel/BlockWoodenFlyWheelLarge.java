@@ -12,7 +12,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static ProjectSteam.Registry.ENTITY_WOODEN_FLYWHEEL;
 import static ProjectSteam.Registry.ENTITY_WOODEN_FLYWHEEL_LARGE;
 
 public class BlockWoodenFlyWheelLarge extends BlockFlyWheelBase {
@@ -27,8 +26,8 @@ public class BlockWoodenFlyWheelLarge extends BlockFlyWheelBase {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_MAX_STRESS));
-        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_FRICTION));
-        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_INERTIA));
+        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.wooden_flywheel_large_max_stress));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.wooden_flywheel_large_friction));
+        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.wooden_flywheel_large_inertia));
     }
 }

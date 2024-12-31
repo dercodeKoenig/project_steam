@@ -13,7 +13,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 import static ProjectSteam.Registry.ENTITY_BIG_WOODEN_CRANKSHAFT;
-import static ProjectSteam.Registry.ENTITY_SMALL_WOODEN_CRANKSHAFT;
 
 public class BlockBigWoodenCrankShaft extends BlockCrankShaftBase {
     public BlockBigWoodenCrankShaft() {
@@ -27,8 +26,8 @@ public class BlockBigWoodenCrankShaft extends BlockCrankShaftBase {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_MAX_STRESS));
-        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_FRICTION));
-        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_INERTIA));
+        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.wooden_crankshaft_big_max_stress));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.wooden_crankshaft_big_friction));
+        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.wooden_crankshaft_big_inertia));
     }
 }

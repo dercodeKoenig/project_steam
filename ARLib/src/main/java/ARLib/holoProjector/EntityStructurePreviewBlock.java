@@ -33,9 +33,7 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
     private List<Block> validBlocks = new ArrayList<>();
 
     public void setValidBlocks(List<Block> validBlocks) {
-        for (Block i : validBlocks) {
-            this.validBlocks.add(i);
-        }
+        this.validBlocks.addAll(validBlocks);
     }
 
     long last_sec = 0;

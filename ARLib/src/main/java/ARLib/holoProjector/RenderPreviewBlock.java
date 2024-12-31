@@ -28,8 +28,9 @@ import static net.minecraft.client.renderer.RenderStateShard.*;
 public class RenderPreviewBlock implements BlockEntityRenderer<EntityStructurePreviewBlock> {
 
     BlockRenderDispatcher br;
+
     public RenderPreviewBlock(BlockEntityRendererProvider.Context context) {
-         br= context.getBlockRenderDispatcher();
+        br = context.getBlockRenderDispatcher();
     }
 
     // This method is called every frame in order to render the block entity. Parameters are:
@@ -41,16 +42,12 @@ public class RenderPreviewBlock implements BlockEntityRenderer<EntityStructurePr
     // - packedOverlay: The current overlay value of the block entity, usually OverlayTexture.NO_OVERLAY.
     @Override
     public void render(EntityStructurePreviewBlock tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {
-Block toRender = tile.getBlockToRender();
+        Block toRender = tile.getBlockToRender();
 //System.out.println(toRender);
-        stack.scale(0.5f,0.5f,0.5f);
-        stack.translate(0.5f,0.5f,0.5f);
-
-            stack.rotateAround(new Quaternionf().fromAxisAngleRad((Vector3fc) new Vector3f(0f, 1f, 0f), (float) Math.toRadians(System.currentTimeMillis() / 100 % 360)), 0.5f, 0.5f, 0.5f);
-        
-br.renderSingleBlock(toRender.defaultBlockState(),stack,bufferSource,packedLight,packedOverlay);
-
-
+        stack.scale(0.5f, 0.5f, 0.5f);
+        stack.translate(0.5f, 0.5f, 0.5f);
+        stack.rotateAround(new Quaternionf().fromAxisAngleRad((Vector3fc) new Vector3f(0f, 1f, 0f), (float) Math.toRadians(System.currentTimeMillis() / 100 % 360)), 0.5f, 0.5f, 0.5f);
+        br.renderSingleBlock(toRender.defaultBlockState(), stack, bufferSource, packedLight, packedOverlay);
     }
 }
 

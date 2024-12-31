@@ -17,57 +17,57 @@ public class Config {
 
     public static Config INSTANCE = loadConfig();
 
-    public double WOODEN_AXLE_FRICTION = 0.1;
-    public double WOODEN_AXLE_INERTIA = 0.1;
-    public double WOODEN_AXLE_MAX_STRESS = 600;
+    public double wooden_axle_friction = 0.1;
+    public double wooden_axle_inertia = 0.1;
+    public double wooden_axle_max_stress = 600;
 
 
-    public double WOODEN_FLYWHEEL_FRICTION = 0.1;
-    public double WOODEN_FLYWHEEL_INERTIA = 20;
-    public double WOODEN_FLYWHEEL_MAX_STRESS = 600;
+    public double wooden_flywheel_friction = 0.1;
+    public double wooden_flywheel_inertia = 20;
+    public double wooden_flywheel_max_stress = 600;
 
 
-    public double WOODEN_FLYWHEEL_LARGE_FRICTION = 0.1;
-    public double WOODEN_FLYWHEEL_LARGE_INERTIA = 500;
-    public double WOODEN_FLYWHEEL_LARGE_MAX_STRESS = 600;
+    public double wooden_flywheel_large_friction = 0.1;
+    public double wooden_flywheel_large_inertia = 500;
+    public double wooden_flywheel_large_max_stress = 600;
 
 
-    public double WOODEN_CLUTCH_FRICTION_PER_SIDE = 0.1;
-    public double WOODEN_CLUTCH_INERTIA_PER_SIDE = 3;
-    public double WOODEN_CLUTCH_MAX_STRESS = 900;
-    public double WOODEN_CLUTCH_MAX_FORCE = 590;
+    public double wooden_clutch_friction_per_side = 0.1;
+    public double wooden_clutch_inertia_per_side = 3;
+    public double wooden_clutch_max_stress = 900;
+    public double wooden_clutch_max_force = 590;
 
 
-    public double WOODEN_CRANKSHAFT_BIG_FRICTION = 0.2;
-    public double WOODEN_CRANKSHAFT_BIG_INERTIA = 2;
-    public double WOODEN_CRANKSHAFT_BIG_MAX_STRESS = 600;
+    public double wooden_crankshaft_big_friction = 0.2;
+    public double wooden_crankshaft_big_inertia = 2;
+    public double wooden_crankshaft_big_max_stress = 600;
 
 
-    public double WOODEN_CRANKSHAFT_SMALL_FRICTION = 0.1;
-    public double WOODEN_CRANKSHAFT_SMALL_INERTIA = 1;
-    public double WOODEN_CRANKSHAFT_SMALL_MAX_STRESS = 300;
+    public double wooden_crankshaft_small_friction = 0.1;
+    public double wooden_crankshaft_small_inertia = 1;
+    public double wooden_crankshaft_small_max_stress = 300;
 
 
-    public double WOODEN_DISTRIBUTOR_GEARBOX_FRICTION = 2;
-    public double WOODEN_DISTRIBUTOR_GEARBOX_INERTIA = 1;
-    public double WOODEN_DISTRIBUTOR_GEARBOX_MAX_STRESS = 600;
+    public double wooden_distributor_gearbox_friction = 2;
+    public double wooden_distributor_gearbox_inertia = 1;
+    public double wooden_distributor_gearbox_max_stress = 600;
 
 
-    public double WOODEN_GEARBOX_FRICTION = 2;
-    public double WOODEN_GEARBOX_INERTIA = 1;
-    public double WOODEN_GEARBOX_MAX_STRESS = 900;
+    public double wooden_gearbox_friction = 2;
+    public double wooden_gearbox_inertia = 1;
+    public double wooden_gearbox_max_stress = 900;
 
 
-    public double WOODEN_T_JUNCTION_FRICTION = 2;
-    public double WOODEN_T_JUNCTION_INERTIA = 1;
-    public double WOODEN_T_JUNCTION_MAX_STRESS = 600;
+    public double wooden_t_junction_friction = 2;
+    public double wooden_t_junction_inertia = 1;
+    public double wooden_t_junction_max_stress = 600;
 
 
-    public double HAND_GENERATOR_FRICTION = 0.1;
-    public double HAND_GENERATOR_INERTIA = 5;
-    public double HAND_GENERATOR_MAX_STRESS = 600;
-    public double HAND_GENERATOR_MAX_FORCE = 50;
-    public double HAND_GENERATOR_MAX_SPEED = 10;
+    public double hand_generator_friction = 0.1;
+    public double hand_generator_inertia = 5;
+    public double hand_generator_max_stress = 600;
+    public double hand_generator_max_force = 50;
+    public double hand_generator_max_speed = 10;
 
 
 

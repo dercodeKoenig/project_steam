@@ -13,9 +13,9 @@ public class EntityWoodenFlyWheel extends EntityFlyWheelBase {
 
     public EntityWoodenFlyWheel(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_FLYWHEEL.get(), pos, blockState);
-        myInertia = Config.INSTANCE.WOODEN_FLYWHEEL_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_FLYWHEEL_FRICTION;
-        maxStress = Config.INSTANCE.WOODEN_FLYWHEEL_MAX_STRESS;
+        myInertia = Config.INSTANCE.wooden_flywheel_inertia;
+        myFriction = Config.INSTANCE.wooden_flywheel_friction;
+        maxStress = Config.INSTANCE.wooden_flywheel_max_stress;
     }
 
     public void tick(){

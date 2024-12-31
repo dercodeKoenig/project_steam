@@ -13,9 +13,9 @@ public class EntityWoodenGearbox extends EntityGearboxBase{
     public EntityWoodenGearbox(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_GEARBOX.get(), pos, blockState);
 
-        maxStress = Config.INSTANCE.WOODEN_GEARBOX_MAX_STRESS;
-        myInertia = Config.INSTANCE.WOODEN_GEARBOX_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_GEARBOX_FRICTION;
+        maxStress = Config.INSTANCE.wooden_gearbox_max_stress;
+        myInertia = Config.INSTANCE.wooden_gearbox_inertia;
+        myFriction = Config.INSTANCE.wooden_gearbox_friction;
     }
 
     @Override

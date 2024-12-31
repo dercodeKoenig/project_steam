@@ -125,6 +125,7 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
         for (int id : buttonIdToMachineName.keySet()) {
             String name = buttonIdToMachineName.get(id);
             guiModuleButton button = new guiModuleButton(id, name, guiHandler, 5, 25 * id + 15, 80, 20, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_red.png"), 64, 20);
+            button.color = 0xffffffff;
             containerModules.add(button);
         }
         guiModuleScrollContainer container = new guiModuleScrollContainer(containerModules, 0xFFA0A0A0, guiHandler, 5, 5, 90, 90);

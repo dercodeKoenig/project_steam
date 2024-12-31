@@ -14,9 +14,9 @@ public class EntitySmallWoodenCrankShaft extends EntityCrankShaftBase {
     public EntitySmallWoodenCrankShaft(BlockPos pos, BlockState blockState) {
         super(ICrankShaftConnector.CrankShaftType.SMALL,ENTITY_SMALL_WOODEN_CRANKSHAFT.get(), pos, blockState);
 
-        maxStress = Config.INSTANCE.WOODEN_CRANKSHAFT_SMALL_MAX_STRESS;
-        myInertia = Config.INSTANCE.WOODEN_CRANKSHAFT_SMALL_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_CRANKSHAFT_SMALL_FRICTION;
+        maxStress = Config.INSTANCE.wooden_crankshaft_small_max_stress;
+        myInertia = Config.INSTANCE.wooden_crankshaft_small_inertia;
+        myFriction = Config.INSTANCE.wooden_crankshaft_small_friction;
     }
 
     public void tick(){

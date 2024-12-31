@@ -23,9 +23,9 @@ public class BlockWoodenClutch extends BlockClutchBase{
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.WOODEN_CLUTCH_MAX_STRESS));
-        tooltipComponents.add(Component.literal("Max Force: "+ Config.INSTANCE.WOODEN_CLUTCH_MAX_FORCE));
-        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.WOODEN_CLUTCH_FRICTION_PER_SIDE *2));
-        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.WOODEN_CLUTCH_INERTIA_PER_SIDE*2));
+        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.wooden_clutch_max_stress));
+        tooltipComponents.add(Component.literal("Max Force: "+ Config.INSTANCE.wooden_clutch_max_force));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.wooden_clutch_friction_per_side *2));
+        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.wooden_clutch_inertia_per_side *2));
     }
 }

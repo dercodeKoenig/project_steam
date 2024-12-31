@@ -1,5 +1,7 @@
 package ProjectSteamCrafting;
 
+import ProjectSteamCrafting.MillStone.BlockMillStone;
+import ProjectSteamCrafting.MillStone.EntityMillStone;
 import ProjectSteamCrafting.Sieve.Items.ItemSieveUpgrade;
 import ProjectSteamCrafting.Sieve.Items.Mesh.StringMesh;
 import ProjectSteamCrafting.Sieve.BlockSieve;
@@ -66,10 +68,22 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
             () -> BlockEntityType.Builder.of(EntitySpinningWheel::new, SPINNING_WHEEL.get()).build(null)
     );
 
+
+
+    public static final Supplier<Block> MILLSTONE = BLOCKS.register(
+            "millstone",
+            () -> new BlockMillStone()
+    );
+    public static final Supplier<BlockEntityType<EntityMillStone>> ENTITY_MILLSTONE = BLOCK_ENTITIES.register(
+            "entity_millstone",
+            () -> BlockEntityType.Builder.of(EntityMillStone::new, MILLSTONE.get()).build(null)
+    );
+
     static {
         registerBlockItem("sieve", SIEVE);
         registerBlockItem("spinning_wheel", SPINNING_WHEEL);
         registerBlockItem("woodmill", WOODMILL);
+        registerBlockItem("millstone", MILLSTONE);
     }
 
     public static void register(IEventBus modBus) {

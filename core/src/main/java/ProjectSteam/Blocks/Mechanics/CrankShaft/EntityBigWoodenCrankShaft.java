@@ -7,16 +7,15 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.level.block.state.BlockState;
 
 import static ProjectSteam.Registry.ENTITY_BIG_WOODEN_CRANKSHAFT;
-import static ProjectSteam.Registry.ENTITY_SMALL_WOODEN_CRANKSHAFT;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
 public class EntityBigWoodenCrankShaft extends EntityCrankShaftBase {
 
     public EntityBigWoodenCrankShaft(BlockPos pos, BlockState blockState) {
         super(ICrankShaftConnector.CrankShaftType.LARGE,ENTITY_BIG_WOODEN_CRANKSHAFT.get(), pos, blockState);
-        maxStress = Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_MAX_STRESS;
-        myInertia = Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_CRANKSHAFT_BIG_FRICTION;
+        maxStress = Config.INSTANCE.wooden_crankshaft_big_max_stress;
+        myInertia = Config.INSTANCE.wooden_crankshaft_big_inertia;
+        myFriction = Config.INSTANCE.wooden_crankshaft_big_friction;
     }
 
     public void tick(){

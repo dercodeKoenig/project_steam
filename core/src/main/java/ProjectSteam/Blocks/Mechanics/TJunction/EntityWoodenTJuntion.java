@@ -13,9 +13,9 @@ public class EntityWoodenTJuntion extends EntityTJunctionBase {
     public EntityWoodenTJuntion(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_TJUNCTION.get(),pos, blockState);
 
-        maxStress = Config.INSTANCE.WOODEN_T_JUNCTION_MAX_STRESS;
-        myInertia = Config.INSTANCE.WOODEN_T_JUNCTION_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_T_JUNCTION_FRICTION;
+        maxStress = Config.INSTANCE.wooden_t_junction_max_stress;
+        myInertia = Config.INSTANCE.wooden_t_junction_inertia;
+        myFriction = Config.INSTANCE.wooden_t_junction_friction;
     }
 
     @Override

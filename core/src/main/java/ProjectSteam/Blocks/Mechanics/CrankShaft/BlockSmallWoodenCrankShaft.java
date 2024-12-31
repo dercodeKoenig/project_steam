@@ -27,8 +27,8 @@ public class BlockSmallWoodenCrankShaft extends BlockCrankShaftBase {
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.WOODEN_CRANKSHAFT_SMALL_MAX_STRESS));
-        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.WOODEN_CRANKSHAFT_SMALL_FRICTION));
-        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.WOODEN_CRANKSHAFT_SMALL_INERTIA));
+        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.wooden_crankshaft_small_max_stress));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.wooden_crankshaft_small_friction));
+        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.wooden_crankshaft_small_inertia));
     }
 }

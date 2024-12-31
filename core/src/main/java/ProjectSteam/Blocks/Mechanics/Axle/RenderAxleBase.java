@@ -1,5 +1,6 @@
 package ProjectSteam.Blocks.Mechanics.Axle;
 
+import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.obj.Face;
 import ARLib.obj.ModelFormatException;
 import ARLib.obj.WavefrontObject;
@@ -58,6 +59,9 @@ public class RenderAxleBase implements BlockEntityRenderer<EntityAxleBase> {
 
         BlockState axleState = tile.getBlockState();
         if (axleState.getBlock() instanceof BlockAxleBase) {
+            // hide the block when it is part of multi-block-structure
+            if(axleState.getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))return;
+
             Direction.Axis facingAxis = axleState.getValue(BlockAxleBase.ROTATION_AXIS);
 
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());

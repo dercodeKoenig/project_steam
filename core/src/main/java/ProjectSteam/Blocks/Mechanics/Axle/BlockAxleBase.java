@@ -1,5 +1,7 @@
 package ProjectSteam.Blocks.Mechanics.Axle;
 
+import ARLib.multiblockCore.BlockMultiblockMaster;
+import ARLib.multiblockCore.BlockMultiblockPart;
 import ProjectSteam.Core.IMechanicalBlockProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -20,14 +22,14 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.jetbrains.annotations.Nullable;
 
-public abstract class BlockAxleBase extends Block implements EntityBlock {
+public abstract class BlockAxleBase extends BlockMultiblockPart implements EntityBlock {
 
     public static EnumProperty<Direction.Axis> ROTATION_AXIS = EnumProperty.create("axis", Direction.Axis.class);
 
     public BlockAxleBase(Properties p) {
         super(p);
         BlockState state = this.stateDefinition.any();
-        state = state.setValue(ROTATION_AXIS, Direction.Axis.Y);
+        state = state.setValue(ROTATION_AXIS, Direction.Axis.Y).setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED, false);
         this.registerDefaultState(state);
     }
 

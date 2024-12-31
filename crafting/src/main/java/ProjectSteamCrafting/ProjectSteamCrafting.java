@@ -1,14 +1,16 @@
 package ProjectSteamCrafting;
 
 
+import ARLib.holoProjector.itemHoloProjector;
+import ProjectSteamCrafting.MillStone.EntityMillStone;
+import ProjectSteamCrafting.MillStone.RenderMillStone;
 import ProjectSteamCrafting.Sieve.RenderSieve;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 import ProjectSteamCrafting.SpinningWheel.RenderSpinningWheel;
 import ProjectSteamCrafting.SpinningWheel.SpinningWheelConfig;
+import ProjectSteamCrafting.WoodMill.EntityWoodMill;
 import ProjectSteamCrafting.WoodMill.RenderWoodMill;
 import ProjectSteamCrafting.WoodMill.WoodMillConfig;
-import ResearchSystem.Config.RecipeConfig;
-import ResearchSystem.Config.ResearchConfig;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -49,8 +51,9 @@ public class ProjectSteamCrafting {
 
     public void onClientSetup(FMLClientSetupEvent event) {
     }
-    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
-        if(login.getEntity() instanceof ServerPlayer p){
+
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login) {
+        if (login.getEntity() instanceof ServerPlayer p) {
             SieveConfig.INSTANCE.SyncConfig(p);
             SpinningWheelConfig.INSTANCE.SyncConfig(p);
             WoodMillConfig.INSTANCE.SyncConfig(p);
@@ -61,6 +64,7 @@ public class ProjectSteamCrafting {
         event.registerBlockEntityRenderer(ENTITY_SIEVE.get(), RenderSieve::new);
         event.registerBlockEntityRenderer(ENTITY_WOODMILL.get(), RenderWoodMill::new);
         event.registerBlockEntityRenderer(ENTITY_SPINNING_WHEEL.get(), RenderSpinningWheel::new);
+        event.registerBlockEntityRenderer(ENTITY_MILLSTONE.get(), RenderMillStone::new);
 
     }
 
@@ -82,6 +86,9 @@ public class ProjectSteamCrafting {
 
 
             e.accept(WOODMILL.get());
+
+
+            e.accept(MILLSTONE.get());
         }
     }
 
@@ -92,5 +99,7 @@ public class ProjectSteamCrafting {
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {
+        itemHoloProjector.registerMultiblock("MillStone", EntityMillStone.structure, EntityMillStone.charMapping);
+        itemHoloProjector.registerMultiblock("WoodMill", EntityWoodMill.structure, EntityWoodMill.charMapping);
     }
 }

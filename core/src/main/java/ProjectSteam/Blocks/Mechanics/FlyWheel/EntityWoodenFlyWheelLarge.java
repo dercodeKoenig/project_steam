@@ -10,7 +10,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ProjectSteam.Registry.ENTITY_WOODEN_FLYWHEEL;
 import static ProjectSteam.Registry.ENTITY_WOODEN_FLYWHEEL_LARGE;
 import static ProjectSteam.Static.WOODEN_SOUNDS;
 
@@ -22,9 +21,9 @@ public class EntityWoodenFlyWheelLarge extends EntityFlyWheelBase {
 
     public EntityWoodenFlyWheelLarge(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_FLYWHEEL_LARGE.get(), pos, blockState);
-        myInertia = Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_FRICTION;
-        maxStress = Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_MAX_STRESS;
+        myInertia = Config.INSTANCE.wooden_flywheel_large_inertia;
+        myFriction = Config.INSTANCE.wooden_flywheel_large_friction;
+        maxStress = Config.INSTANCE.wooden_flywheel_large_max_stress;
     }
 
     public void updatePositionsAroundMe() {
@@ -77,7 +76,7 @@ public class EntityWoodenFlyWheelLarge extends EntityFlyWheelBase {
             if (blocked) {
                 myFriction = 9000;
             } else {
-                myFriction = Config.INSTANCE.WOODEN_FLYWHEEL_LARGE_FRICTION;
+                myFriction = Config.INSTANCE.wooden_flywheel_large_friction;
             }
         }
     }

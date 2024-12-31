@@ -13,9 +13,9 @@ public class EntityWoodenAxleEncased extends EntityAxleBase{
 
     public EntityWoodenAxleEncased(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_AXLE_ENCASED.get(), pos, blockState);
-        super.myInertia = Config.INSTANCE.WOODEN_AXLE_INERTIA;
-        super.myFriction = Config.INSTANCE.WOODEN_AXLE_FRICTION;
-        super.maxStress = Config.INSTANCE.WOODEN_AXLE_MAX_STRESS;
+        super.myInertia = Config.INSTANCE.wooden_axle_inertia;
+        super.myFriction = Config.INSTANCE.wooden_axle_friction;
+        super.maxStress = Config.INSTANCE.wooden_axle_max_stress;
     }
 
     public void tick(){

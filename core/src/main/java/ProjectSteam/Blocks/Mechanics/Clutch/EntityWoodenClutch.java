@@ -13,10 +13,10 @@ public class EntityWoodenClutch extends EntityClutchBase {
     public EntityWoodenClutch(BlockPos pos, BlockState blockState) {
         super(ENTITY_CLUTCH.get(), pos, blockState);
 
-        super.inertiaPerSide = Config.INSTANCE.WOODEN_CLUTCH_INERTIA_PER_SIDE;
-        super.baseFrictionPerSide = Config.INSTANCE.WOODEN_CLUTCH_FRICTION_PER_SIDE;
-        super.maxStress = Config.INSTANCE.WOODEN_CLUTCH_MAX_STRESS;
-        super.maxForce = Config.INSTANCE.WOODEN_CLUTCH_MAX_FORCE;
+        super.inertiaPerSide = Config.INSTANCE.wooden_clutch_inertia_per_side;
+        super.baseFrictionPerSide = Config.INSTANCE.wooden_clutch_friction_per_side;
+        super.maxStress = Config.INSTANCE.wooden_clutch_max_stress;
+        super.maxForce = Config.INSTANCE.wooden_clutch_max_force;
     }
 
     @Override

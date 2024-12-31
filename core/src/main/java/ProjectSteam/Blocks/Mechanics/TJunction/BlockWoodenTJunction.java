@@ -22,8 +22,8 @@ public class BlockWoodenTJunction extends BlockTJunctionBase{
 
     @Override
     public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.WOODEN_T_JUNCTION_MAX_STRESS));
-        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.WOODEN_T_JUNCTION_FRICTION));
-        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.WOODEN_T_JUNCTION_INERTIA));
+        tooltipComponents.add(Component.literal("Max Stress: "+ Config.INSTANCE.wooden_t_junction_max_stress));
+        tooltipComponents.add(Component.literal("Friction: "+Config.INSTANCE.wooden_t_junction_friction));
+        tooltipComponents.add(Component.literal("Inertia: "+ Config.INSTANCE.wooden_t_junction_inertia));
     }
 }

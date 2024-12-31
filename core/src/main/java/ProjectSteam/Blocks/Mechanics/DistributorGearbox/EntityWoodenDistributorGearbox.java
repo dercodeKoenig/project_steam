@@ -14,9 +14,9 @@ public class EntityWoodenDistributorGearbox extends EntityDistributorGearboxBase
     public EntityWoodenDistributorGearbox(BlockPos pos, BlockState blockState) {
         super(ENTITY_WOODEN_DISTRIBUTOR_GEARBOX.get(), pos, blockState);
 
-        maxStress = Config.INSTANCE.WOODEN_DISTRIBUTOR_GEARBOX_MAX_STRESS;
-        myInertia = Config.INSTANCE.WOODEN_DISTRIBUTOR_GEARBOX_INERTIA;
-        myFriction = Config.INSTANCE.WOODEN_DISTRIBUTOR_GEARBOX_FRICTION;
+        maxStress = Config.INSTANCE.wooden_distributor_gearbox_max_stress;
+        myInertia = Config.INSTANCE.wooden_distributor_gearbox_inertia;
+        myFriction = Config.INSTANCE.wooden_distributor_gearbox_friction;
     }
 
     @Override

@@ -21,11 +21,11 @@ public class EntityHandGenerator extends BlockEntity implements IMechanicalBlock
 
     public double myForce = 0;
 
-    public  double maxForce = Config.INSTANCE.HAND_GENERATOR_MAX_FORCE;
-    public  double maxSpeed = Config.INSTANCE.HAND_GENERATOR_MAX_SPEED;
-    double myFriction = Config.INSTANCE.HAND_GENERATOR_FRICTION;
-    double myInertia = Config.INSTANCE.HAND_GENERATOR_INERTIA;
-    double maxStress = Config.INSTANCE.HAND_GENERATOR_MAX_STRESS;
+    public  double maxForce = Config.INSTANCE.hand_generator_max_force;
+    public  double maxSpeed = Config.INSTANCE.hand_generator_max_speed;
+    double myFriction = Config.INSTANCE.hand_generator_friction;
+    double myInertia = Config.INSTANCE.hand_generator_inertia;
+    double maxStress = Config.INSTANCE.hand_generator_max_stress;
 
     int ticksRemainingForForce = 0;
 

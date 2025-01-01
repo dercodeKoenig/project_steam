@@ -23,6 +23,8 @@ import net.minecraft.client.renderer.texture.TextureManager;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -111,11 +113,9 @@ public class RenderMillStone implements BlockEntityRenderer<EntityMillStone> {
         if (state.getBlock() instanceof BlockMillStone) {
 
             Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
-
+            stack.translate(0.5f,0.5f,0.5f);
             Matrix4f m1 = new Matrix4f(RenderSystem.getModelViewMatrix());
             m1 = m1.mul(stack.last().pose());
-            m1 = m1.translate(0.5f, 0.5f, 0.5f);
-
             double directionMultiplier = 1;
             if(facing == Direction.WEST){
                 m1 = m1.rotate(new Quaternionf().fromAxisAngleDeg(0f,1.0f, 0, 90f));
@@ -180,6 +180,25 @@ double rotation = (tile.myMechanicalBlock.currentRotation + Static.rad_to_degree
             vertexBufferPlate.bind();
             vertexBufferPlate.draw();
 
+            long t0 = System.nanoTime();
+            for (int i = 0; i < tile.inventory.getSlots(); i++) {
+                ItemStack s = tile.inventory.getStackInSlot(i);
+                stack.pushPose();
+
+                stack.mulPose(new Quaternionf().fromAxisAngleDeg(0,1,0,20*i-(float)(rotation*0.25)));
+                stack.translate(0.85,-0.3,0);
+                stack.mulPose(new Quaternionf().fromAxisAngleDeg(1,0,0,90f));
+                stack.mulPose(new Quaternionf().fromAxisAngleDeg(0,1,0,10f));
+                float scale = 0.4f;
+                stack.scale(scale,scale,scale);
+                Minecraft.getInstance().getItemRenderer().renderStatic(s, ItemDisplayContext.FIXED,packedLight,packedOverlay,stack,bufferSource,null,0);
+
+
+                stack.popPose();
+            }
+            long t1 = System.nanoTime();
+            // TODO the item rendering is a bit slow....
+            //System.out.println((double)(t1-t0) / 1000 / 1000);
 
             shader.clear();
             VertexBuffer.unbind();

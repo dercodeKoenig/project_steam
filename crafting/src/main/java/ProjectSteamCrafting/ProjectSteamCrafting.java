@@ -3,6 +3,7 @@ package ProjectSteamCrafting;
 
 import ARLib.holoProjector.itemHoloProjector;
 import ProjectSteamCrafting.MillStone.EntityMillStone;
+import ProjectSteamCrafting.MillStone.MillStoneConfig;
 import ProjectSteamCrafting.MillStone.RenderMillStone;
 import ProjectSteamCrafting.Sieve.RenderSieve;
 import ProjectSteamCrafting.Sieve.SieveConfig;
@@ -57,6 +58,7 @@ public class ProjectSteamCrafting {
             SieveConfig.INSTANCE.SyncConfig(p);
             SpinningWheelConfig.INSTANCE.SyncConfig(p);
             WoodMillConfig.INSTANCE.SyncConfig(p);
+            MillStoneConfig.INSTANCE.SyncConfig(p);
         }
     }
 
@@ -65,7 +67,6 @@ public class ProjectSteamCrafting {
         event.registerBlockEntityRenderer(ENTITY_WOODMILL.get(), RenderWoodMill::new);
         event.registerBlockEntityRenderer(ENTITY_SPINNING_WHEEL.get(), RenderSpinningWheel::new);
         event.registerBlockEntityRenderer(ENTITY_MILLSTONE.get(), RenderMillStone::new);
-
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -73,6 +74,7 @@ public class ProjectSteamCrafting {
         SieveConfig.PacketConfigSync.register(registrar);
         SpinningWheelConfig.PacketConfigSync.register(registrar);
         WoodMillConfig.PacketConfigSync.register(registrar);
+        MillStoneConfig.PacketConfigSync.register(registrar);
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
@@ -89,6 +91,7 @@ public class ProjectSteamCrafting {
 
 
             e.accept(MILLSTONE.get());
+            e.accept(FLOUR.get());
         }
     }
 

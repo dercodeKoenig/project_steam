@@ -16,6 +16,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.registries.DeferredHolder;
 
 import java.util.function.Supplier;
 
@@ -78,6 +79,8 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
             "entity_millstone",
             () -> BlockEntityType.Builder.of(EntityMillStone::new, MILLSTONE.get()).build(null)
     );
+
+    public static final Supplier<Item> FLOUR = ITEMS.register("flour", () -> new Item(new Item.Properties()));
 
     static {
         registerBlockItem("sieve", SIEVE);

@@ -1,6 +1,7 @@
 package ProjectSteamCrafting.MillStone;
 
 import ARLib.multiblockCore.BlockMultiblockMaster;
+import ARLib.multiblockCore.EntityMultiblockMaster;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionResult;
@@ -49,7 +50,18 @@ public class BlockMillStone extends BlockMultiblockMaster implements EntityBlock
                 level.setBlock(pos, state.setValue(BlockStateProperties.HORIZONTAL_FACING, placer.getDirection().getOpposite()), 3);
         }
     }
-
+    public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
+        if (!world.isClientSide) {
+            if (player.isShiftKeyDown()) {
+                BlockEntity e = world.getBlockEntity(pos);
+                if (e instanceof EntityMillStone m) {
+                    m.placeStructurePreview();
+                    return InteractionResult.SUCCESS_NO_ITEM_USED;
+                }
+            }
+        }
+        return super.useWithoutItem(state,world,pos,player,hitResult);
+    }
         @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityMillStone::tick;

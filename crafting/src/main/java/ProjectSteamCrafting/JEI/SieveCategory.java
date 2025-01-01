@@ -116,7 +116,7 @@ public  class SieveCategory implements IRecipeCategory<SieveConfig.SieveRecipe> 
                 12, 12,
                 0f, 0f,
                 12, 16,
-                11, 16
+                12, 16
         );
     }
 

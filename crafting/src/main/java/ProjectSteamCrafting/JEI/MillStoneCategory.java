@@ -55,7 +55,7 @@ public  class MillStoneCategory implements IRecipeCategory<MillStoneConfig.MillS
 
     @Override
     public int getHeight() {
-        return 50;
+        return 20;
     }
 
     @Override
@@ -90,22 +90,22 @@ public  class MillStoneCategory implements IRecipeCategory<MillStoneConfig.MillS
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, MillStoneConfig.MillStoneRecipe recipe, IFocusGroup focuses) {
 
-        IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, 0, 20);
+        IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, 0, 0);
         setSlotItemsFromRecipePart(recipe.inputItem,slot);
 
-        IRecipeSlotBuilder slotOut = builder.addSlot(RecipeIngredientRole.OUTPUT, 50, 20);
+        IRecipeSlotBuilder slotOut = builder.addSlot(RecipeIngredientRole.OUTPUT, 50, 0);
         setSlotItemsFromRecipePart(recipe.outputItem,slotOut);
     }
 
     @Override
     public void draw(MillStoneConfig.MillStoneRecipe recipe, IRecipeSlotsView recipeSlotsView, GuiGraphics guiGraphics, double mouseX, double mouseY) {
         guiGraphics.blit(
-                ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_down.png"),
-                25, 20,
-                12, 12,
+                ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"),
+                25, 2,
+                16, 12,
                 0f, 0f,
-                12, 16,
-                11, 16
+                16, 12,
+                16, 12
         );
     }
 

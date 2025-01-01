@@ -1,11 +1,14 @@
 package ProjectSteamCrafting.MillStone;
 
+import ARLib.ARLibRegistry;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.holoProjector.itemHoloProjector;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.multiblockCore.EntityMultiblockMaster;
 import ARLib.network.PacketBlockEntity;
+import ARLib.utils.DimensionUtils;
 import ARLib.utils.ItemUtils;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
@@ -126,6 +129,21 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
         }
         super.onLoad();
+    }
+
+    public void placeStructurePreview(){
+        Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        CompoundTag info = new CompoundTag();
+        info.putString("dimension",DimensionUtils.getLevelId(level));
+        info.putString("selectedMachine", "MillStone");
+        info.putInt("y",0);
+        BlockPos offset = new BlockPos(0,0,0).relative(facing).relative(facing.getClockWise());
+        info.putInt("posX",getBlockPos().getX()+offset.getX());
+        info.putInt("posY",getBlockPos().getY());
+        info.putInt("posZ",getBlockPos().getZ()+offset.getZ());
+        info.putInt("stepX", facing.getStepX());
+        info.putInt("stepZ", facing.getStepZ());
+        ((itemHoloProjector) ARLibRegistry.ITEM_HOLOPROJECTOR.get()).placeLayer(info);
     }
 
     public void sendUpdateTag(@Nullable ServerPlayer target) {

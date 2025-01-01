@@ -113,7 +113,7 @@ public  class WoodMillCategory implements IRecipeCategory<WoodMillConfig.WoodMil
                 12, 12,
                 0f, 0f,
                 12, 16,
-                11, 16
+                12, 16
         );
     }
 

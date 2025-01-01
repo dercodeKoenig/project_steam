@@ -119,9 +119,11 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
         for (int i = 0; i < 4; i++) {
             stack = inventoryInput.getStackInSlot(i).copy();
             Block.popResource(level, getBlockPos(), stack);
+            inventoryInput.setStackInSlot(i,ItemStack.EMPTY);
 
             stack = inventoryOutput.getStackInSlot(i).copy();
             Block.popResource(level, getBlockPos(), stack);
+            inventoryOutput.setStackInSlot(i,ItemStack.EMPTY);
         }
         setChanged();
     }

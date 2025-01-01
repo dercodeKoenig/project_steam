@@ -171,6 +171,7 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
         for (int i = 0; i < 18; i++) {
             stack = inventory.getStackInSlot(i).copy();
             Block.popResource(level, getBlockPos(), stack);
+            inventory.setStackInSlot(i,ItemStack.EMPTY);
         }
         setChanged();
         sendUpdateTag(null);

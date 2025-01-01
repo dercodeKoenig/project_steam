@@ -71,15 +71,20 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
         }
     };
 
-    public ItemStackHandler inventory = new ItemStackHandler(18){
-        @Override public int getSlotLimit(int slot) {
+    public ItemStackHandler inventory = new ItemStackHandler(18) {
+        @Override
+        public int getSlotLimit(int slot) {
             return 1;
         }
-        @Override public void onContentsChanged(int slot) {
+
+        @Override
+        public void onContentsChanged(int slot) {
             setChanged();
             sendUpdateTag(null);
         }
-        @Override     public boolean isItemValid(int slot, ItemStack stack) {
+
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
             for (MillStoneConfig.MillStoneRecipe i : MillStoneConfig.INSTANCE.recipes) {
                 if (ItemUtils.matches(i.inputItem.id, stack) || ItemUtils.matches(i.outputItem.id, stack))
                     return true;
@@ -112,14 +117,15 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
             }
         }
     }
+
     @Override
-    public void onLoad(){
-if(level.isClientSide){
-    CompoundTag i = new CompoundTag();
-    i.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
-    PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
-}
-super.onLoad();
+    public void onLoad() {
+        if (level.isClientSide) {
+            CompoundTag i = new CompoundTag();
+            i.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
+        }
+        super.onLoad();
     }
 
     public void sendUpdateTag(@Nullable ServerPlayer target) {
@@ -132,66 +138,66 @@ super.onLoad();
         }
     }
 
-    public CompoundTag getUpdateTag(){
+    public CompoundTag getUpdateTag() {
         CompoundTag info = new CompoundTag();
         info.put("inventory", inventory.serializeNBT(level.registryAccess()));
         return info;
     }
 
-    public void openGui(){
-        if(level.isClientSide) {
-            guiHandler.openGui(180,180,true);
+    public void openGui() {
+        if (level.isClientSide) {
+            guiHandler.openGui(180, 180, true);
         }
     }
 
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level world, BlockPos pos, Player player, BlockHitResult hitResult) {
-        if(player instanceof ServerPlayer sp) {
+        if (player instanceof ServerPlayer sp) {
             CompoundTag t = new CompoundTag();
-            t.putBoolean("openGui",true);
-            PacketDistributor.sendToPlayer(sp,PacketBlockEntity.getBlockEntityPacket(this,t));
+            t.putBoolean("openGui", true);
+            PacketDistributor.sendToPlayer(sp, PacketBlockEntity.getBlockEntityPacket(this, t));
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
     @Override
     public void onStructureComplete() {
-        if(level.isClientSide)
+        if (level.isClientSide)
             // this is executed before minecraft updates the blockstate on client
             // but resetRotation (to make it sync to the rotation) checks for connected mechanical blocks and it only connects to other mechanical blocks when the multiblock is formed
             // so i update it directly here
-            level.setBlock(getBlockPos(),getBlockState().setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED,true),3);
+            level.setBlock(getBlockPos(), getBlockState().setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED, true), 3);
         myMechanicalBlock.mechanicalOnload();
     }
 
     public void tick() {
         myMechanicalBlock.mechanicalTick();
-        if(!level.isClientSide) {
+        if (!level.isClientSide) {
             guiHandler.serverTick();
             if (getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 double directionMultiplier = 1;
                 Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-                if(facing == Direction.EAST|| facing == Direction.NORTH)
+                if (facing == Direction.EAST || facing == Direction.NORTH)
                     directionMultiplier = -1;
 
                 float directionOffset = 0;
-                if(facing == Direction.NORTH)directionOffset = 90;
-                if(facing == Direction.SOUTH)directionOffset = 270;
-                if(facing == Direction.EAST)directionOffset = 360;
-                if(facing == Direction.WEST)directionOffset = 180;
+                if (facing == Direction.NORTH) directionOffset = 90;
+                if (facing == Direction.SOUTH) directionOffset = 270;
+                if (facing == Direction.EAST) directionOffset = 360;
+                if (facing == Direction.WEST) directionOffset = 180;
 
                 for (int i = 0; i < 18; i++) {
-                    double slotRotation = directionOffset+ 20 * i - (float) (directionMultiplier* myMechanicalBlock.currentRotation * 0.25);
-                    slotRotation= slotRotation % 360;
-                    double lastSlotRotation =directionOffset+ 20 * i - (float) ((directionMultiplier*(myMechanicalBlock.currentRotation - Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS)) * 0.25);
-                    lastSlotRotation= lastSlotRotation % 360;
+                    double slotRotation = directionOffset + 20 * i - (float) (directionMultiplier * myMechanicalBlock.currentRotation * 0.25);
+                    slotRotation = slotRotation % 360;
+                    double lastSlotRotation = directionOffset + 20 * i - (float) ((directionMultiplier * (myMechanicalBlock.currentRotation - Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS)) * 0.25);
+                    lastSlotRotation = lastSlotRotation % 360;
 
-                    if (Math.abs(slotRotation - lastSlotRotation) > Math.abs( Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS)*2) {
+                    if (Math.abs(slotRotation - lastSlotRotation) > Math.abs(Static.rad_to_degree(myMechanicalBlock.internalVelocity) / Static.TPS) * 2) {
                         ItemStack stackInSlot = inventory.getStackInSlot(i);
-                        if(!stackInSlot.isEmpty()) {
-                            for (MillStoneConfig.MillStoneRecipe r : MillStoneConfig.INSTANCE.recipes){
-                                if(ItemUtils.matches(r.inputItem.id, stackInSlot)){
-                                    if(level.random.nextFloat() <= 1/r.timeRequired) {
+                        if (!stackInSlot.isEmpty()) {
+                            for (MillStoneConfig.MillStoneRecipe r : MillStoneConfig.INSTANCE.recipes) {
+                                if (ItemUtils.matches(r.inputItem.id, stackInSlot)) {
+                                    if (level.random.nextFloat() <= 1 / r.timeRequired) {
                                         ItemStack output = ItemUtils.getItemStackFromIdOrTag(r.outputItem.id, r.outputItem.amount, level.registryAccess());
                                         inventory.setStackInSlot(i, output);
                                         setChanged();
@@ -206,8 +212,8 @@ super.onLoad();
                 }
             }
         }
-        if(!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)){
-            if(level.getGameTime() % 51 == 0){
+        if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
+            if (level.getGameTime() % 51 == 0) {
                 super.scanStructure();
             }
         }
@@ -286,10 +292,10 @@ super.onLoad();
     public void readClient(CompoundTag tag) {
         myMechanicalBlock.mechanicalReadClient(tag);
         guiHandler.readClient(tag);
-        if(tag.contains("inventory")){
+        if (tag.contains("inventory")) {
             inventory.deserializeNBT(level.registryAccess(), tag.getCompound("inventory"));
         }
-        if(tag.contains("openGui")){
+        if (tag.contains("openGui")) {
             openGui();
         }
         super.readClient(tag);
@@ -299,10 +305,10 @@ super.onLoad();
     public void readServer(CompoundTag tag) {
         myMechanicalBlock.mechanicalReadServer(tag);
         guiHandler.readServer(tag);
-        if(tag.contains("client_onload")){
+        if (tag.contains("client_onload")) {
             UUID from = tag.getUUID("client_onload");
             ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            if(p instanceof ServerPlayer sp){
+            if (p instanceof ServerPlayer sp) {
                 sendUpdateTag(sp);
             }
         }

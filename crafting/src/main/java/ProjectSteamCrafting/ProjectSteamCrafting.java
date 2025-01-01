@@ -5,6 +5,7 @@ import ARLib.holoProjector.itemHoloProjector;
 import ProjectSteamCrafting.MillStone.EntityMillStone;
 import ProjectSteamCrafting.MillStone.MillStoneConfig;
 import ProjectSteamCrafting.MillStone.RenderMillStone;
+import ProjectSteamCrafting.MillStone.ScreenMillStone;
 import ProjectSteamCrafting.Sieve.RenderSieve;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 import ProjectSteamCrafting.SpinningWheel.RenderSpinningWheel;
@@ -20,6 +21,7 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -47,7 +49,12 @@ public class ProjectSteamCrafting {
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::registerNetworkStuff);
+        modEventBus.addListener(this::registerScreens);
         Registry.register(modEventBus);
+    }
+
+    public void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(MENU_MILLSTONE.get(), ScreenMillStone::new);
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {

@@ -42,6 +42,10 @@ public class BlockMillStone extends BlockMultiblockMaster implements EntityBlock
     @Override
     public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
         BlockEntity blockEntity = level.getBlockEntity(pos);
+        //this is called when the blockstate changes too
+        if(blockEntity instanceof EntityMillStone m){
+m.popInventory();
+        }
         super.onRemove(state, level, pos, newState, isMoving);
     }
     @Override

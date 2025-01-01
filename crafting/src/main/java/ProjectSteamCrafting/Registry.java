@@ -2,6 +2,7 @@ package ProjectSteamCrafting;
 
 import ProjectSteamCrafting.MillStone.BlockMillStone;
 import ProjectSteamCrafting.MillStone.EntityMillStone;
+import ProjectSteamCrafting.MillStone.MenuMillStone;
 import ProjectSteamCrafting.Sieve.Items.ItemSieveUpgrade;
 import ProjectSteamCrafting.Sieve.Items.Mesh.StringMesh;
 import ProjectSteamCrafting.Sieve.BlockSieve;
@@ -11,12 +12,14 @@ import ProjectSteamCrafting.SpinningWheel.EntitySpinningWheel;
 import ProjectSteamCrafting.WoodMill.BlockWoodMill;
 import ProjectSteamCrafting.WoodMill.EntityWoodMill;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
-import net.neoforged.neoforge.registries.DeferredHolder;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
+import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
 
@@ -24,6 +27,7 @@ public class Registry {
     public static final net.neoforged.neoforge.registries.DeferredRegister<Block> BLOCKS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK, "projectsteam_crafting");
     public static final net.neoforged.neoforge.registries.DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, "projectsteam_crafting");
     public static final net.neoforged.neoforge.registries.DeferredRegister<Item> ITEMS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.ITEM, "projectsteam_crafting");
+    public static final DeferredRegister<MenuType<?>> MENUS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.MENU, "projectsteam_crafting");
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b){
         return ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
@@ -79,7 +83,7 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
             "entity_millstone",
             () -> BlockEntityType.Builder.of(EntityMillStone::new, MILLSTONE.get()).build(null)
     );
-
+    public static final Supplier<MenuType<MenuMillStone>> MENU_MILLSTONE = MENUS.register("menu_millstone", () -> IMenuTypeExtension.create(MenuMillStone::new));
     public static final Supplier<Item> FLOUR = ITEMS.register("flour", () -> new Item(new Item.Properties()));
 
     static {
@@ -93,6 +97,7 @@ public static final Supplier<Item> STRING_MESH = ITEMS.register(
         BLOCKS.register(modBus);
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
+        MENUS.register(modBus);
     }
 
 }

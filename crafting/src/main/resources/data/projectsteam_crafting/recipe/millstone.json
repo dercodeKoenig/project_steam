@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "FAF",
+    "FCF",
+    "   "
+  ],
+  "key": {
+    "A": {
+      "item": "projectsteam:wooden_axle"
+    },
+    "C": {
+      "item": "projectsteam:casing"
+    },
+    "F": {
+      "tag": "c:fences"
+    }
+  },
+  "result": {
+    "id": "projectsteam_crafting:woodmill",
+    "count": 1
+  }
+}

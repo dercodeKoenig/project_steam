@@ -7,5 +7,24 @@
     "emissive_ambient": false,
     "textures": {
         "particle": "projectsteam:block/andesite_casing"
+    },
+    "display": {
+        "gui": {
+            "rotation": [
+                20,
+                10,
+                10
+            ],
+            "translation": [
+                0,
+                4,
+                0
+            ],
+            "scale": [
+                1,
+                1,
+                1
+            ]
+        }
     }
 }

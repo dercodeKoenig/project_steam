@@ -2,6 +2,7 @@ package ProjectSteamCrafting.JEI;
 
 import ARLib.network.PacketBlockEntity;
 import ARLib.utils.RecipePart;
+import ProjectSteamCrafting.MillStone.MillStoneConfig;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 import ProjectSteamCrafting.SpinningWheel.SpinningWheelConfig;
 import ProjectSteamCrafting.WoodMill.WoodMillConfig;
@@ -60,6 +61,7 @@ public class myPlugin implements IModPlugin {
         registration.addRecipeCategories(new SieveCategory());
         registration.addRecipeCategories(new SpinningWheelCategory());
         registration.addRecipeCategories(new WoodMillCategory());
+        registration.addRecipeCategories(new MillStoneCategory());
     }
 
     @Override
@@ -67,6 +69,7 @@ public class myPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(SIEVE.get()), SieveCategory.recipeType);
         registration.addRecipeCatalyst(new ItemStack(SPINNING_WHEEL.get()), SpinningWheelCategory.recipeType);
         registration.addRecipeCatalyst(new ItemStack(WOODMILL.get()), WoodMillCategory.recipeType);
+        registration.addRecipeCatalyst(new ItemStack(MILLSTONE.get()), MillStoneCategory.recipeType);
     }
 
     @Override
@@ -88,6 +91,12 @@ public class myPlugin implements IModPlugin {
             @Override
             public void run() {
                 runtime.getRecipeManager().addRecipes(WoodMillCategory.recipeType, WoodMillConfig.INSTANCE.recipes);
+            }
+        };
+        MillStoneConfig.PacketConfigSync.jeiRunnableOnConfigLoad = new Runnable() {
+            @Override
+            public void run() {
+                runtime.getRecipeManager().addRecipes(MillStoneCategory.recipeType, MillStoneConfig.INSTANCE.recipes);
             }
         };
     }

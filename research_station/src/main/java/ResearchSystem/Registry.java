@@ -1,5 +1,6 @@
 package ResearchSystem;
 
+import ProjectSteam.CustomCreativeTab;
 import ResearchSystem.EngineeringStation.BlockEngineeringStation;
 import ResearchSystem.EngineeringStation.EntityEngineeringStation;
 import ResearchSystem.EngineeringStation.MenuEngineeringStation;
@@ -9,6 +10,7 @@ import ResearchSystem.ResearchStation.ItemResearchBook;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -23,6 +25,7 @@ public class Registry {
     public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.BLOCK_ENTITY_TYPE, "research_station");
     public static final DeferredRegister<Item> ITEMS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.ITEM, "research_station");
     public static final DeferredRegister<MenuType<?>> MENUS = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.MENU, "research_station");
+    public static final net.neoforged.neoforge.registries.DeferredRegister<CreativeModeTab> CREATIVE_TAB = net.neoforged.neoforge.registries.DeferredRegister.create(BuiltInRegistries.CREATIVE_MODE_TAB, "research_station");
 
     public static Supplier<Item> registerBlockItem(String name, Supplier<Block> b){
         return ITEMS.register(name,() -> new BlockItem(b.get(), new Item.Properties()));
@@ -53,9 +56,13 @@ public class Registry {
 
     public static final Supplier<MenuType<MenuEngineeringStation>> MENU_ENGINEERING_STATION = MENUS.register("menu_engineering_station", () -> IMenuTypeExtension.create(MenuEngineeringStation::new));
 
-    public static Supplier<Item> ITEM_ENGINEERING_STATION =registerBlockItem("engineering_station", ENGINEERING_STATION);
+    public static final Supplier<CreativeModeTab> MY_CREATIVETAB = CREATIVE_TAB.register(
+            "research_station",()->new CustomCreativeTab()
+    );
+
     static {
         registerBlockItem("research_station", RESEARCH_STATION);
+        registerBlockItem("engineering_station", ENGINEERING_STATION);
     }
 
     public static void register(IEventBus modBus) {
@@ -63,6 +70,7 @@ public class Registry {
         ITEMS.register(modBus);
         BLOCK_ENTITIES.register(modBus);
      MENUS.register(modBus);
+        CREATIVE_TAB.register(modBus);
     }
 
 }

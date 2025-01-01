@@ -2,6 +2,7 @@ package ARLib.holoProjector;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ProjectSteam.Blocks.Mechanics.Axle.EntityAxleBase;
 import com.mojang.serialization.DataResult;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.Tickable;
@@ -10,6 +11,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -35,9 +37,11 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
     public void setValidBlocks(List<Block> validBlocks) {
         this.validBlocks.addAll(validBlocks);
     }
+int maxLifeTime = 20*60*20;
 
     long last_sec = 0;
     int i = 0;
+    int ticksExisted = 0;
 
     public Block getBlockToRender() {
         long sec = System.currentTimeMillis() / 1000;
@@ -80,6 +84,7 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
             blockListTag.add(bt);
         }
         tag.put("ValidBlocks", blockListTag);
+        tag.putInt("ticks", ticksExisted);
     }
 
     @Override
@@ -96,6 +101,8 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
                 validBlocks.add(b);
             }
         }
+
+        ticksExisted= tag.getInt("ticks");
     }
 
     @Override
@@ -132,5 +139,17 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
         }
     }
 
+    public void tick(){
+        if(!level.isClientSide) {
+            ticksExisted++;
+            if (ticksExisted > maxLifeTime) {
+                level.setBlock(getBlockPos(), Blocks.AIR.defaultBlockState(), 3);
+            }
+        }
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityStructurePreviewBlock) t).tick();
+    }
 
 }

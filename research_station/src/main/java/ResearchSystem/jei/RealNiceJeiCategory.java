@@ -1,15 +1,21 @@
 package ResearchSystem.jei;
 
 import ARLib.utils.ItemUtils;
+import ARLib.utils.RecipePart;
+import ARLib.utils.RecipePartWithProbability;
 import ResearchSystem.Config.RecipeConfig;
 import mezz.jei.api.gui.builder.IRecipeLayoutBuilder;
 import mezz.jei.api.gui.builder.IRecipeSlotBuilder;
+import mezz.jei.api.gui.builder.ITooltipBuilder;
 import mezz.jei.api.gui.drawable.IDrawable;
+import mezz.jei.api.gui.ingredient.IRecipeSlotRichTooltipCallback;
+import mezz.jei.api.gui.ingredient.IRecipeSlotView;
 import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
 import mezz.jei.api.recipe.IFocusGroup;
 import mezz.jei.api.recipe.RecipeIngredientRole;
 import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
+import mezz.jei.common.gui.elements.DrawableResource;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.registries.Registries;
@@ -55,6 +61,32 @@ public  class RealNiceJeiCategory implements IRecipeCategory<RecipeConfig.Recipe
         return null;
     }
 
+
+
+    void setSlotItemsFromRecipePart(RecipePart recipePart, IRecipeSlotBuilder     slot){
+        String id = recipePart.id;
+        int num = recipePart.amount;
+        ItemStack required = ItemUtils.getItemStackFromid(id, num);
+        if (required != null) {
+            slot.addItemStack(required);
+        } else {
+            ItemStack[] thisCouldAllBeEasier = Ingredient.of(TagKey.create(Registries.ITEM, ResourceLocation.tryParse(id))).getItems();
+            for (int i = 0; i < thisCouldAllBeEasier.length; i++) {
+                thisCouldAllBeEasier[i].setCount(num);
+                slot.addItemStack(thisCouldAllBeEasier[i]);
+            }
+        }
+        slot.setBackground(new DrawableResource(ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background.png"),0,0,18,18,0,0,0,0,18,18),0,0);
+        slot.addRichTooltipCallback(new IRecipeSlotRichTooltipCallback() {
+            @Override
+            public void onRichTooltip(IRecipeSlotView iRecipeSlotView, ITooltipBuilder iTooltipBuilder) {
+                if(recipePart instanceof RecipePartWithProbability rp) {
+                    iTooltipBuilder.add(Component.literal(String.valueOf(rp.p*100)+"%"));
+                }
+            }
+        });
+    }
+
     @Override
     public void setRecipe(IRecipeLayoutBuilder builder, RecipeConfig.Recipe recipe, IFocusGroup focuses) {
 
@@ -66,39 +98,13 @@ public  class RealNiceJeiCategory implements IRecipeCategory<RecipeConfig.Recipe
                 Character c = row.charAt(x);
                 RecipeConfig.RecipeInput input = recipe.keys.get(String.valueOf(c));
                 if (input == null) continue; // empty slot, (' ')
-                String id = input.input.id;
-                int num = input.input.amount;
-                ItemStack required = ItemUtils.getItemStackFromid(id, num);
                 IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.INPUT, x * 18 + 10, y * 18 + 30);
-                if (required != null) {
-                    slot.addItemStack(required);
-                } else {
-                    ItemStack[] thisCouldAllBeEasier = Ingredient.of(TagKey.create(Registries.ITEM, ResourceLocation.tryParse(id))).getItems();
-                    for (int i = 0; i < thisCouldAllBeEasier.length; i++) {
-                        thisCouldAllBeEasier[i].setCount(num);
-                        slot.addItemStack(thisCouldAllBeEasier[i]);
-                    }
-                }
+                setSlotItemsFromRecipePart(input.input,slot);
             }
         }
 
-
-        String id = recipe.output.id;
-        int num = recipe.output.amount;
-        ItemStack required = ItemUtils.getItemStackFromid(id, num);
         IRecipeSlotBuilder slot = builder.addSlot(RecipeIngredientRole.OUTPUT, 108, 49);
-
-        if (required != null) {
-            slot.addItemStack(required);
-        } else {
-            ItemStack[] thisCouldAllBeEasier = Ingredient.of(TagKey.create(Registries.ITEM, ResourceLocation.tryParse(id))).getItems();
-            for (int i = 0; i < thisCouldAllBeEasier.length; i++) {
-                thisCouldAllBeEasier[i].setCount(num);
-                slot.addItemStack(thisCouldAllBeEasier[i]);
-            }
-        }
-
-
+        setSlotItemsFromRecipePart(recipe.output,slot);
     }
 
     @Override
@@ -117,18 +123,6 @@ public  class RealNiceJeiCategory implements IRecipeCategory<RecipeConfig.Recipe
                 0xFF404040, false
         );
 
-        for (int y = 0; y < 3; y++) {
-            for (int x = 0; x < 3; x++) {
-                guiGraphics.blit(
-                        ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background.png"),
-                        x * 18 + 10, y * 18 + 30,
-                        18, 18,
-                        0, 0,
-                        18, 18,
-                        18, 18
-                );
-            }
-        }
         guiGraphics.blit(
                 ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/arrow_right.png"),
                 70, 45,
@@ -136,14 +130,6 @@ public  class RealNiceJeiCategory implements IRecipeCategory<RecipeConfig.Recipe
                 0f, 0f,
                 16, 12,
                 16, 12
-        );
-        guiGraphics.blit(
-                ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_item_slot_background.png"),
-                105, 45,
-                24, 24,
-                0, 0,
-                18, 18,
-                18, 18
         );
     }
 

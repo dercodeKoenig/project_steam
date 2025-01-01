@@ -32,8 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import static ResearchSystem.Registry.ITEM_ENGINEERING_STATION;
-import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
+import static ResearchSystem.Registry.*;
 
 @JeiPlugin
 public class myPlugin implements IModPlugin {
@@ -58,8 +57,8 @@ public class myPlugin implements IModPlugin {
 
     @Override
     public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
-        registration.addRecipeCatalyst(new ItemStack(ITEM_ENGINEERING_STATION.get()), RecipeTypes.CRAFTING);
-        registration.addRecipeCatalyst(ITEM_ENGINEERING_STATION.get(), RealNiceJeiCategory.recipeType);
+        registration.addRecipeCatalyst(new ItemStack(ENGINEERING_STATION.get()), RecipeTypes.CRAFTING);
+        registration.addRecipeCatalyst(ENGINEERING_STATION.get(), RealNiceJeiCategory.recipeType);
     }
 
     @Override

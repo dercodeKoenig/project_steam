@@ -67,7 +67,7 @@ public class Main {
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTab().equals(PROJECTSTEAM_CREATIVETAB.get())) {
+        if (e.getTab().equals(MY_CREATIVETAB.get())) {
             e.accept(RESEARCH_STATION.get());
             e.accept(ITEM_RESEARCH_BOOK.get());
             e.accept(ENGINEERING_STATION.get());

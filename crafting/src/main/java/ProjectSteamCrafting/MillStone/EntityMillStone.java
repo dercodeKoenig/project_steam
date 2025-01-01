@@ -52,12 +52,12 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
-            return 600;
+            return 900;
         }
 
         @Override
         public double getInertia(Direction direction) {
-            return 500;
+            return 1000;
         }
 
         @Override
@@ -205,7 +205,7 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
                                 if (ItemUtils.matches(r.inputItem.id, stackInSlot)) {
                                     float rf = level.random.nextFloat();
                                     if ( rf <= 1f / r.timeRequired) {
-                                        ItemStack output = ItemUtils.getItemStackFromIdOrTag(r.outputItem.id, r.outputItem.amount, level.registryAccess());
+                                        ItemStack output = ItemUtils.getItemStackFromIdOrTag(r.outputItem.id, r.outputItem.amount * stackInSlot.getCount(), level.registryAccess());
                                         inventory.setStackInSlot(i, output);
                                         setChanged();
                                         sendUpdateTag(null);

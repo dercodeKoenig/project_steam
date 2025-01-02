@@ -1,9 +1,7 @@
-package ResearchSystem;
+package Farms;
 
-import ResearchSystem.Config.RecipeConfig;
-import ResearchSystem.EngineeringStation.ScreenEngineeringStation;
-import ResearchSystem.Config.ResearchConfig;
-import net.minecraft.server.level.ServerPlayer;
+import Farms.CropFarm.RenderCropFarmBounds;
+import ProjectSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -11,7 +9,6 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -21,63 +18,61 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
-import static ResearchSystem.Registry.*;
+import static Farms.Registry.*;
+import static ProjectSteam.Registry.ENTITY_WOODEN_AXLE_ENCASED;
 
-@Mod("research_station")
-public class Main {
 
-    public Main(IEventBus modEventBus, ModContainer modContaine) throws IOException {
+@Mod(Farms.MODID)
+public class Farms {
+
+public static final String MODID = "aw_farms";
+
+    public Farms(IEventBus modEventBus, ModContainer modContaine) throws IOException {
+        //modEventBus.register(this);
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);
 
         modEventBus.addListener(this::addCreative);
         modEventBus.addListener(this::loadComplete);
         modEventBus.addListener(this::onClientSetup);
-        modEventBus.addListener(this::registerCapabilities);
+        modEventBus.addListener(this::RegisterCapabilities);
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::loadShaders);
         modEventBus.addListener(this::registerNetworkStuff);
-        modEventBus.addListener(this::registerScreens);
-
         Registry.register(modEventBus);
+
+
+    }
+
+    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
+
     }
 
     public void onClientSetup(FMLClientSetupEvent event) {
+
     }
 
-    public void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(MENU_ENGINEERING_STATION.get(), ScreenEngineeringStation::new);
-    }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ENTITY_CROP_FARM.get(), RenderCropFarmBounds::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
         final PayloadRegistrar registrar = event.registrar("1");
-        ResearchConfig.PacketConfigSync.register(registrar);
-        RecipeConfig.PacketConfigSync.register(registrar);
-    }
-
-    public void onPlayerLogin(PlayerEvent.PlayerLoggedInEvent login){
-        if(login.getEntity() instanceof ServerPlayer p){
-            ResearchConfig.INSTANCE.SyncConfig(p);
-            RecipeConfig.INSTANCE.SyncConfig(p);
-        }
     }
 
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
-        if (e.getTab().equals(MY_CREATIVETAB.get())) {
-            e.accept(RESEARCH_STATION.get());
-            e.accept(ITEM_RESEARCH_BOOK.get());
-            e.accept(ENGINEERING_STATION.get());
+        if (e.getTab().equals(CREATIVETAB.get())) {
+            e.accept(CROP_FARM.get());
         }
     }
 
     private void loadShaders(RegisterShadersEvent e) {
+
     }
 
-
-    public void registerCapabilities(RegisterCapabilitiesEvent e) {
+    private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
+        //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ENTITY_MOTOR.get(), (x, y) -> (x));
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

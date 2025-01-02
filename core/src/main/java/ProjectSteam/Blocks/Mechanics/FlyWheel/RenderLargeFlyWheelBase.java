@@ -14,6 +14,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -57,6 +58,11 @@ public class RenderLargeFlyWheelBase implements BlockEntityRenderer<EntityFlyWhe
         this.tex = texture;
     }
 
+
+    @Override
+    public AABB getRenderBoundingBox(EntityFlyWheelBase tile) {
+        return new AABB(tile.getBlockPos()).inflate(1);
+    }
 
     @Override
     public void render(EntityFlyWheelBase tile, float partialTick, PoseStack stack, MultiBufferSource bufferSource, int packedLight, int packedOverlay) {

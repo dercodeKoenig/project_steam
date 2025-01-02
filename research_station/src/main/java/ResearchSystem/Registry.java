@@ -1,6 +1,5 @@
 package ResearchSystem;
 
-import ProjectSteam.CustomCreativeTab;
 import ResearchSystem.EngineeringStation.BlockEngineeringStation;
 import ResearchSystem.EngineeringStation.EntityEngineeringStation;
 import ResearchSystem.EngineeringStation.MenuEngineeringStation;

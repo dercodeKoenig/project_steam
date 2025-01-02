@@ -9,9 +9,4 @@ public class RenderWoodenFlyWheelLarge extends RenderLargeFlyWheelBase {
     public RenderWoodenFlyWheelLarge(BlockEntityRendererProvider.Context c) {
         super(c, ResourceLocation.fromNamespaceAndPath("projectsteam", "textures/block/planks.png"));
     }
-    @Override
-    public AABB getRenderBoundingBox(EntityFlyWheelBase tile) {
-        return new AABB(tile.getBlockPos()).inflate(1);
-    }
-
 }

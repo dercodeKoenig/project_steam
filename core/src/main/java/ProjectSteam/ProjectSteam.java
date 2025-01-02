@@ -45,7 +45,7 @@ public class ProjectSteam {
 
 
 
-    public ProjectSteam(IEventBus modEventBus, ModContainer modContaine) throws IOException {
+    public ProjectSteam(IEventBus modEventBus, ModContainer modContaine) {
         //modEventBus.register(this);
 
         NeoForge.EVENT_BUS.addListener(this::onPlayerLogin);

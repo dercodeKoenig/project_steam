@@ -64,8 +64,6 @@ public class BlockHandGenerator extends Block implements EntityBlock {
             else
                 level.setBlock(pos, state.setValue(FACING, placer.getDirection().getOpposite()), 3);
         }
-
-        super.setPlacedBy(level, pos, state, placer, stack); // Call the super method for any additional behavior
     }
 
 

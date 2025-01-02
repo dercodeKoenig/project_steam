@@ -1,4 +1,4 @@
-package Farms.CropFarm;
+package Farms;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.ModularScreen;
@@ -7,6 +7,7 @@ import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
+import ProjectSteam.Blocks.Mechanics.Axle.EntityAxleBase;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
 import net.minecraft.client.Minecraft;
@@ -19,43 +20,44 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.joml.Vector2i;
 
-import javax.swing.text.html.parser.Entity;
 import java.util.*;
 
 import static Farms.Registry.ENTITY_CROP_FARM;
 
-public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+public abstract class EntityFarmBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
-    GuiHandlerBlockEntity guiHandlerMain;
-    GuiHandlerBlockEntity guiHandlerBounds;
+    public GuiHandlerBlockEntity guiHandlerMain;
+    public GuiHandlerBlockEntity guiHandlerBounds;
 
-    int w = 5;
-    int h = 5;
-    int controllerOffset = 0;
-    int maxSize = 16;
+    public int w = 5;
+    public int h = 5;
+    public int controllerOffset = 0;
+    public int maxSize = 16;
 
-    Set<Vector2i> blackList = new HashSet<>();
-    Set<BlockPos> blackListAsBlockPos = new HashSet<>();
-    Set<BlockPos> allowedBlocks = new HashSet<>();
+    public Set<Vector2i> blackList = new HashSet<>();
+    public Set<BlockPos> blackListAsBlockPos = new HashSet<>();
+    public Set<BlockPos> allowedBlocks = new HashSet<>();
 
-    BlockPos pmin;
-    BlockPos pmax;
+    public BlockPos pmin;
+    public BlockPos pmax;
 
-    public EntityCropFarm(BlockPos pos, BlockState blockState) {
-        super(ENTITY_CROP_FARM.get(), pos, blockState);
+    public EntityFarmBase(BlockEntityType type, BlockPos pos, BlockState blockState) {
+        super(type, pos, blockState);
         guiHandlerMain = new GuiHandlerBlockEntity(this);
 
         pmax = new BlockPos(0, 0, 0);
         pmin = new BlockPos(0, 0, 0);
 
-        guiModuleDefaultButton openBoundsGuiButton = new guiModuleDefaultButton(0, "bounds", guiHandlerMain, 10, 80, 40, 10) {
+        guiModuleDefaultButton openBoundsGuiButton = new guiModuleDefaultButton(0, "bounds", guiHandlerMain, 10, 10, 40, 15) {
             @Override
             public void onButtonClicked() {
                 guiHandlerBounds.openGui(200, 200, true);
@@ -66,7 +68,7 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
         guiHandlerBounds = new GuiHandlerBlockEntity(this) {
             @Override
             public void onGuiClose() {
-                EntityCropFarm.this.openMainGui();
+                EntityFarmBase.this.openMainGui();
             }
         };
     }
@@ -80,6 +82,16 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
         }else{
             updateBoundsBp();
         }
+    }
+
+    public void tick() {
+        if(!level.isClientSide){
+            guiHandlerMain.serverTick();
+        }
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityFarmBase)t).tick();
     }
 
     public void updateBoundsBp() {
@@ -150,7 +162,7 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
                             j.putInt("x", _x);
                             j.putInt("y", _y);
                             i.put("blacklist_remove", j);
-                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityCropFarm.this, i));
+                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityFarmBase.this, i));
                         }
                     };
                     guiHandlerBounds.getModules().add(b);
@@ -163,7 +175,7 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
                             j.putInt("x", _x);
                             j.putInt("y", _y);
                             i.put("blacklist_add", j);
-                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityCropFarm.this, i));
+                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityFarmBase.this, i));
                         }
                     };
                     guiHandlerBounds.getModules().add(b);
@@ -198,11 +210,7 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
         }
     }
 
-    public void openMainGui() {
-        if (level.isClientSide) {
-            guiHandlerMain.openGui(180, 200, true);
-        }
-    }
+    abstract public void openMainGui();
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
@@ -234,6 +242,8 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
 
     @Override
     public void readServer(CompoundTag compoundTag) {
+        guiHandlerMain.readServer(compoundTag);
+
         if (compoundTag.contains("client_onload")) {
             UUID from = compoundTag.getUUID("client_onload");
             ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
@@ -292,6 +302,8 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
 
     @Override
     public void readClient(CompoundTag compoundTag) {
+        guiHandlerMain.readClient(compoundTag);
+
         if (compoundTag.contains("controllerOffset")) {
             controllerOffset = compoundTag.getInt("controllerOffset");
         }

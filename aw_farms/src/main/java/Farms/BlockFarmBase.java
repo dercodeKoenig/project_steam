@@ -1,5 +1,6 @@
-package Farms.CropFarm;
+package Farms;
 
+import ProjectSteam.Blocks.Mechanics.Axle.EntityAxleBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
@@ -9,6 +10,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.EntityBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityTicker;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -17,14 +20,9 @@ import org.jetbrains.annotations.Nullable;
 
 import static Farms.Registry.ENTITY_CROP_FARM;
 
-public class BlockCropFarm extends Block implements EntityBlock {
-    public BlockCropFarm() {
+public abstract class BlockFarmBase extends Block implements EntityBlock {
+    public BlockFarmBase() {
         super(Properties.of());
-    }
-
-    @Override
-    public @Nullable BlockEntity newBlockEntity(BlockPos blockPos, BlockState blockState) {
-        return ENTITY_CROP_FARM.get().create(blockPos, blockState);
     }
 
     @Override
@@ -46,9 +44,14 @@ public class BlockCropFarm extends Block implements EntityBlock {
     @Override
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockEntity m = level.getBlockEntity(pos);
-        if (m instanceof EntityCropFarm c) {
+        if (m instanceof EntityFarmBase c) {
             c.openMainGui();
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
+    }
+
+    @Override
+    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
+        return EntityFarmBase::tick;
     }
 }

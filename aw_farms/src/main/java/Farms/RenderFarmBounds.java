@@ -1,4 +1,4 @@
-package Farms.CropFarm;
+package Farms;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -7,26 +7,24 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
-import org.joml.Vector2i;
 import org.joml.Vector3f;
 
 import java.util.Set;
 
-public class RenderCropFarmBounds implements BlockEntityRenderer<EntityCropFarm> {
+public class RenderFarmBounds implements BlockEntityRenderer<EntityFarmBase> {
 
-    public RenderCropFarmBounds(BlockEntityRendererProvider.Context c) {
+    public RenderFarmBounds(BlockEntityRendererProvider.Context c) {
         super();
     }
 
     @Override
-    public AABB getRenderBoundingBox(EntityCropFarm tile) {
+    public AABB getRenderBoundingBox(EntityFarmBase tile) {
         return new AABB(tile.getBlockPos()).inflate(tile.maxSize);
     }
 
     @Override
-    public void render(EntityCropFarm entityCropFarm, float v, PoseStack stack, MultiBufferSource multiBufferSource, int i, int i1) {
+    public void render(EntityFarmBase tile, float v, PoseStack stack, MultiBufferSource multiBufferSource, int i, int i1) {
         // Create a VertexConsumer for LINES render type
         VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.LIGHTNING);
 
@@ -36,12 +34,12 @@ public class RenderCropFarmBounds implements BlockEntityRenderer<EntityCropFarm>
         float b = 0.0f;
         float a = 0.5f;
 
-        BlockPos lowerEnd = entityCropFarm.pmin.subtract(entityCropFarm.getBlockPos());
-        BlockPos upperEnd = entityCropFarm.pmax.subtract(entityCropFarm.getBlockPos());
+        BlockPos lowerEnd = tile.pmin.subtract(tile.getBlockPos());
+        BlockPos upperEnd = tile.pmax.subtract(tile.getBlockPos());
 
-        Set<BlockPos> blocked = entityCropFarm.blackListAsBlockPos;
+        Set<BlockPos> blocked = tile.blackListAsBlockPos;
         for (BlockPos pos : blocked) {
-            BlockPos target = pos.subtract(entityCropFarm.getBlockPos());
+            BlockPos target = pos.subtract(tile.getBlockPos());
             vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX(), 0.01f + target.getY(), target.getZ() + 1)).setColor(0.8f, 0.0f, 0.0f, 0.5f);
             vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX() + 1, 0.01f + target.getY(), target.getZ() + 1)).setColor(0.8f, 0.0f, 0.0f, 0.5f);
             vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX() + 1, 0.01f + target.getY(), target.getZ())).setColor(0.8f, 0.0f, 0.0f, 0.5f);

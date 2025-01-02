@@ -1,7 +1,5 @@
 package Farms;
 
-import Farms.CropFarm.RenderCropFarmBounds;
-import ProjectSteam.Blocks.Mechanics.Axle.RenderWoodenAxle;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -19,7 +17,6 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import java.io.IOException;
 
 import static Farms.Registry.*;
-import static ProjectSteam.Registry.ENTITY_WOODEN_AXLE_ENCASED;
 
 
 @Mod(Farms.MODID)
@@ -54,7 +51,7 @@ public static final String MODID = "aw_farms";
 
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ENTITY_CROP_FARM.get(), RenderCropFarmBounds::new);
+        event.registerBlockEntityRenderer(ENTITY_CROP_FARM.get(), RenderFarmBounds::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {

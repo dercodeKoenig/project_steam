@@ -2,6 +2,7 @@ package Farms.CropFarm;
 
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.ModularScreen;
+import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.network.INetworkTagReceiver;
@@ -12,6 +13,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -21,8 +24,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.joml.Vector2i;
 
-import java.util.UUID;
+import javax.swing.text.html.parser.Entity;
+import java.util.*;
 
 import static Farms.Registry.ENTITY_CROP_FARM;
 
@@ -35,6 +40,10 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
     int h = 5;
     int controllerOffset = 0;
     int maxSize = 16;
+
+    Set<Vector2i> blackList = new HashSet<>();
+    Set<BlockPos> blackListAsBlockPos = new HashSet<>();
+    Set<BlockPos> allowedBlocks = new HashSet<>();
 
     BlockPos pmin;
     BlockPos pmax;
@@ -60,7 +69,6 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
                 EntityCropFarm.this.openMainGui();
             }
         };
-        updateGuiModules();
     }
 
     @Override
@@ -69,6 +77,8 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
             CompoundTag t = new CompoundTag();
             t.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, t));
+        }else{
+            updateBoundsBp();
         }
     }
 
@@ -80,6 +90,40 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
 
         pmin = new BlockPos(Math.min(p1.getX(), p2.getX()), Math.min(p1.getY(), p2.getY()), Math.min(p1.getZ(), p2.getZ()));
         pmax = new BlockPos(Math.max(p1.getX(), p2.getX()), Math.max(p1.getY(), p2.getY()), Math.max(p1.getZ(), p2.getZ()));
+
+
+        // remove blacklist entries outside bounds
+        boolean sth = true;
+        while (sth) {
+            sth = false;
+            for (Vector2i i : blackList) {
+                if (i.x >= w || i.y >= h) {
+                    blackList.remove(i);
+                    sth = true;
+                    break;
+                }
+            }
+        }
+
+        // compute blacklist blockpos to render
+        blackListAsBlockPos.clear();
+        for(Vector2i i : blackList){
+            BlockPos blocked = p1.relative(facing.getCounterClockWise(), i.x).relative(facing.getOpposite(), i.y);
+            blackListAsBlockPos.add(blocked);
+        }
+
+        // compute allowed blockpos
+        allowedBlocks.clear();
+        for (int y = pmin.getY(); y <= pmax.getY(); y++) {
+            for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
+                for (int x = pmin.getX(); x <= pmax.getX(); x++) {
+                    BlockPos target = p1.relative(facing.getCounterClockWise(), x).relative(facing.getOpposite(), z).relative(Direction.UP,y);
+                    if(!blackListAsBlockPos.contains(target)){
+                        allowedBlocks.add(target);
+                    }
+                }
+            }
+        }
     }
 
     public void updateGuiModules() {
@@ -95,8 +139,35 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
         int pxPerBlock = 140 / maxSize;
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
-                guiModuleImage controllerPos = new guiModuleImage(guiHandlerBounds, x * pxPerBlock + baseOffsetX, y * pxPerBlock + baseOffsetY, pxPerBlock, pxPerBlock, red, 1, 1);
-                guiHandlerBounds.getModules().add(controllerPos);
+                int _x = x;
+                int _y = h-y-1; // because highest y is directly next to the controller
+                if (blackList.contains(new Vector2i(_x, _y))) {
+                    guiModuleButton b = new guiModuleButton(-1, "", guiHandlerBounds, x * pxPerBlock + baseOffsetX, y * pxPerBlock + baseOffsetY, pxPerBlock, pxPerBlock, black, 1, 1) {
+                        @Override
+                        public void onButtonClicked() {
+                            CompoundTag i = new CompoundTag();
+                            CompoundTag j = new CompoundTag();
+                            j.putInt("x", _x);
+                            j.putInt("y", _y);
+                            i.put("blacklist_remove", j);
+                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityCropFarm.this, i));
+                        }
+                    };
+                    guiHandlerBounds.getModules().add(b);
+                }else{
+                    guiModuleButton b = new guiModuleButton(-1, "", guiHandlerBounds, x * pxPerBlock + baseOffsetX, y * pxPerBlock + baseOffsetY, pxPerBlock, pxPerBlock, red, 1, 1) {
+                        @Override
+                        public void onButtonClicked() {
+                            CompoundTag i = new CompoundTag();
+                            CompoundTag j = new CompoundTag();
+                            j.putInt("x", _x);
+                            j.putInt("y", _y);
+                            i.put("blacklist_add", j);
+                            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityCropFarm.this, i));
+                        }
+                    };
+                    guiHandlerBounds.getModules().add(b);
+                }
             }
         }
 
@@ -150,6 +221,14 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
         t.putInt("maxSize", maxSize);
         t.putInt("w", w);
         t.putInt("h", h);
+        ListTag blackListTag = new ListTag();
+        for (Vector2i i : blackList){
+            CompoundTag o = new CompoundTag();
+            o.putInt("x",i.x);
+            o.putInt("y",i.y);
+            blackListTag.add(o);
+        }
+        t.put("blacklist", blackListTag);
         return t;
     }
 
@@ -161,6 +240,20 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
             if (p != null) {
                 PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
             }
+        }
+        if (compoundTag.contains("blacklist_add")) {
+            CompoundTag i = compoundTag.getCompound("blacklist_add");
+            Vector2i target = new Vector2i(i.getInt("x"), i.getInt("y"));
+            blackList.add(target);
+            updateBoundsBp();
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
+        }
+        if (compoundTag.contains("blacklist_remove")) {
+            CompoundTag i = compoundTag.getCompound("blacklist_remove");
+            Vector2i target = new Vector2i(i.getInt("x"), i.getInt("y"));
+            blackList.remove(target);
+            updateBoundsBp();
+            PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
         }
 
         if (compoundTag.contains("guiButtonClick")) {
@@ -210,6 +303,18 @@ public class EntityCropFarm extends BlockEntity implements IMechanicalBlockProvi
         }
         if (compoundTag.contains("h")) {
             h = compoundTag.getInt("h");
+        }
+        if(compoundTag.contains("blacklist")){
+            ListTag blackListTag = compoundTag.getList("blacklist", Tag.TAG_COMPOUND);
+            blackList.clear();
+            for (int i = 0; i < blackListTag.size(); i++) {
+                CompoundTag t = blackListTag.getCompound(i);
+                int x = t.getInt("x");
+                int y = t.getInt("y");
+                blackList.add(new Vector2i(x,y));
+            }{
+
+            }
         }
         updateGuiModules();
         updateBoundsBp();

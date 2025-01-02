@@ -9,7 +9,10 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.phys.AABB;
+import org.joml.Vector2i;
 import org.joml.Vector3f;
+
+import java.util.Set;
 
 public class RenderCropFarmBounds implements BlockEntityRenderer<EntityCropFarm> {
 
@@ -35,6 +38,15 @@ public class RenderCropFarmBounds implements BlockEntityRenderer<EntityCropFarm>
 
         BlockPos lowerEnd = entityCropFarm.pmin.subtract(entityCropFarm.getBlockPos());
         BlockPos upperEnd = entityCropFarm.pmax.subtract(entityCropFarm.getBlockPos());
+
+        Set<BlockPos> blocked = entityCropFarm.blackListAsBlockPos;
+        for (BlockPos pos : blocked) {
+            BlockPos target = pos.subtract(entityCropFarm.getBlockPos());
+            vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX(), 0.01f + target.getY(), target.getZ() + 1)).setColor(0.8f, 0.0f, 0.0f, 0.5f);
+            vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX() + 1, 0.01f + target.getY(), target.getZ() + 1)).setColor(0.8f, 0.0f, 0.0f, 0.5f);
+            vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX() + 1, 0.01f + target.getY(), target.getZ())).setColor(0.8f, 0.0f, 0.0f, 0.5f);
+            vertexConsumer.addVertex(stack.last(), new Vector3f(target.getX(), 0.01f + target.getY(), target.getZ())).setColor(0.8f, 0.0f, 0.0f, 0.5f);
+        }
         
         // lower edges
 

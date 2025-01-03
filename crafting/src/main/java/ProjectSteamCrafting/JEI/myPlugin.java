@@ -1,45 +1,19 @@
 package ProjectSteamCrafting.JEI;
 
-import ARLib.network.PacketBlockEntity;
-import ARLib.utils.RecipePart;
 import ProjectSteamCrafting.MillStone.MillStoneConfig;
 import ProjectSteamCrafting.Sieve.SieveConfig;
 import ProjectSteamCrafting.SpinningWheel.SpinningWheelConfig;
 import ProjectSteamCrafting.WoodMill.WoodMillConfig;
-import ResearchSystem.Config.RecipeConfig;
-import ResearchSystem.EngineeringStation.MenuEngineeringStation;
-import ResearchSystem.jei.RealNiceJeiCategory;
-import com.google.gson.Gson;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
-import mezz.jei.api.constants.RecipeTypes;
-import mezz.jei.api.gui.ingredient.IRecipeSlotsView;
-import mezz.jei.api.recipe.transfer.IRecipeTransferError;
-import mezz.jei.api.recipe.transfer.IUniversalRecipeTransferHandler;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import mezz.jei.api.registration.IRecipeTransferRegistration;
 import mezz.jei.api.runtime.IJeiRuntime;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.crafting.*;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
 
 import static ProjectSteamCrafting.Registry.*;
-import static ResearchSystem.Registry.ITEM_ENGINEERING_STATION;
-import static ResearchSystem.Registry.MENU_ENGINEERING_STATION;
 
 @JeiPlugin
 public class myPlugin implements IModPlugin {

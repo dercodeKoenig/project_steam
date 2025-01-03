@@ -394,7 +394,9 @@ public class EntityWoodMill extends EntityMultiblockMaster implements ProjectSte
                 float offset = (float) (maxOffset - (progressMade / maxSpeedForNoOffset) * maxOffset);
 
 
-                if ((recipeAtSawBlade.progress - (int) recipeAtSawBlade.progress > offset && recipeAtSawBlade.progress - progressMade - (int) recipeAtSawBlade.progress < offset) || (recipeAtSawBlade.progress - (int) recipeAtSawBlade.progress > offset + 0.5 && recipeAtSawBlade.progress - progressMade - (int) recipeAtSawBlade.progress < offset + 0.5)) {
+                double rotationScaled = ((Math.abs(myMechanicalBlock.currentRotation)) % 360) / 360; // just making sure it is positive
+                //System.out.println(rotationScaled+":"+progressMade);
+                if ((rotationScaled > offset && rotationScaled - progressMade< offset) || (rotationScaled > offset + 0.5 && rotationScaled -progressMade < offset + 0.5)) {
                     level.playSound(null, getBlockPos(), SoundEvents.FENCE_GATE_OPEN, SoundSource.BLOCKS, 0.2f, 0.5f);
                 }
 

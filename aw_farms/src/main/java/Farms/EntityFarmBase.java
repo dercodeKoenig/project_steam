@@ -152,6 +152,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
                 double actualResistanceProduced = maxWorkingResistance * (double) energyProduced / (double) energyMaxProduced;
                 this.currentResistance += actualResistanceProduced;
             }
+            //System.out.println(energyProduced+":"+currentResistance);
         }
         if (level.isClientSide) {
             if (renderInfoTimer > 0) {

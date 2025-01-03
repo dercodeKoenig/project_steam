@@ -62,7 +62,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
 
     double myFriction = 1;
     double myInertia = 10;
-    double maxStress = 2000;
+    double maxStress = Config.INSTANCE.windmill_maxStress;
     double myForce = 0;
 
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
@@ -279,9 +279,9 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
                 }else{
                     currentForceMultiplier = 1;
                 }
-
-                double windSpeed = windSpeedMultiplier * noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
-                //double windSpeed = windSpeedMultiplier;
+                double noiseval = noise.getValue((double) level.getGameTime() / 10000, (double) getBlockPos().getX() / getBlockPos().getZ() * 1000, false);
+                // use sqrt to make it more evenly distributed and less low wind speeds
+                double windSpeed = windSpeedMultiplier * Math.sqrt(Math.abs(noiseval)) * Math.signum(noiseval) ;
                 myForce = 0;
                 myInertia = 0;
                 int numberOfBlocks = 0;

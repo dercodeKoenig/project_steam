@@ -21,6 +21,9 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
@@ -204,7 +207,7 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
                             for (MillStoneConfig.MillStoneRecipe r : MillStoneConfig.INSTANCE.recipes) {
                                 if (ItemUtils.matches(r.inputItem.id, stackInSlot)) {
                                     float rf = level.random.nextFloat();
-                                    if ( rf <= 1f / r.timeRequired) {
+                                    if (rf <= 1f / r.timeRequired) {
                                         ItemStack output = ItemUtils.getItemStackFromIdOrTag(r.outputItem.id, r.outputItem.amount * stackInSlot.getCount(), level.registryAccess());
                                         inventory.setStackInSlot(i, output);
                                         setChanged();
@@ -217,12 +220,22 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
 
                     }
                 }
+            } else {
+                if (level.getGameTime() % 51 == 0) {
+                    super.scanStructure();
+                }
             }
         }
-        if (!getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
-            if (level.getGameTime() % 51 == 0) {
-                super.scanStructure();
-            }
+
+        for (int i = 0; i < 1; i++) {
+            SoundEvent[] sounds = {
+                    SoundEvents.GRAVEL_BREAK,
+                    SoundEvents.STONE_HIT
+            };
+            int randomIndex = level.random.nextInt(sounds.length);
+            SoundEvent randomEvent = sounds[randomIndex];
+            level.playSound(null, getBlockPos(), randomEvent,
+                    SoundSource.BLOCKS, 0.02f * (float) ((Math.abs(myMechanicalBlock.internalVelocity))), 0.1f * (float) (Math.abs(myMechanicalBlock.internalVelocity)));  //
         }
     }
 

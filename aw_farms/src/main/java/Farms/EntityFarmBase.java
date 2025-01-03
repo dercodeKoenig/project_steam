@@ -13,6 +13,7 @@ import ProjectSteam.Core.IMechanicalBlockProvider;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
@@ -27,6 +28,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector2i;
 
 import java.util.*;
@@ -46,9 +48,37 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
     public Set<Vector2i> blackList = new HashSet<>();
     public Set<BlockPos> blackListAsBlockPos = new HashSet<>();
     public Set<BlockPos> allowedBlocks = new HashSet<>();
+    public List<BlockPos> allowedBlocksList = new ArrayList<>();
 
     public BlockPos pmin;
     public BlockPos pmax;
+
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMaxStress() {
+            return 999999;
+        }
+
+        @Override
+        public double getInertia(Direction direction) {
+            return 1;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction direction) {
+            return 10;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction direction) {
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@Nullable Direction direction) {
+            return 1;
+        }
+    };
 
     public EntityFarmBase(BlockEntityType type, BlockPos pos, BlockState blockState) {
         super(type, pos, blockState);
@@ -79,19 +109,20 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             CompoundTag t = new CompoundTag();
             t.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, t));
-        }else{
+        } else {
             updateBoundsBp();
         }
     }
 
     public void tick() {
-        if(!level.isClientSide){
+        myMechanicalBlock.mechanicalTick();
+        if (!level.isClientSide) {
             guiHandlerMain.serverTick();
         }
     }
 
     public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
-        ((EntityFarmBase)t).tick();
+        ((EntityFarmBase) t).tick();
     }
 
     public void updateBoundsBp() {
@@ -119,7 +150,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
         // compute blacklist blockpos to render
         blackListAsBlockPos.clear();
-        for(Vector2i i : blackList){
+        for (Vector2i i : blackList) {
             BlockPos blocked = p1.relative(facing.getCounterClockWise(), i.x).relative(facing.getOpposite(), i.y);
             blackListAsBlockPos.add(blocked);
         }
@@ -129,13 +160,14 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
         for (int y = pmin.getY(); y <= pmax.getY(); y++) {
             for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
                 for (int x = pmin.getX(); x <= pmax.getX(); x++) {
-                    BlockPos target = p1.relative(facing.getCounterClockWise(), x).relative(facing.getOpposite(), z).relative(Direction.UP,y);
-                    if(!blackListAsBlockPos.contains(target)){
+                    BlockPos target = new BlockPos(x,y,z);
+                    if (!blackListAsBlockPos.contains(target)) {
                         allowedBlocks.add(target);
                     }
                 }
             }
         }
+        allowedBlocksList = allowedBlocks.stream().toList();
     }
 
     public void updateGuiModules() {
@@ -152,7 +184,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
         for (int y = 0; y < h; y++) {
             for (int x = 0; x < w; x++) {
                 int _x = x;
-                int _y = h-y-1; // because highest y is directly next to the controller
+                int _y = h - y - 1; // because highest y is directly next to the controller
                 if (blackList.contains(new Vector2i(_x, _y))) {
                     guiModuleButton b = new guiModuleButton(-1, "", guiHandlerBounds, x * pxPerBlock + baseOffsetX, y * pxPerBlock + baseOffsetY, pxPerBlock, pxPerBlock, black, 1, 1) {
                         @Override
@@ -166,7 +198,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
                         }
                     };
                     guiHandlerBounds.getModules().add(b);
-                }else{
+                } else {
                     guiModuleButton b = new guiModuleButton(-1, "", guiHandlerBounds, x * pxPerBlock + baseOffsetX, y * pxPerBlock + baseOffsetY, pxPerBlock, pxPerBlock, red, 1, 1) {
                         @Override
                         public void onButtonClicked() {
@@ -214,7 +246,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
-        return null;
+        return myMechanicalBlock;
     }
 
     @Override
@@ -230,19 +262,62 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
         t.putInt("w", w);
         t.putInt("h", h);
         ListTag blackListTag = new ListTag();
-        for (Vector2i i : blackList){
+        for (Vector2i i : blackList) {
             CompoundTag o = new CompoundTag();
-            o.putInt("x",i.x);
-            o.putInt("y",i.y);
+            o.putInt("x", i.x);
+            o.putInt("y", i.y);
             blackListTag.add(o);
         }
         t.put("blacklist", blackListTag);
         return t;
     }
 
+    public void readUpdateTag(CompoundTag compoundTag) {
+        if (compoundTag.contains("controllerOffset")) {
+            controllerOffset = compoundTag.getInt("controllerOffset");
+        }
+        if (compoundTag.contains("maxSize")) {
+            maxSize = compoundTag.getInt("maxSize");
+        }
+        if (compoundTag.contains("w")) {
+            w = compoundTag.getInt("w");
+        }
+        if (compoundTag.contains("h")) {
+            h = compoundTag.getInt("h");
+        }
+        if (compoundTag.contains("blacklist")) {
+            ListTag blackListTag = compoundTag.getList("blacklist", Tag.TAG_COMPOUND);
+            blackList.clear();
+            for (int i = 0; i < blackListTag.size(); i++) {
+                CompoundTag t = blackListTag.getCompound(i);
+                int x = t.getInt("x");
+                int y = t.getInt("y");
+                blackList.add(new Vector2i(x, y));
+            }
+            {
+
+            }
+        }
+        updateGuiModules();
+        updateBoundsBp();
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+        tag.put("data", getUpdateTag());
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
+        readUpdateTag(tag);
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag) {
         guiHandlerMain.readServer(compoundTag);
+        myMechanicalBlock.mechanicalReadServer(compoundTag);
 
         if (compoundTag.contains("client_onload")) {
             UUID from = compoundTag.getUUID("client_onload");
@@ -293,7 +368,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
                 //dec controllerOffset
                 if (controllerOffset > 0) controllerOffset--;
             }
-            controllerOffset = Math.min(w-1, controllerOffset);
+            controllerOffset = Math.min(w - 1, controllerOffset);
 
             updateBoundsBp();
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
@@ -302,33 +377,8 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     @Override
     public void readClient(CompoundTag compoundTag) {
+        myMechanicalBlock.mechanicalReadClient(compoundTag);
         guiHandlerMain.readClient(compoundTag);
-
-        if (compoundTag.contains("controllerOffset")) {
-            controllerOffset = compoundTag.getInt("controllerOffset");
-        }
-        if (compoundTag.contains("maxSize")) {
-            maxSize = compoundTag.getInt("maxSize");
-        }
-        if (compoundTag.contains("w")) {
-            w = compoundTag.getInt("w");
-        }
-        if (compoundTag.contains("h")) {
-            h = compoundTag.getInt("h");
-        }
-        if(compoundTag.contains("blacklist")){
-            ListTag blackListTag = compoundTag.getList("blacklist", Tag.TAG_COMPOUND);
-            blackList.clear();
-            for (int i = 0; i < blackListTag.size(); i++) {
-                CompoundTag t = blackListTag.getCompound(i);
-                int x = t.getInt("x");
-                int y = t.getInt("y");
-                blackList.add(new Vector2i(x,y));
-            }{
-
-            }
-        }
-        updateGuiModules();
-        updateBoundsBp();
+        readUpdateTag(compoundTag);
     }
 }

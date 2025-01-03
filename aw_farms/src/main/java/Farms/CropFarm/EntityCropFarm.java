@@ -4,16 +4,31 @@ import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
+import ARLib.utils.InventoryUtils;
 import Farms.EntityFarmBase;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.BoneMealItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.CropBlock;
-import net.minecraft.world.level.block.StemBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.level.storage.loot.LootParams;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
+import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.neoforged.neoforge.items.ItemStackHandler;
+
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
 import static Farms.Registry.ENTITY_CROP_FARM;
 
@@ -29,12 +44,7 @@ public class EntityCropFarm extends EntityFarmBase {
     ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (stack.getItem() instanceof BlockItem bi) {
-                if (bi.getBlock() instanceof CropBlock || bi.getBlock() instanceof StemBlock) {
-                    return true;
-                }
-            }
-            return false;
+            return isItemValidSeed(stack);
         }
 
         @Override
@@ -57,6 +67,12 @@ public class EntityCropFarm extends EntityFarmBase {
         }
     };
 
+    //public Set<BlockPos> positionsToTill = new HashSet<>();
+    public Set<BlockPos> positionsToPlant = new HashSet<>();
+    public Set<BlockPos> positionsToHarvest = new HashSet<>();
+    public Set<BlockPos> positionsToBoneMeal = new HashSet<>();
+    int currentBlockToScanIndex = 0;
+
     public EntityCropFarm(BlockPos pos, BlockState blockState) {
         super(ENTITY_CROP_FARM.get(), pos, blockState);
 
@@ -68,13 +84,12 @@ public class EntityCropFarm extends EntityFarmBase {
         }
 
 
-        guiModuleText t1 = new guiModuleText(11001,"Output", guiHandlerMain, 10,30,0xff000000,false);
+        guiModuleText t1 = new guiModuleText(11001, "Output", guiHandlerMain, 10, 30, 0xff000000, false);
         guiHandlerMain.getModules().add(t1);
-        guiModuleText t2 = new guiModuleText(11002,"Resources", guiHandlerMain, 10,78,0xff000000,false);
+        guiModuleText t2 = new guiModuleText(11002, "Resources", guiHandlerMain, 10, 78, 0xff000000, false);
         guiHandlerMain.getModules().add(t2);
-        guiModuleText t3 = new guiModuleText(11003,"Special Resources", guiHandlerMain, 10,110,0xff000000,false);
+        guiModuleText t3 = new guiModuleText(11003, "Special Resources", guiHandlerMain, 10, 110, 0xff000000, false);
         guiHandlerMain.getModules().add(t3);
-
 
         for (int i = 0; i < inputsInventory.getSlots(); i++) {
             int x = i * 18 + 10;
@@ -99,10 +114,229 @@ public class EntityCropFarm extends EntityFarmBase {
         }
     }
 
+    public boolean isItemValidSeed(ItemStack s) {
+        if (s.getItem() instanceof BlockItem bi) {
+            Block itemBlock = bi.getBlock();
+            if (itemBlock instanceof CropBlock) {
+                return true;
+            }
+            if (itemBlock instanceof StemBlock) {
+                return true;
+            }
+            if (itemBlock.equals(Blocks.NETHER_WART)) {
+                return true;
+            }
+            if (itemBlock.equals(Blocks.SUGAR_CANE)) {
+                return true;
+            }
+            if (itemBlock.equals(Blocks.CACTUS)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean canPlant(BlockPos p) {
+        BlockState state = level.getBlockState(p);
+        if (state.isAir()) return true;
+        if (state.canBeReplaced()) return true;
+        return false;
+    }
+    public boolean tryPlantPosition(BlockPos p) {
+        if (!canPlant(p)) return false;
+
+        //System.out.println("try plant: "+p);
+
+        //if a stemBlock is around (melon/pumpkin) do not plant next to it
+        for (int z = -1; z <= 1; z++) {
+            if (level.getBlockState(p.offset(0, 0, z)).getBlock() instanceof StemBlock) {
+                return false;
+            }
+        }
+        for (int x = -1; x <= 1; x++) {
+            if (level.getBlockState(p.offset(x, 0, 0)).getBlock() instanceof StemBlock) {
+                return false;
+            }
+        }
+
+        for (int i = 0; i < inputsInventory.getSlots(); i++) {
+            ItemStack s = inputsInventory.getStackInSlot(i);
+            if (!s.isEmpty() && s.getItem() instanceof BlockItem bi) {
+                System.out.println(bi.getBlock());
+                if (bi.getBlock().defaultBlockState().canSurvive(level, p)) {
+                    level.setBlock(p, bi.getBlock().defaultBlockState(), 3);
+                    s.shrink(1);
+                    return true;
+                }
+            }
+        }
+
+        // if no block was planted, try till dirt instead
+        BlockState s = level.getBlockState(p.below());
+        Block b = s.getBlock();
+        if(b.equals(Blocks.DIRT) || b.equals(Blocks.DIRT_PATH) || b.equals(Blocks.GRASS_BLOCK)){
+            level.setBlock(p.below(), Blocks.FARMLAND.defaultBlockState(), 3);
+            return true;
+        }
+
+        return false;
+    }
+
+    public boolean canBoneMeal(BlockPos p){
+        BlockState state = level.getBlockState(p);
+        return state.getBlock() instanceof BonemealableBlock bab && bab.isValidBonemealTarget(level,p,state);
+    }
+    public boolean canHarvestPosition(BlockPos p) {
+        BlockState state = level.getBlockState(p);
+        if (state.getBlock() instanceof CropBlock cp && cp.isMaxAge(state))
+            return true;
+        if (state.getBlock() instanceof NetherWartBlock wp && state.getValue(NetherWartBlock.AGE) == NetherWartBlock.MAX_AGE)
+            return true;
+
+        if (state.getBlock().equals(Blocks.PUMPKIN) ||
+                state.getBlock().equals(Blocks.MELON) ||
+                state.getBlock().equals(Blocks.SUGAR_CANE) ||
+                state.getBlock().equals(Blocks.CACTUS)) {
+            return true;
+        }
+        return false;
+    }
+
+    public BlockPos getPositionToHarvest(BlockPos p) {
+        BlockState state = level.getBlockState(p);
+        if (state.getBlock() instanceof CropBlock cp && cp.isMaxAge(state))
+            return p;
+        if (state.getBlock() instanceof NetherWartBlock wp && state.getValue(NetherWartBlock.AGE) == NetherWartBlock.MAX_AGE)
+            return p;
+        if (state.getBlock().equals(Blocks.PUMPKIN))
+            return p;
+        if (state.getBlock().equals(Blocks.MELON))
+            return p;
+
+        if (state.getBlock().equals(Blocks.SUGAR_CANE) || state.getBlock().equals(Blocks.CACTUS)) {
+            int i = 0;
+            while (i < 10) {
+                if (canHarvestPosition(p.relative(Direction.UP,i+1))) i++;
+                else break;
+            }
+            if (i > 0) return p.relative(Direction.UP, i);
+        }
+        return null;
+    }
+    public boolean harvestPosition(BlockPos p) {
+        if (canHarvestPosition(p)) {
+            BlockState s = level.getBlockState(p);
+            LootParams.Builder b = new LootParams.Builder((ServerLevel) level)
+                    .withParameter(LootContextParams.TOOL,new ItemStack(Items.IRON_HOE))
+                    .withParameter(LootContextParams.ORIGIN,getBlockPos().getCenter());
+            List<ItemStack> drops = s.getDrops(b);
+
+            //this does not consider that inputsInventory only can hold valid seeds
+            // worst case some items get "voided" if mainInventory is full but inputsInventory is not
+            if(InventoryUtils.canInsertAllItems(List.of(inputsInventory,mainInventory),drops)) {
+                level.destroyBlock(p,false);
+                for (ItemStack i : drops) {
+                    if (isItemValidSeed(i)) {
+                        for (int j = 0; j < inputsInventory.getSlots(); j++) {
+                            i = inputsInventory.insertItem(j,i,false);
+                        }
+                    }
+                    for (int j = 0; j < mainInventory.getSlots(); j++) {
+                        i = mainInventory.insertItem(j,i,false);
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    public void scanStep(){
+        if (!allowedBlocksList.isEmpty()) {
+            if (currentBlockToScanIndex >= allowedBlocksList.size()) {
+                currentBlockToScanIndex = 0;
+            }
+            BlockPos nextPosToScan = allowedBlocksList.get(currentBlockToScanIndex);
+            currentBlockToScanIndex += 1;
+
+            if (canPlant(nextPosToScan)) {
+                positionsToPlant.add(nextPosToScan);
+            }
+            if(canBoneMeal(nextPosToScan)){
+                positionsToBoneMeal.add(nextPosToScan);
+            }
+            BlockPos nextHarvestPos = getPositionToHarvest(nextPosToScan);
+            if(nextHarvestPos != null){
+                positionsToHarvest.add(nextHarvestPos);
+            }
+        }
+    }
+
+    @Override
+    public void tick() {
+        super.tick();
+        if (!level.isClientSide) {
+
+            scanStep();
+
+            if (level.getGameTime() % 20 == 0) {
+                A:
+                {
+                    while (!positionsToPlant.isEmpty()) {
+                        BlockPos target = positionsToPlant.iterator().next();
+                        positionsToPlant.remove(target);
+                        if (tryPlantPosition(target)) {
+                            break A;
+                        }
+                    }
+                    while (!positionsToHarvest.isEmpty()) {
+                        BlockPos target = positionsToHarvest.iterator().next();
+                        positionsToHarvest.remove(target);
+                        if (harvestPosition(target)) {
+                            break A;
+                        }
+                    }
+                    while (!positionsToBoneMeal.isEmpty()) {
+                        BlockPos target = positionsToBoneMeal.iterator().next();
+                        positionsToBoneMeal.remove(target);
+                        if (canBoneMeal(target)) {
+                            for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
+                                ItemStack stackInSlot = specialResourcesInventory.getStackInSlot(i);
+                                if(stackInSlot.getItem().equals(Items.BONE_MEAL)){
+                                    stackInSlot.shrink(1);
+                                    BlockState s = level.getBlockState(target);
+                                    if (s.getBlock() instanceof BonemealableBlock bab) {
+                                        bab.performBonemeal((ServerLevel) level, level.random, target, s);
+                                    }
+                                    break A;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public void openMainGui() {
         if (level.isClientSide) {
             guiHandlerMain.openGui(180, 240, true);
         }
+    }
+
+    @Override
+    public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("inv1", mainInventory.serializeNBT(registries));
+        tag.put("inv2", inputsInventory.serializeNBT(registries));
+        tag.put("inv3", specialResourcesInventory.serializeNBT(registries));
+    }
+
+    @Override
+    public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        mainInventory.deserializeNBT(registries, tag.getCompound("inv1"));
+        inputsInventory.deserializeNBT(registries, tag.getCompound("inv2"));
+        specialResourcesInventory.deserializeNBT(registries, tag.getCompound("inv3"));
     }
 }

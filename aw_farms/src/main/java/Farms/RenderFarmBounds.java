@@ -25,6 +25,7 @@ public class RenderFarmBounds implements BlockEntityRenderer<EntityFarmBase> {
 
     @Override
     public void render(EntityFarmBase tile, float v, PoseStack stack, MultiBufferSource multiBufferSource, int i, int i1) {
+        if(tile.renderInfoTimer <= 0)return;
         // Create a VertexConsumer for LINES render type
         VertexConsumer vertexConsumer = multiBufferSource.getBuffer(RenderType.LIGHTNING);
 

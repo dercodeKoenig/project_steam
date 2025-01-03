@@ -23,12 +23,10 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParam;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import static Farms.Registry.ENTITY_CROP_FARM;
 
@@ -149,12 +147,14 @@ public class EntityCropFarm extends EntityFarmBase {
 
         //if a stemBlock is around (melon/pumpkin) do not plant next to it
         for (int z = -1; z <= 1; z++) {
-            if (level.getBlockState(p.offset(0, 0, z)).getBlock() instanceof StemBlock) {
+            if (level.getBlockState(p.offset(0, 0, z)).getBlock() instanceof StemBlock||
+                    level.getBlockState(p.offset(0, 0, z)).getBlock() instanceof AttachedStemBlock) {
                 return false;
             }
         }
         for (int x = -1; x <= 1; x++) {
-            if (level.getBlockState(p.offset(x, 0, 0)).getBlock() instanceof StemBlock) {
+            if (level.getBlockState(p.offset(x, 0, 0)).getBlock() instanceof StemBlock||
+                    level.getBlockState(p.offset(x, 0, 0)).getBlock() instanceof AttachedStemBlock) {
                 return false;
             }
         }
@@ -162,7 +162,6 @@ public class EntityCropFarm extends EntityFarmBase {
         for (int i = 0; i < inputsInventory.getSlots(); i++) {
             ItemStack s = inputsInventory.getStackInSlot(i);
             if (!s.isEmpty() && s.getItem() instanceof BlockItem bi) {
-                System.out.println(bi.getBlock());
                 if (bi.getBlock().defaultBlockState().canSurvive(level, p)) {
                     level.setBlock(p, bi.getBlock().defaultBlockState(), 3);
                     s.shrink(1);
@@ -190,7 +189,7 @@ public class EntityCropFarm extends EntityFarmBase {
         BlockState state = level.getBlockState(p);
         if (state.getBlock() instanceof CropBlock cp && cp.isMaxAge(state))
             return true;
-        if (state.getBlock() instanceof NetherWartBlock wp && state.getValue(NetherWartBlock.AGE) == NetherWartBlock.MAX_AGE)
+        if (state.getBlock() instanceof NetherWartBlock wp && state.getValue(NetherWartBlock.AGE) >= NetherWartBlock.MAX_AGE)
             return true;
 
         if (state.getBlock().equals(Blocks.PUMPKIN) ||
@@ -245,6 +244,7 @@ public class EntityCropFarm extends EntityFarmBase {
                         i = mainInventory.insertItem(j,i,false);
                     }
                 }
+                return true;
             }
         }
         return false;
@@ -258,6 +258,9 @@ public class EntityCropFarm extends EntityFarmBase {
             BlockPos nextPosToScan = allowedBlocksList.get(currentBlockToScanIndex);
             currentBlockToScanIndex += 1;
 
+            if(blackListAsBlockPos.contains(nextPosToScan))
+                return;
+
             if (canPlant(nextPosToScan)) {
                 positionsToPlant.add(nextPosToScan);
             }
@@ -265,6 +268,7 @@ public class EntityCropFarm extends EntityFarmBase {
                 positionsToBoneMeal.add(nextPosToScan);
             }
             BlockPos nextHarvestPos = getPositionToHarvest(nextPosToScan);
+            //System.out.println(nextHarvestPos+":"+nextPosToScan);
             if(nextHarvestPos != null){
                 positionsToHarvest.add(nextHarvestPos);
             }
@@ -296,8 +300,11 @@ public class EntityCropFarm extends EntityFarmBase {
                         }
                     }
                     while (!positionsToBoneMeal.isEmpty()) {
-                        BlockPos target = positionsToBoneMeal.iterator().next();
+                        List<BlockPos> shuffledList = new ArrayList<>(positionsToBoneMeal);
+                        Collections.shuffle(shuffledList);
+                        BlockPos target = shuffledList.getFirst();
                         positionsToBoneMeal.remove(target);
+
                         if (canBoneMeal(target)) {
                             for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
                                 ItemStack stackInSlot = specialResourcesInventory.getStackInSlot(i);

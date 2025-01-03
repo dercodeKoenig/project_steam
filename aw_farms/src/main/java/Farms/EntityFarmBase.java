@@ -50,6 +50,8 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
     public Set<BlockPos> allowedBlocks = new HashSet<>();
     public List<BlockPos> allowedBlocksList = new ArrayList<>();
 
+    public int renderInfoTimer = 0;
+
     public BlockPos pmin;
     public BlockPos pmax;
 
@@ -118,6 +120,11 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
         myMechanicalBlock.mechanicalTick();
         if (!level.isClientSide) {
             guiHandlerMain.serverTick();
+        }
+        if(level.isClientSide) {
+            if (renderInfoTimer > 0) {
+                renderInfoTimer--;
+            }
         }
     }
 
@@ -294,9 +301,6 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
                 int y = t.getInt("y");
                 blackList.add(new Vector2i(x, y));
             }
-            {
-
-            }
         }
         updateGuiModules();
         updateBoundsBp();
@@ -311,7 +315,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
     @Override
     public void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
-        readUpdateTag(tag);
+        readUpdateTag(tag.getCompound("data"));
     }
 
     @Override

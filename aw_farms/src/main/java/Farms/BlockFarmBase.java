@@ -45,7 +45,14 @@ public abstract class BlockFarmBase extends Block implements EntityBlock {
     public InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hitResult) {
         BlockEntity m = level.getBlockEntity(pos);
         if (m instanceof EntityFarmBase c) {
-            c.openMainGui();
+            if (!player.isShiftKeyDown()) {
+                c.openMainGui();
+                if (level.isClientSide) {
+                    c.renderInfoTimer = 20 * 120;
+                }
+            } else {
+                c.renderInfoTimer = 0;
+            }
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }

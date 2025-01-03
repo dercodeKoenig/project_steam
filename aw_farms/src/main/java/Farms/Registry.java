@@ -2,6 +2,9 @@ package Farms;
 
 import Farms.CropFarm.BlockCropFarm;
 import Farms.CropFarm.EntityCropFarm;
+import Farms.TreeFarm.BlockTreeFarm;
+import Farms.TreeFarm.EntityTreeFarm;
+import com.sun.source.doctree.EntityTree;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
@@ -31,12 +34,22 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityCropFarm::new, CROP_FARM.get()).build(null)
     );
 
+    public static final Supplier<Block> TREE_FARM = BLOCKS.register(
+            "tree_farm",
+            () -> new BlockTreeFarm()
+    );
+    public static final Supplier<BlockEntityType<EntityTreeFarm>> ENTITY_TREE_FARM = BLOCK_ENTITIES.register(
+            "entity_tree_farm",
+            () -> BlockEntityType.Builder.of(EntityTreeFarm::new, TREE_FARM.get()).build(null)
+    );
+
     public static final Supplier<CreativeModeTab> CREATIVETAB = CREATIVE_TAB.register(
             Farms.MODID,()->new CustomCreativeTab()
     );
 
     static {
-registerBlockItem("crop_farm", CROP_FARM);
+        registerBlockItem("crop_farm", CROP_FARM);
+        registerBlockItem("tree_farm", TREE_FARM);
     }
 
     public static void register(IEventBus modBus) {

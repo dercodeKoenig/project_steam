@@ -52,6 +52,7 @@ public static final String MODID = "aw_farms";
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ENTITY_CROP_FARM.get(), RenderFarmBounds::new);
+        event.registerBlockEntityRenderer(ENTITY_TREE_FARM.get(), RenderFarmBounds::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -61,6 +62,7 @@ public static final String MODID = "aw_farms";
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(CREATIVETAB.get())) {
             e.accept(CROP_FARM.get());
+            e.accept(TREE_FARM.get());
         }
     }
 

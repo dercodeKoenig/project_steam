@@ -26,6 +26,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
@@ -52,9 +54,29 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     public int renderInfoTimer = 0;
 
+    public boolean allowMechanicalPower = true;
+
     public BlockPos pmin;
     public BlockPos pmax;
 
+    public IEnergyStorage battery = new EnergyStorage(10000) {
+        @Override
+        public int receiveEnergy(int toReceive, boolean simulate) {
+            int r = super.receiveEnergy(toReceive, simulate);
+            if (!simulate) setChanged();
+            return r;
+        }
+
+        @Override
+        public int extractEnergy(int toExtract, boolean simulate) {
+            int r = super.extractEnergy(toExtract, simulate);
+            if (!simulate) setChanged();
+            return r;
+        }
+    };
+
+    public double currentResistance;
+    public double k = 10;
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -68,7 +90,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
         @Override
         public double getTorqueResistance(Direction direction) {
-            return 10;
+            return currentResistance;
         }
 
         @Override
@@ -120,8 +142,18 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
         myMechanicalBlock.mechanicalTick();
         if (!level.isClientSide) {
             guiHandlerMain.serverTick();
+            double maxWorkingResistance = Math.abs(this.k * this.myMechanicalBlock.internalVelocity);
+            int energyMaxProduced = (int) (Math.abs(this.myMechanicalBlock.internalVelocity) * maxWorkingResistance);
+            int freeEnergyCapacity = battery.getMaxEnergyStored() - battery.getEnergyStored();
+            int energyProduced = Math.min(freeEnergyCapacity, energyMaxProduced);
+            battery.receiveEnergy(energyProduced, false);
+            this.currentResistance = 0;
+            if (energyProduced > 0) {
+                double actualResistanceProduced = maxWorkingResistance * (double) energyProduced / (double) energyMaxProduced;
+                this.currentResistance += actualResistanceProduced;
+            }
         }
-        if(level.isClientSide) {
+        if (level.isClientSide) {
             if (renderInfoTimer > 0) {
                 renderInfoTimer--;
             }
@@ -253,7 +285,9 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     @Override
     public AbstractMechanicalBlock getMechanicalBlock(Direction direction) {
-        return myMechanicalBlock;
+        if(allowMechanicalPower)
+            return myMechanicalBlock;
+        else return null;
     }
 
     @Override

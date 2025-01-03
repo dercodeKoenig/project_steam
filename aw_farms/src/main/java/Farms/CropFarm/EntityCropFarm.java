@@ -32,6 +32,10 @@ import static Farms.Registry.ENTITY_CROP_FARM;
 
 public class EntityCropFarm extends EntityFarmBase {
 
+    int energy_plant = 3000;
+    int energy_harvest = 3000;
+    int energy_boneMeal = 2000;
+
     ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int i) {
@@ -275,49 +279,70 @@ public class EntityCropFarm extends EntityFarmBase {
         }
     }
 
+    public boolean tryPlant(){
+        while (!positionsToPlant.isEmpty()) {
+            BlockPos target = positionsToPlant.iterator().next();
+            positionsToPlant.remove(target);
+            if (tryPlantPosition(target)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    public boolean tryHarvest(){
+        while (!positionsToHarvest.isEmpty()) {
+            BlockPos target = positionsToHarvest.iterator().next();
+            positionsToHarvest.remove(target);
+            if (harvestPosition(target)) {
+                return  true;
+            }
+        }
+        return false;
+    }
+    public boolean tryBoneMeal(){
+        while (!positionsToBoneMeal.isEmpty()) {
+            List<BlockPos> shuffledList = new ArrayList<>(positionsToBoneMeal);
+            Collections.shuffle(shuffledList);
+            BlockPos target = shuffledList.getFirst();
+            positionsToBoneMeal.remove(target);
+
+            if (canBoneMeal(target)) {
+                for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
+                    ItemStack stackInSlot = specialResourcesInventory.getStackInSlot(i);
+                    if(stackInSlot.getItem().equals(Items.BONE_MEAL)){
+                        stackInSlot.shrink(1);
+                        BlockState s = level.getBlockState(target);
+                        if (s.getBlock() instanceof BonemealableBlock bab) {
+                            bab.performBonemeal((ServerLevel) level, level.random, target, s);
+                        }
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
     @Override
     public void tick() {
         super.tick();
         if (!level.isClientSide) {
-
             scanStep();
 
-            if (level.getGameTime() % 20 == 0) {
-                A:
-                {
-                    while (!positionsToPlant.isEmpty()) {
-                        BlockPos target = positionsToPlant.iterator().next();
-                        positionsToPlant.remove(target);
-                        if (tryPlantPosition(target)) {
-                            break A;
-                        }
+            a:
+            {
+                if (battery.getEnergyStored() > 5000) {
+                    if (tryPlant()) {
+                        battery.extractEnergy(energy_plant, false);
+                        break a;
                     }
-                    while (!positionsToHarvest.isEmpty()) {
-                        BlockPos target = positionsToHarvest.iterator().next();
-                        positionsToHarvest.remove(target);
-                        if (harvestPosition(target)) {
-                            break A;
-                        }
+                    if (tryHarvest()) {
+                        battery.extractEnergy(energy_harvest, false);
+                        break a;
                     }
-                    while (!positionsToBoneMeal.isEmpty()) {
-                        List<BlockPos> shuffledList = new ArrayList<>(positionsToBoneMeal);
-                        Collections.shuffle(shuffledList);
-                        BlockPos target = shuffledList.getFirst();
-                        positionsToBoneMeal.remove(target);
-
-                        if (canBoneMeal(target)) {
-                            for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
-                                ItemStack stackInSlot = specialResourcesInventory.getStackInSlot(i);
-                                if(stackInSlot.getItem().equals(Items.BONE_MEAL)){
-                                    stackInSlot.shrink(1);
-                                    BlockState s = level.getBlockState(target);
-                                    if (s.getBlock() instanceof BonemealableBlock bab) {
-                                        bab.performBonemeal((ServerLevel) level, level.random, target, s);
-                                    }
-                                    break A;
-                                }
-                            }
-                        }
+                    if (tryBoneMeal()) {
+                        battery.extractEnergy(energy_boneMeal, false);
+                        break a;
                     }
                 }
             }

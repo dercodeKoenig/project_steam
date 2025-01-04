@@ -1,4 +1,4 @@
-package Farms.FishFarm;
+package Farms.Quarry;
 
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
@@ -9,14 +9,15 @@ import Farms.EntityFarmBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.BlockItem;
+import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.PickaxeItem;
 import net.minecraft.world.item.enchantment.Enchantments;
-import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.storage.loot.BuiltInLootTables;
@@ -28,21 +29,27 @@ import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.*;
 
-import static Farms.Registry.ENTITY_CROP_FARM;
 import static Farms.Registry.ENTITY_FISH_FARM;
+import static Farms.Registry.ENTITY_QUARRY;
 
-public class EntityFishFarm extends EntityFarmBase {
+public class EntityQuarry extends EntityFarmBase {
 
-    public int energy_try_fish = 8000;
-    int depth = 5;
+    public int energy_try_quarry = 8000;
+    int yTarget = 0;
 
-    // a fish farm with this size would always find something during fish step
-    // a sfish farm half the size will find about half as often something
-    // set it larger to reduce findings
-    int maxVolumeForP = 64 * 64 * depth * 2;
-
-
-    public Set<BlockPos> waterBlocks = new HashSet<>();
+    public TreeSet<BlockPos> blocksToMine = new TreeSet<>(new Comparator<BlockPos>() {
+        @Override
+        // this stupid thing needs always a +/- value or it will just skip adding the entry
+        // so first compare y, and if equal compare the others to get some order
+        public int compare(BlockPos o1, BlockPos o2) {
+            int res = -(o1.getY() - o2.getY());
+            if(res == 0)
+                res = -(o1.getX() - o2.getX());
+            if(res == 0)
+                res = -(o1.getZ() - o2.getZ());
+            return res;
+        }
+    });
 
     public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
@@ -79,8 +86,10 @@ public class EntityFishFarm extends EntityFarmBase {
 
     int currentBlockToScanIndex = 0;
 
-    public EntityFishFarm(BlockPos pos, BlockState blockState) {
-        super(ENTITY_FISH_FARM.get(), pos, blockState);
+    public EntityQuarry(BlockPos pos, BlockState blockState) {
+        super(ENTITY_QUARRY.get(), pos, blockState);
+
+        maxSize = 64;
 
         for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 1, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
@@ -125,8 +134,8 @@ public class EntityFishFarm extends EntityFarmBase {
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         BlockPos p1 = getBlockPos().relative(facing, controllerOffsetH - 1);
         p1 = p1.relative(facing.getClockWise(), controllerOffsetW);
-        p1 = p1.relative(Direction.DOWN, depth);
-        BlockPos p2 = p1.relative(facing.getCounterClockWise(), w - 1).relative(facing.getOpposite(), h - 1).relative(Direction.UP, depth - 1);
+        p1 = new BlockPos(p1.getX(), yTarget, p1.getZ());
+        BlockPos p2 = p1.relative(facing.getCounterClockWise(), w - 1).relative(facing.getOpposite(), h - 1).relative(Direction.UP, getBlockPos().getY()-yTarget);
 
         pmin = new BlockPos(Math.min(p1.getX(), p2.getX()), Math.min(p1.getY(), p2.getY()), Math.min(p1.getZ(), p2.getZ()));
         pmax = new BlockPos(Math.max(p1.getX(), p2.getX()), Math.max(p1.getY(), p2.getY()), Math.max(p1.getZ(), p2.getZ()));
@@ -134,42 +143,44 @@ public class EntityFishFarm extends EntityFarmBase {
         // this farm does not use blacklist
         updateAllowedBlocksList();
     }
-
-
-    public boolean tryFish() {
-        for (int i = 0; i < specialResourcesInventory.getSlots(); i++) {
-            ItemStack tool = specialResourcesInventory.getStackInSlot(i);
-            if (tool.getItem().equals(Items.FISHING_ROD)) {
-                // if small area it will not always catch something
-                double myVolume = depth * w * h;
-                double r = level.random.nextFloat();
-                if (r > myVolume / maxVolumeForP) {
-                    return true;
-                } else {
-                    LootParams lootparams = new LootParams.Builder((ServerLevel) this.level)
-                            .withParameter(LootContextParams.ORIGIN, getBlockPos().getCenter())
-                            .withParameter(LootContextParams.TOOL, tool)
-                            .withLuck(tool.getEnchantmentLevel(level.registryAccess().holderOrThrow(Enchantments.LUCK_OF_THE_SEA)))
-                            .create(LootContextParamSets.FISHING);
-
-                    LootTable loottable = level.getServer().reloadableRegistries().getLootTable(BuiltInLootTables.FISHING);
-                    List<ItemStack> list = loottable.getRandomItems(lootparams);
-
-                    if (InventoryUtils.canInsertAllItems(List.of(mainInventory), list)) {
-                        tool.setDamageValue(tool.getDamageValue() + 1);
-                        if (tool.getDamageValue() >= tool.getMaxDamage()) {
-                            tool.shrink(1);
-                        }
-
-                        for (ItemStack itemStack : list) {
-                        for (int j = 0; j < mainInventory.getSlots(); j++) {
-                                itemStack = mainInventory.insertItem(j, itemStack, false);
-                            }
-                        }
-                        setChanged();
-                        return true;
+    @Override
+    public void updateAllowedBlocksList() {
+        // compute allowed blockpos
+        allowedBlocks.clear();
+        allowedBlocksList.clear();
+        for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
+            for (int x = pmin.getX(); x <= pmax.getX(); x++) {
+                for (int y = pmin.getY(); y <= pmax.getY(); y++) {
+                    BlockPos target = new BlockPos(x, y, z);
+                    if (!blackListAsBlockPos.contains(target)) {
+                        allowedBlocks.add(target);
+                        allowedBlocksList.add(target);
                     }
                 }
+            }
+        }
+    }
+
+    public boolean tryQuarry() {
+        if (!blocksToMine.isEmpty()) {
+            BlockPos target = blocksToMine.getFirst();
+
+            BlockState s = level.getBlockState(target);
+
+            LootParams.Builder b = new LootParams.Builder((ServerLevel) level)
+                    .withParameter(LootContextParams.TOOL, new ItemStack(Items.DIAMOND_PICKAXE))
+                    .withParameter(LootContextParams.ORIGIN, getBlockPos().getCenter());
+            List<ItemStack> drops = s.getDrops(b);
+
+            if (InventoryUtils.canInsertAllItems(List.of(mainInventory), drops)) {
+                level.destroyBlock(target, false);
+                for (ItemStack i : drops) {
+                    for (int j = 0; j < mainInventory.getSlots(); j++) {
+                        i = mainInventory.insertItem(j, i, false);
+                    }
+                }
+                blocksToMine.remove(target);
+                return true;
             }
         }
         return false;
@@ -187,10 +198,8 @@ public class EntityFishFarm extends EntityFarmBase {
                 return;
 
             BlockState s = level.getBlockState(nextPosToScan);
-            if (s.getBlock().equals(Blocks.WATER)) {
-                waterBlocks.add(nextPosToScan);
-            } else {
-                waterBlocks.remove(nextPosToScan);
+            if (!s.isAir() && s.getFluidState().isEmpty()) {
+                blocksToMine.add(nextPosToScan);
             }
         }
     }
@@ -201,9 +210,9 @@ public class EntityFishFarm extends EntityFarmBase {
         if (!level.isClientSide) {
             scanStep();
 
-            if (battery.getEnergyStored() > energy_try_fish) {
-                if (tryFish()) {
-                    battery.extractEnergy(energy_try_fish, false);
+            if (battery.getEnergyStored() > energy_try_quarry) {
+                if (tryQuarry()) {
+                    battery.extractEnergy(energy_try_quarry, false);
                 }
             }
         }

@@ -4,6 +4,8 @@ import Farms.CropFarm.BlockCropFarm;
 import Farms.CropFarm.EntityCropFarm;
 import Farms.FishFarm.BlockFishFarm;
 import Farms.FishFarm.EntityFishFarm;
+import Farms.Quarry.BlockQuarry;
+import Farms.Quarry.EntityQuarry;
 import Farms.TreeFarm.BlockTreeFarm;
 import Farms.TreeFarm.EntityTreeFarm;
 import com.sun.source.doctree.EntityTree;
@@ -54,6 +56,15 @@ public class Registry {
             () -> BlockEntityType.Builder.of(EntityFishFarm::new, FISH_FARM.get()).build(null)
     );
 
+    public static final Supplier<Block> QUARRY = BLOCKS.register(
+            "quarry",
+            () -> new BlockQuarry()
+    );
+    public static final Supplier<BlockEntityType<EntityQuarry>> ENTITY_QUARRY = BLOCK_ENTITIES.register(
+            "entity_quarry",
+            () -> BlockEntityType.Builder.of(EntityQuarry::new, QUARRY.get()).build(null)
+    );
+
     public static final Supplier<CreativeModeTab> CREATIVETAB = CREATIVE_TAB.register(
             Farms.MODID,()->new CustomCreativeTab()
     );
@@ -62,6 +73,7 @@ public class Registry {
         registerBlockItem("crop_farm", CROP_FARM);
         registerBlockItem("tree_farm", TREE_FARM);
         registerBlockItem("fish_farm", FISH_FARM);
+        registerBlockItem("quarry", QUARRY);
     }
 
     public static void register(IEventBus modBus) {

@@ -56,6 +56,7 @@ public static final String MODID = "aw_farms";
         event.registerBlockEntityRenderer(ENTITY_CROP_FARM.get(), RenderFarmBounds::new);
         event.registerBlockEntityRenderer(ENTITY_TREE_FARM.get(), RenderFarmBounds::new);
         event.registerBlockEntityRenderer(ENTITY_FISH_FARM.get(), RenderFarmBounds::new);
+        event.registerBlockEntityRenderer(ENTITY_QUARRY.get(), RenderFarmBounds::new);
     }
 
     public void registerNetworkStuff(RegisterPayloadHandlersEvent event) {
@@ -67,6 +68,7 @@ public static final String MODID = "aw_farms";
             e.accept(CROP_FARM.get());
             e.accept(TREE_FARM.get());
             e.accept(FISH_FARM.get());
+            e.accept(QUARRY.get());
         }
     }
 
@@ -88,6 +90,11 @@ public static final String MODID = "aw_farms";
         });
 
         e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_FISH_FARM.get(), (x, y) -> {
+            if (y == Direction.DOWN)return x.mainInventory;
+            else return x.specialResourcesInventory;
+        });
+
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_QUARRY.get(), (x, y) -> {
             if (y == Direction.DOWN)return x.mainInventory;
             else return x.specialResourcesInventory;
         });

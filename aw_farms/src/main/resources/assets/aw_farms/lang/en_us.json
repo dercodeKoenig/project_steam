@@ -6,5 +6,8 @@
   "item.aw_farms.tree_farm": "Tree Farm",
 
   "block.aw_farms.crop_farm": "Crop Farm",
-  "item.aw_farms.crop_farm": "Crop Farm"
+  "item.aw_farms.crop_farm": "Crop Farm",
+
+  "block.aw_farms.quarry": "Quarry",
+  "item.aw_farms.quarry": "Quarry"
 }

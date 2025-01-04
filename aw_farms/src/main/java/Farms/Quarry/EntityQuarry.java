@@ -44,9 +44,9 @@ public class EntityQuarry extends EntityFarmBase {
         public int compare(BlockPos o1, BlockPos o2) {
             int res = -(o1.getY() - o2.getY());
             if(res == 0)
-                res = -(o1.getX() - o2.getX());
+                res = (o1.getX() - o2.getX());
             if(res == 0)
-                res = -(o1.getZ() - o2.getZ());
+                res = (o1.getZ() - o2.getZ());
             return res;
         }
     });
@@ -164,9 +164,7 @@ public class EntityQuarry extends EntityFarmBase {
     public boolean tryQuarry() {
         if (!blocksToMine.isEmpty()) {
             BlockPos target = blocksToMine.getFirst();
-
             BlockState s = level.getBlockState(target);
-
             LootParams.Builder b = new LootParams.Builder((ServerLevel) level)
                     .withParameter(LootContextParams.TOOL, new ItemStack(Items.DIAMOND_PICKAXE))
                     .withParameter(LootContextParams.ORIGIN, getBlockPos().getCenter());

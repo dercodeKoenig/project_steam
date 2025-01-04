@@ -33,6 +33,8 @@ public class EntityTreeFarm extends EntityFarmBase {
     public int energy_harvest_logs = 9000;
     public int energy_boneMeal = 2000;
 
+    double maxEnergy = 0;
+
     public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int i) {
@@ -75,6 +77,11 @@ public class EntityTreeFarm extends EntityFarmBase {
 
     public EntityTreeFarm(BlockPos pos, BlockState blockState) {
         super(ENTITY_TREE_FARM.get(), pos, blockState);
+
+        maxEnergy = Math.max(maxEnergy,energy_plant);
+        maxEnergy = Math.max(maxEnergy,energy_boneMeal);
+        maxEnergy = Math.max(maxEnergy,energy_harvest_leaves);
+        maxEnergy = Math.max(maxEnergy,energy_harvest_logs);
 
         for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 1, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
@@ -120,9 +127,9 @@ public class EntityTreeFarm extends EntityFarmBase {
             if (itemBlock instanceof SaplingBlock) {
                 return true;
             }
-            if (itemBlock instanceof ChorusPlantBlock) {
-                return true;
-            }
+            //if (itemBlock instanceof ChorusPlantBlock) {
+            //    return true;
+            //}
         }
         return false;
     }
@@ -316,7 +323,7 @@ public class EntityTreeFarm extends EntityFarmBase {
 
             a:
             {
-                if (battery.getEnergyStored() > 5000) {
+                if (battery.getEnergyStored() > maxEnergy) {
                     if (tryPlant()) {
                         battery.extractEnergy(energy_plant, false);
                         break a;

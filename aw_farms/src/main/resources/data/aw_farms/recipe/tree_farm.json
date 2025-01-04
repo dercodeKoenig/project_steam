@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "GWG",
+    " C "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:iron_axe"
+    },
+    "G": {
+      "item": "projectsteam:wooden_gear"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
+  },
+  "result": {
+    "id": "aw_farms:tree_farm",
+    "count": 1
+  }
+}

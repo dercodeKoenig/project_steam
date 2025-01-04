@@ -163,15 +163,10 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
         ((EntityFarmBase) t).tick();
     }
 
-    public void updateBoundsBp() {
+    public void updateBlackList(){
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         BlockPos p1 = getBlockPos().relative(facing,controllerOffsetH-1);
         p1 = p1.relative(facing.getClockWise(), controllerOffsetW);
-        BlockPos p2 = p1.relative(facing.getCounterClockWise(), w - 1).relative(facing.getOpposite(), h - 1);
-
-        pmin = new BlockPos(Math.min(p1.getX(), p2.getX()), Math.min(p1.getY(), p2.getY()), Math.min(p1.getZ(), p2.getZ()));
-        pmax = new BlockPos(Math.max(p1.getX(), p2.getX()), Math.max(p1.getY(), p2.getY()), Math.max(p1.getZ(), p2.getZ()));
-
 
         // remove blacklist entries outside bounds
         boolean sth = true;
@@ -192,7 +187,9 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             BlockPos blocked = p1.relative(facing.getCounterClockWise(), i.x).relative(facing.getOpposite(), i.y);
             blackListAsBlockPos.add(blocked);
         }
+    }
 
+    public void updateAllowedBlocksList(){
         // compute allowed blockpos
         allowedBlocks.clear();
         for (int y = pmin.getY(); y <= pmax.getY(); y++) {
@@ -206,6 +203,19 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             }
         }
         allowedBlocksList = allowedBlocks.stream().toList();
+    }
+
+    public void updateBoundsBp() {
+        Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        BlockPos p1 = getBlockPos().relative(facing,controllerOffsetH-1);
+        p1 = p1.relative(facing.getClockWise(), controllerOffsetW);
+        BlockPos p2 = p1.relative(facing.getCounterClockWise(), w - 1).relative(facing.getOpposite(), h - 1);
+
+        pmin = new BlockPos(Math.min(p1.getX(), p2.getX()), Math.min(p1.getY(), p2.getY()), Math.min(p1.getZ(), p2.getZ()));
+        pmax = new BlockPos(Math.max(p1.getX(), p2.getX()), Math.max(p1.getY(), p2.getY()), Math.max(p1.getZ(), p2.getZ()));
+
+        updateBlackList();
+        updateAllowedBlocksList();
     }
 
     public void updateGuiModules() {
@@ -318,22 +328,29 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
     }
 
     public void readUpdateTag(CompoundTag compoundTag) {
+        boolean needsBoundsUpdate = false;
         if (compoundTag.contains("controllerOffsetW")) {
             controllerOffsetW = compoundTag.getInt("controllerOffsetW");
+            needsBoundsUpdate = true;
         }
         if (compoundTag.contains("controllerOffsetH")) {
             controllerOffsetH = compoundTag.getInt("controllerOffsetH");
+            needsBoundsUpdate = true;
         }
         if (compoundTag.contains("maxSize")) {
             maxSize = compoundTag.getInt("maxSize");
+            needsBoundsUpdate = true;
         }
         if (compoundTag.contains("w")) {
             w = compoundTag.getInt("w");
+            needsBoundsUpdate = true;
         }
         if (compoundTag.contains("h")) {
             h = compoundTag.getInt("h");
+            needsBoundsUpdate = true;
         }
         if (compoundTag.contains("blacklist")) {
+            needsBoundsUpdate = true;
             ListTag blackListTag = compoundTag.getList("blacklist", Tag.TAG_COMPOUND);
             blackList.clear();
             for (int i = 0; i < blackListTag.size(); i++) {
@@ -343,8 +360,10 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
                 blackList.add(new Vector2i(x, y));
             }
         }
-        updateGuiModules();
-        updateBoundsBp();
+        if(needsBoundsUpdate) {
+            updateGuiModules();
+            updateBoundsBp();
+        }
     }
 
     @Override

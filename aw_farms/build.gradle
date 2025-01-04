@@ -119,7 +119,7 @@ dependencies {
     //implementation(files('libs/arlib-1.0.5-deobf.jar'))
     implementation fileTree(dir: '../libs', include: ['*.jar'])
 
-    //implementation "curse.maven:jei-238222:5846880"
+    implementation "curse.maven:jei-238222:5846880"
 
     // Example optional mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime

@@ -36,6 +36,8 @@ public class EntityCropFarm extends EntityFarmBase {
     public int energy_harvest = 3000;
     public     int energy_boneMeal = 2000;
 
+    double maxEnergy = 0;
+
     public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int i) {
@@ -77,6 +79,10 @@ public class EntityCropFarm extends EntityFarmBase {
 
     public EntityCropFarm(BlockPos pos, BlockState blockState) {
         super(ENTITY_CROP_FARM.get(), pos, blockState);
+
+        maxEnergy = Math.max(maxEnergy,energy_boneMeal);
+        maxEnergy = Math.max(maxEnergy,energy_plant);
+        maxEnergy = Math.max(maxEnergy,energy_harvest);
 
         for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 1, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
@@ -333,7 +339,7 @@ public class EntityCropFarm extends EntityFarmBase {
 
             a:
             {
-                if (battery.getEnergyStored() > 5000) {
+                if (battery.getEnergyStored() > maxEnergy) {
                     if (tryPlant()) {
                         battery.extractEnergy(energy_plant, false);
                         break a;

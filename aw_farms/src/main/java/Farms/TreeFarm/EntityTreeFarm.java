@@ -141,6 +141,7 @@ public class EntityTreeFarm extends EntityFarmBase {
                 if (bi.getBlock().defaultBlockState().canSurvive(level, p)) {
                     level.setBlock(p, bi.getBlock().defaultBlockState(), 3);
                     s.shrink(1);
+                    setChanged();
                     return true;
                 }
             }
@@ -173,6 +174,10 @@ public class EntityTreeFarm extends EntityFarmBase {
                     if(stackInSlot.getItem().equals(Items.SHEARS)){
                         tool = stackInSlot;
                         tool.setDamageValue(tool.getDamageValue()+1);
+                        if(tool.getDamageValue()>=tool.getMaxDamage()){
+                            stackInSlot.shrink(1);
+                        }
+                        setChanged();
                         break;
                     }
                 }
@@ -294,6 +299,7 @@ public class EntityTreeFarm extends EntityFarmBase {
                         if (s.getBlock() instanceof BonemealableBlock bab) {
                             bab.performBonemeal((ServerLevel) level, level.random, target, s);
                         }
+                        setChanged();
                         return true;
                     }
                 }

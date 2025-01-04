@@ -7,7 +7,6 @@ import ARLib.gui.modules.guiModuleDefaultButton;
 import ARLib.gui.modules.guiModuleImage;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.Blocks.Mechanics.Axle.EntityAxleBase;
 import ProjectSteam.Core.AbstractMechanicalBlock;
 import ProjectSteam.Core.IMechanicalBlockProvider;
 import net.minecraft.client.Minecraft;
@@ -20,7 +19,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -36,8 +34,6 @@ import org.joml.Vector2i;
 
 import java.util.*;
 
-import static Farms.Registry.ENTITY_CROP_FARM;
-
 public abstract class EntityFarmBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
 
     public GuiHandlerBlockEntity guiHandlerMain;
@@ -45,7 +41,8 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     public int w = 5;
     public int h = 5;
-    public int controllerOffset = 0;
+    public int controllerOffsetW = 0;
+    public int controllerOffsetH = 0;
     public int maxSize = 16;
 
     public Set<Vector2i> blackList = new HashSet<>();
@@ -168,8 +165,8 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     public void updateBoundsBp() {
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-        BlockPos p1 = getBlockPos().relative(facing.getOpposite());
-        p1 = p1.relative(facing.getClockWise(), controllerOffset);
+        BlockPos p1 = getBlockPos().relative(facing,controllerOffsetH-1);
+        p1 = p1.relative(facing.getClockWise(), controllerOffsetW);
         BlockPos p2 = p1.relative(facing.getCounterClockWise(), w - 1).relative(facing.getOpposite(), h - 1);
 
         pmin = new BlockPos(Math.min(p1.getX(), p2.getX()), Math.min(p1.getY(), p2.getY()), Math.min(p1.getZ(), p2.getZ()));
@@ -256,26 +253,30 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             }
         }
 
-        int controllerX = baseOffsetX + controllerOffset * pxPerBlock;
-        int controllerY = baseOffsetY + h * pxPerBlock;
+        int controllerX = baseOffsetX + controllerOffsetW * pxPerBlock;
+        int controllerY = baseOffsetY + h * pxPerBlock-controllerOffsetH*pxPerBlock;
         guiModuleImage controllerPos = new guiModuleImage(guiHandlerBounds, controllerX, controllerY, pxPerBlock, pxPerBlock, blue, 1, 1);
         guiHandlerBounds.getModules().add(controllerPos);
 
-
-        guiModuleDefaultButton hinc = new guiModuleDefaultButton(101, "h+", guiHandlerBounds, 10, 10, 20, 15);
-        guiModuleDefaultButton hdec = new guiModuleDefaultButton(102, "h-", guiHandlerBounds, 40, 10, 20, 15);
+        guiModuleDefaultButton hinc = new guiModuleDefaultButton(101, "h+", guiHandlerBounds, 5, 10, 15, 15);
+        guiModuleDefaultButton hdec = new guiModuleDefaultButton(102, "h-", guiHandlerBounds, 30, 10, 15, 15);
         guiHandlerBounds.getModules().add(hinc);
         guiHandlerBounds.getModules().add(hdec);
 
-        guiModuleDefaultButton winc = new guiModuleDefaultButton(103, "w+", guiHandlerBounds, 70, 10, 20, 15);
-        guiModuleDefaultButton wdec = new guiModuleDefaultButton(104, "w-", guiHandlerBounds, 100, 10, 20, 15);
+        guiModuleDefaultButton winc = new guiModuleDefaultButton(103, "w+", guiHandlerBounds, 55, 10, 15, 15);
+        guiModuleDefaultButton wdec = new guiModuleDefaultButton(104, "w-", guiHandlerBounds, 80, 10, 15, 15);
         guiHandlerBounds.getModules().add(winc);
         guiHandlerBounds.getModules().add(wdec);
 
-        guiModuleDefaultButton oinc = new guiModuleDefaultButton(105, "o+", guiHandlerBounds, 130, 10, 20, 15);
-        guiModuleDefaultButton odec = new guiModuleDefaultButton(106, "o-", guiHandlerBounds, 160, 10, 20, 15);
-        guiHandlerBounds.getModules().add(oinc);
-        guiHandlerBounds.getModules().add(odec);
+        guiModuleDefaultButton xinc = new guiModuleDefaultButton(105, "x+", guiHandlerBounds, 105, 10, 15, 15);
+        guiModuleDefaultButton xdec = new guiModuleDefaultButton(106, "x-", guiHandlerBounds, 130, 10, 15, 15);
+        guiHandlerBounds.getModules().add(xinc);
+        guiHandlerBounds.getModules().add(xdec);
+
+        guiModuleDefaultButton yinc = new guiModuleDefaultButton(107, "y+", guiHandlerBounds, 155, 10, 15, 15);
+        guiModuleDefaultButton ydec = new guiModuleDefaultButton(108, "y-", guiHandlerBounds, 180, 10, 15, 15);
+        guiHandlerBounds.getModules().add(yinc);
+        guiHandlerBounds.getModules().add(ydec);
 
 
         if (guiHandlerBounds.screen instanceof ModularScreen ms) {
@@ -300,7 +301,8 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
 
     public CompoundTag getUpdateTag() {
         CompoundTag t = new CompoundTag();
-        t.putInt("controllerOffset", controllerOffset);
+        t.putInt("controllerOffsetW", controllerOffsetW);
+        t.putInt("controllerOffsetH", controllerOffsetH);
         t.putInt("maxSize", maxSize);
         t.putInt("w", w);
         t.putInt("h", h);
@@ -316,8 +318,11 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
     }
 
     public void readUpdateTag(CompoundTag compoundTag) {
-        if (compoundTag.contains("controllerOffset")) {
-            controllerOffset = compoundTag.getInt("controllerOffset");
+        if (compoundTag.contains("controllerOffsetW")) {
+            controllerOffsetW = compoundTag.getInt("controllerOffsetW");
+        }
+        if (compoundTag.contains("controllerOffsetH")) {
+            controllerOffsetH = compoundTag.getInt("controllerOffsetH");
         }
         if (compoundTag.contains("maxSize")) {
             maxSize = compoundTag.getInt("maxSize");
@@ -400,15 +405,26 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
                 //dec w
                 if (w > 1) w--;
             }
+
             if (button == 105) {
-                //inc controllerOffset
-                if (controllerOffset < maxSize) controllerOffset++;
+                //inc controllerOffsetW
+                if (controllerOffsetW < maxSize) controllerOffsetW++;
             }
             if (button == 106) {
-                //dec controllerOffset
-                if (controllerOffset > 0) controllerOffset--;
+                //dec controllerOffsetW
+                if (controllerOffsetW > 0) controllerOffsetW--;
             }
-            controllerOffset = Math.min(w - 1, controllerOffset);
+            controllerOffsetW = Math.min(w - 1, controllerOffsetW);
+
+            if (button == 107) {
+                //inc controllerOffsetH
+                if (controllerOffsetH < maxSize) controllerOffsetH++;
+            }
+            if (button == 108) {
+                //dec controllerOffsetH
+                if (controllerOffsetH > 0) controllerOffsetH--;
+            }
+            controllerOffsetH = Math.min(h, controllerOffsetH);
 
             updateBoundsBp();
             PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));

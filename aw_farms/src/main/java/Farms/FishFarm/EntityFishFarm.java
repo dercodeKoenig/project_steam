@@ -39,7 +39,7 @@ public class EntityFishFarm extends EntityFarmBase {
     // a fish farm with this size would always find something during fish step
     // a sfish farm half the size will find about half as often something
     // set it larger to reduce findings
-    int maxVolumeForP = 64 * 64 * depth * 3;
+    int maxVolumeForP = 64 * 64 * depth * 2;
 
 
     public Set<BlockPos> waterBlocks = new HashSet<>();

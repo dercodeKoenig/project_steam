@@ -133,6 +133,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, t));
         } else {
             updateBoundsBp();
+            myMechanicalBlock.mechanicalOnload();
         }
     }
 

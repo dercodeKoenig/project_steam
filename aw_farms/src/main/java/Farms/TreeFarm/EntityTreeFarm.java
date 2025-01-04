@@ -28,19 +28,19 @@ import static Farms.Registry.ENTITY_TREE_FARM;
 
 public class EntityTreeFarm extends EntityFarmBase {
 
-    int energy_plant = 4000;
-    int energy_harvest_leaves = 2000;
-    int energy_harvest_logs = 9000;
-    int energy_boneMeal = 2000;
+    public int energy_plant = 4000;
+    public int energy_harvest_leaves = 2000;
+    public int energy_harvest_logs = 9000;
+    public int energy_boneMeal = 2000;
 
-    ItemStackHandler mainInventory = new ItemStackHandler(18) {
+    public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int i) {
             setChanged();
         }
     };
 
-    ItemStackHandler inputsInventory = new ItemStackHandler(6) {
+    public ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return isItemValidSapling(stack);
@@ -52,7 +52,7 @@ public class EntityTreeFarm extends EntityFarmBase {
         }
     };
 
-    ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
+    public ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (stack.getItem().equals(Items.BONE_MEAL) || stack.getItem().equals(Items.SHEARS))

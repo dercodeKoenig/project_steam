@@ -20,7 +20,7 @@ public class Config {
 
     public double stirlingGenerator_maxForceMultiplier = 100;
     public double stirlingGenerator_k = 10;
-    public double stirlingGenerator_burnTimeMultiplier = 5;
+    public double stirlingGenerator_burnTimeMultiplier = 1;
     public double stirlingGenerator_friction = 1;
     public double stirlingGenerator_inertia = 20;
     public double stirlingGenerator_maxStress = 100000;

@@ -1,10 +1,12 @@
 package Farms;
 
+import net.minecraft.core.Direction;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLLoadCompleteEvent;
+import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterShadersEvent;
@@ -71,7 +73,17 @@ public static final String MODID = "aw_farms";
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {
-        //e.registerBlockEntity(Capabilities.EnergyStorage.BLOCK, ENTITY_MOTOR.get(), (x, y) -> (x));
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_CROP_FARM.get(), (x, y) -> {
+            if (y == Direction.DOWN)return x.mainInventory;
+            if (y == Direction.UP)return x.inputsInventory;
+            else return x.specialResourcesInventory;
+        });
+
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_TREE_FARM.get(), (x, y) -> {
+            if (y == Direction.DOWN)return x.mainInventory;
+            if (y == Direction.UP)return x.inputsInventory;
+            else return x.specialResourcesInventory;
+        });
     }
 
     private void loadComplete(FMLLoadCompleteEvent e) {

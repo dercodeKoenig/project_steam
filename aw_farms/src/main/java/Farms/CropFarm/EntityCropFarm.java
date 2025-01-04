@@ -32,18 +32,18 @@ import static Farms.Registry.ENTITY_CROP_FARM;
 
 public class EntityCropFarm extends EntityFarmBase {
 
-    int energy_plant = 3000;
-    int energy_harvest = 3000;
-    int energy_boneMeal = 2000;
+    public int energy_plant = 3000;
+    public int energy_harvest = 3000;
+    public     int energy_boneMeal = 2000;
 
-    ItemStackHandler mainInventory = new ItemStackHandler(18) {
+    public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int i) {
             setChanged();
         }
     };
 
-    ItemStackHandler inputsInventory = new ItemStackHandler(6) {
+    public ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             return isItemValidSeed(stack);
@@ -55,7 +55,7 @@ public class EntityCropFarm extends EntityFarmBase {
         }
     };
 
-    ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
+    public ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
             if (stack.getItem().equals(Items.BONE_MEAL))

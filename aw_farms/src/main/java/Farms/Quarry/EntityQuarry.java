@@ -1,15 +1,15 @@
 package Farms.Quarry;
 
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.gui.modules.guiModuleText;
+import ARLib.gui.ModularScreen;
+import ARLib.gui.modules.*;
+import ARLib.network.PacketBlockEntity;
 import ARLib.utils.InventoryUtils;
 import Farms.EntityFarmBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +26,8 @@ import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParamSets;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.joml.Vector2i;
 
 import java.util.*;
 
@@ -36,6 +38,8 @@ public class EntityQuarry extends EntityFarmBase {
 
     public int energy_try_quarry = 8000;
     int yTarget = 0;
+    Set<BlockPos> structureBlocks = new HashSet<>();
+    int structureW = 2;
 
     public TreeSet<BlockPos> blocksToMine = new TreeSet<>(new Comparator<BlockPos>() {
         @Override
@@ -89,7 +93,10 @@ public class EntityQuarry extends EntityFarmBase {
     public EntityQuarry(BlockPos pos, BlockState blockState) {
         super(ENTITY_QUARRY.get(), pos, blockState);
 
-        maxSize = 64;
+        maxSize = 32;
+        minSize = 16;
+        w = 16;
+        h = 16;
 
         for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 210, 500, 0, 1, guiHandlerMain)) {
             guiHandlerMain.getModules().add(m);
@@ -130,9 +137,15 @@ public class EntityQuarry extends EntityFarmBase {
     }
 
     @Override
+    public void onLoad(){
+        super.onLoad();
+        controllerOffsetH = 0; // this does not use controller offset h
+    }
+
+    @Override
     public void updateBoundsBp() {
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
-        BlockPos p1 = getBlockPos().relative(facing, controllerOffsetH - 1);
+        BlockPos p1 = getBlockPos().relative(facing, - 1);
         p1 = p1.relative(facing.getClockWise(), controllerOffsetW);
         p1 = new BlockPos(p1.getX(), yTarget, p1.getZ());
         BlockPos p2 = p1.relative(facing.getCounterClockWise(), w - 1).relative(facing.getOpposite(), h - 1).relative(Direction.UP, getBlockPos().getY()-yTarget);
@@ -143,21 +156,157 @@ public class EntityQuarry extends EntityFarmBase {
         // this farm does not use blacklist
         updateAllowedBlocksList();
     }
+
+    public boolean isInBounds(BlockPos p){
+        return  p.getX()<=pmax.getX()&&
+                p.getY()<=pmax.getY()&&
+                p.getZ()<=pmax.getZ()&&
+                p.getX()>=pmin.getX()&&
+                p.getY()>=pmin.getY()&&
+                p.getZ()>=pmin.getZ();
+    }
     @Override
     public void updateAllowedBlocksList() {
+
+        blocksToMine.clear();
+
+        structureBlocks.clear();
+        Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
+        boolean useCounterClockWise = controllerOffsetW < w/2;
+        Direction currentDirection;
+        if(useCounterClockWise)
+            currentDirection= facing.getCounterClockWise();
+        else
+            currentDirection= facing.getClockWise();
+        BlockPos p1 = getBlockPos().relative(facing, - 1).relative(Direction.DOWN);
+        // fill all blocks up to the end with structure blocks
+        BlockPos next = p1;
+        BlockPos next2 = null;
+        while (true){
+            if(isInBounds(next)){
+                for (int i = 0; i < structureW; i++) {
+                    BlockPos p;
+                    if(useCounterClockWise)
+                        p = next.relative(currentDirection.getCounterClockWise(),i);
+                    else
+                        p = next.relative(currentDirection.getClockWise(),i);
+                    for (int j = yTarget; j <= p.getY(); j++) {
+                        structureBlocks.add(new BlockPos(p.getX(),j,p.getZ()));
+                    }
+                }
+            }else{
+                break;
+            }
+            next2 = next;
+            next = next.relative(currentDirection.getOpposite());
+        }
+        boolean wentDown = false;
+        while(true){
+            next2 = next2.relative(currentDirection);
+            if(!isInBounds(next2.relative(currentDirection,structureW))){
+                for (int o = 0; o < structureW; o++) {
+                    for (int i = 0; i < structureW; i++) {
+                        BlockPos p;
+                        if(useCounterClockWise)
+                            p= next2.relative(currentDirection.getCounterClockWise(), i).relative(currentDirection,o);
+                        else
+                            p= next2.relative(currentDirection.getClockWise(), i).relative(currentDirection,o);
+                        for (int j = yTarget; j <= p.getY(); j++) {
+                            structureBlocks.add(new BlockPos(p.getX(), j, p.getZ()));
+                        }
+                    }
+                }
+                next2 = next2.relative(currentDirection,structureW-1);
+                if(useCounterClockWise)
+                    currentDirection = currentDirection.getCounterClockWise();
+                else
+                    currentDirection = currentDirection.getClockWise();
+                if(!wentDown)
+                    break;
+                wentDown = false;
+            }
+            else if(!structureBlocks.contains(next2)){
+                for (int i = 0; i < structureW; i++) {
+                    BlockPos p;
+                    if(useCounterClockWise)
+                        p = next2.relative(currentDirection.getCounterClockWise(),i);
+                    else
+                        p = next2.relative(currentDirection.getClockWise(),i);
+                    for (int j = yTarget; j <= next2.getY(); j++) {
+                        structureBlocks.add(new BlockPos(p.getX(),j,p.getZ()));
+                    }
+                }
+                next2 = next2.relative(Direction.DOWN);
+                if(next2.getY() == yTarget)
+                    break;
+                wentDown = true;
+            }
+        }
+
+int ymin = next2.getY()+1;
+
         // compute allowed blockpos
         allowedBlocks.clear();
         allowedBlocksList.clear();
         for (int z = pmin.getZ(); z <= pmax.getZ(); z++) {
             for (int x = pmin.getX(); x <= pmax.getX(); x++) {
-                for (int y = pmin.getY(); y <= pmax.getY(); y++) {
+                for (int y = ymin; y <= pmax.getY(); y++) {
                     BlockPos target = new BlockPos(x, y, z);
-                    if (!blackListAsBlockPos.contains(target)) {
+                    if (!structureBlocks.contains(target)) {
                         allowedBlocks.add(target);
                         allowedBlocksList.add(target);
                     }
                 }
             }
+        }
+    }
+
+    // modified to not show y+ button
+    public void updateGuiModules() {
+        guiHandlerBounds.getModules().clear();
+
+        ResourceLocation red = ResourceLocation.fromNamespaceAndPath("aw_farms", "textures/gui/red.png");
+        ResourceLocation blue = ResourceLocation.fromNamespaceAndPath("aw_farms", "textures/gui/blue.png");
+
+        int baseOffsetX = 30;
+        int baseOffsetY = 30;
+
+        int pxPerBlock = 140 / maxSize;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                int _x = x;
+                int _y = h - y - 1; // because highest y is directly next to the controller
+                guiModuleButton b = new guiModuleButton(-1, "", guiHandlerBounds, x * pxPerBlock + baseOffsetX, y * pxPerBlock + baseOffsetY, pxPerBlock, pxPerBlock, red, 1, 1) {
+                    @Override
+                    public void onButtonClicked() {
+                    }
+                };
+                guiHandlerBounds.getModules().add(b);
+            }
+        }
+
+        int controllerX = baseOffsetX + controllerOffsetW * pxPerBlock;
+        int controllerY = baseOffsetY + h * pxPerBlock-controllerOffsetH*pxPerBlock;
+        guiModuleImage controllerPos = new guiModuleImage(guiHandlerBounds, controllerX, controllerY, pxPerBlock, pxPerBlock, blue, 1, 1);
+        guiHandlerBounds.getModules().add(controllerPos);
+
+        guiModuleDefaultButton hinc = new guiModuleDefaultButton(101, "h+", guiHandlerBounds, 5, 10, 15, 15);
+        guiModuleDefaultButton hdec = new guiModuleDefaultButton(102, "h-", guiHandlerBounds, 30, 10, 15, 15);
+        guiHandlerBounds.getModules().add(hinc);
+        guiHandlerBounds.getModules().add(hdec);
+
+        guiModuleDefaultButton winc = new guiModuleDefaultButton(103, "w+", guiHandlerBounds, 55, 10, 15, 15);
+        guiModuleDefaultButton wdec = new guiModuleDefaultButton(104, "w-", guiHandlerBounds, 80, 10, 15, 15);
+        guiHandlerBounds.getModules().add(winc);
+        guiHandlerBounds.getModules().add(wdec);
+
+        guiModuleDefaultButton xinc = new guiModuleDefaultButton(105, "x+", guiHandlerBounds, 105, 10, 15, 15);
+        guiModuleDefaultButton xdec = new guiModuleDefaultButton(106, "x-", guiHandlerBounds, 130, 10, 15, 15);
+        guiHandlerBounds.getModules().add(xinc);
+        guiHandlerBounds.getModules().add(xdec);
+
+        if (guiHandlerBounds.screen instanceof ModularScreen ms) {
+            ms.calculateGuiOffsetAndNotifyModules();
         }
     }
 
@@ -206,8 +355,22 @@ public class EntityQuarry extends EntityFarmBase {
     public void tick() {
         super.tick();
         if (!level.isClientSide) {
-            scanStep();
+            /*
+            for (int i = 0; i < 100; i++) {
+                scanStep();
+            }
 
+            if (battery.getEnergyStored() > 1) {
+                for (int i = 0; i < 1; i++) {
+                    if (tryQuarry()) {
+                        battery.extractEnergy(1, false);
+                    }
+                }
+                mainInventory.setStackInSlot(0,ItemStack.EMPTY);
+            }
+             */
+
+            scanStep();
             if (battery.getEnergyStored() > energy_try_quarry) {
                 if (tryQuarry()) {
                     battery.extractEnergy(energy_try_quarry, false);

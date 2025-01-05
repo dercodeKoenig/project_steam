@@ -44,6 +44,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
     public int controllerOffsetW = 0;
     public int controllerOffsetH = 0;
     public int maxSize = 16;
+    public int minSize = 1;
 
     public Set<Vector2i> blackList = new HashSet<>();
     public Set<BlockPos> blackListAsBlockPos = new HashSet<>();
@@ -415,7 +416,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             }
             if (button == 102) {
                 //dec h
-                if (h > 1) h--;
+                if (h > minSize+1) h--;
             }
             if (button == 103) {
                 //inc w
@@ -423,7 +424,7 @@ public abstract class EntityFarmBase extends BlockEntity implements IMechanicalB
             }
             if (button == 104) {
                 //dec w
-                if (w > 1) w--;
+                if (w > minSize+1) w--;
             }
 
             if (button == 105) {

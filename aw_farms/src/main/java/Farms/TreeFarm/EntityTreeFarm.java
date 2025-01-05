@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.utils.InventoryUtils;
 import Farms.EntityFarmBase;
+import Farms.Quarry.EntityQuarry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -27,6 +28,8 @@ import static Farms.Registry.ENTITY_CROP_FARM;
 import static Farms.Registry.ENTITY_TREE_FARM;
 
 public class EntityTreeFarm extends EntityFarmBase {
+
+    public static Set<EntityTreeFarm> knownTreeFarms = new HashSet<>();
 
     public int energy_plant = 4000;
     public int energy_harvest_leaves = 2000;
@@ -119,6 +122,16 @@ public class EntityTreeFarm extends EntityFarmBase {
             guiModuleItemHandlerSlot s = new guiModuleItemHandlerSlot(800 + i, mainInventory, i, 1, 0, guiHandlerMain, x, y);
             guiHandlerMain.getModules().add(s);
         }
+    }
+    @Override
+    public void onLoad(){
+        super.onLoad();
+        knownTreeFarms.add(this);
+    }
+    @Override
+    public void setRemoved(){
+        knownTreeFarms.remove(this);
+        super.setRemoved();
     }
 
     public boolean isItemValidSapling(ItemStack s) {

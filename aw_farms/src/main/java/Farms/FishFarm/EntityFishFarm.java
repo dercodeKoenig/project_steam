@@ -6,6 +6,7 @@ import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleText;
 import ARLib.utils.InventoryUtils;
 import Farms.EntityFarmBase;
+import Farms.TreeFarm.EntityTreeFarm;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
@@ -32,6 +33,7 @@ import static Farms.Registry.ENTITY_CROP_FARM;
 import static Farms.Registry.ENTITY_FISH_FARM;
 
 public class EntityFishFarm extends EntityFarmBase {
+    public static Set<EntityFishFarm> knownFishFarms = new HashSet<>();
 
     public int energy_try_fish = 8000;
     int depth = 5;
@@ -118,6 +120,16 @@ public class EntityFishFarm extends EntityFarmBase {
             guiModuleItemHandlerSlot s = new guiModuleItemHandlerSlot(800 + i, mainInventory, i, 1, 0, guiHandlerMain, x, y);
             guiHandlerMain.getModules().add(s);
         }
+    }
+    @Override
+    public void onLoad(){
+        super.onLoad();
+        knownFishFarms.add(this);
+    }
+    @Override
+    public void setRemoved(){
+        knownFishFarms.remove(this);
+        super.setRemoved();
     }
 
     @Override

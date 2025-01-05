@@ -36,6 +36,8 @@ import static Farms.Registry.ENTITY_QUARRY;
 
 public class EntityQuarry extends EntityFarmBase {
 
+    public static Set<EntityQuarry> knownQuarries = new HashSet<>();
+
     public int energy_try_quarry = 8000;
     int yTarget = 0;
     Set<BlockPos> structureBlocks = new HashSet<>();
@@ -135,11 +137,16 @@ public class EntityQuarry extends EntityFarmBase {
             guiHandlerMain.getModules().add(s);
         }
     }
-
     @Override
     public void onLoad(){
         super.onLoad();
+        knownQuarries.add(this);
         controllerOffsetH = 0; // this does not use controller offset h
+    }
+    @Override
+    public void setRemoved(){
+        knownQuarries.remove(this);
+        super.setRemoved();
     }
 
     @Override

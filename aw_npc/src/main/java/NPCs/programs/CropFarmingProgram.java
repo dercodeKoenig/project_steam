@@ -146,6 +146,8 @@ public class CropFarmingProgram extends Goal {
     }
 
     public static ItemStack getStackToPlantAtPosition(EntityCropFarm farm, WorkerNPC worker, BlockPos p) {
+        if(!farm.canPlant(p)) return ItemStack.EMPTY;
+
         for (int z = -1; z <= 1; ++z) {
             if (worker.level().getBlockState(p.offset(0, 0, z)).getBlock() instanceof StemBlock || worker.level().getBlockState(p.offset(0, 0, z)).getBlock() instanceof AttachedStemBlock) {
                 return ItemStack.EMPTY;
@@ -192,6 +194,12 @@ public class CropFarmingProgram extends Goal {
             ItemStack stackToPlant = getStackToPlantAtPosition(currentFarm, worker, currentPlantTarget);
             if (!stackToPlant.isEmpty()) {
                 ExitCode pathFindExit = worker.moveToPosition(currentPlantTarget, 3);
+
+                worker.lookAt(EntityAnchorArgument.Anchor.EYES,currentPlantTarget.getCenter());
+                worker.lookAt(EntityAnchorArgument.Anchor.FEET,currentPlantTarget.getCenter());
+
+                worker.setItemInHand(InteractionHand.OFF_HAND, stackToPlant);
+
                 if (pathFindExit.isFailed()) {
                     currentPlantTarget = null;
                     return ExitCode.SUCCESS_STILL_RUNNING;
@@ -202,11 +210,11 @@ public class CropFarmingProgram extends Goal {
                         // time to plant
                         worker.level().setBlock(currentPlantTarget, ((BlockItem) (stackToPlant.getItem())).getBlock().defaultBlockState(), 3);
                         stackToPlant.shrink(1);
-                        worker.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+                        worker.swing(InteractionHand.OFF_HAND);
+                        currentFarm.positionsToPlant.remove(currentPlantTarget);
                     }
-                } else if (pathFindExit.isStillRunning()) {
-                    worker.setItemInHand(InteractionHand.OFF_HAND, stackToPlant);
                 }
+
                 return ExitCode.SUCCESS_STILL_RUNNING;
             }
         }
@@ -219,6 +227,7 @@ public class CropFarmingProgram extends Goal {
                 }
             }
         }
+
         return ExitCode.EXIT_SUCCESS;
     }
 

@@ -35,6 +35,11 @@ public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<Work
         else{
             model.rightArmPose = HumanoidModel.ArmPose.ITEM;
         }
+        if(entity.getOffhandItem().isEmpty())
+            model.leftArmPose = HumanoidModel.ArmPose.EMPTY;
+        else{
+            model.leftArmPose = HumanoidModel.ArmPose.ITEM;
+        }
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
 }

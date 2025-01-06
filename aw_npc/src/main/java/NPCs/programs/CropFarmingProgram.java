@@ -7,8 +7,12 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.util.thread.BlockableEventLoop;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.AttachedStemBlock;
+import net.minecraft.world.level.block.StemBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
 import java.util.EnumSet;
@@ -23,6 +27,7 @@ public class CropFarmingProgram extends Goal {
     public double cachedDistanceToFarm;
     public int timeoutForWorkCheck = 20 * 10;
     public int timeoutForSeedScan = 20 * 10;
+    BlockPos currentPlantTarget = null;
     int workDelay = 0;
     public boolean canUse = true;
 
@@ -95,7 +100,7 @@ public class CropFarmingProgram extends Goal {
         long t0 = System.nanoTime();
         ExitCode e = run();
         long t1 = System.nanoTime();
-        System.out.println((double)(t1-t0) / 1000 / 1000);
+        //System.out.println((double)(t1-t0) / 1000 / 1000);
         if (e.isEnd()) canUse = false;
     }
 
@@ -124,10 +129,13 @@ public class CropFarmingProgram extends Goal {
         if (restockSeedExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
         // try to plant
+        ExitCode tryPlantExit = tryPlant(farm);
+        if (tryPlantExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
+        if (tryPlantExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+
 
         return ExitCode.EXIT_SUCCESS;
     }
-
 
 
     public ExitCode moveNearFarm(int precision, EntityCropFarm currentFarm) {
@@ -137,6 +145,82 @@ public class CropFarmingProgram extends Goal {
         return ExitCode.EXIT_SUCCESS;
     }
 
+    public static ItemStack getStackToPlantAtPosition(EntityCropFarm farm, WorkerNPC worker, BlockPos p) {
+        for (int z = -1; z <= 1; ++z) {
+            if (worker.level().getBlockState(p.offset(0, 0, z)).getBlock() instanceof StemBlock || worker.level().getBlockState(p.offset(0, 0, z)).getBlock() instanceof AttachedStemBlock) {
+                return ItemStack.EMPTY;
+            }
+        }
+
+        for (int x = -1; x <= 1; ++x) {
+            if (worker.level().getBlockState(p.offset(x, 0, 0)).getBlock() instanceof StemBlock || worker.level().getBlockState(p.offset(x, 0, 0)).getBlock() instanceof AttachedStemBlock) {
+                return ItemStack.EMPTY;
+            }
+        }
+
+        for (int i = 0; i < worker.inventory.getSlots(); ++i) {
+            ItemStack s = worker.inventory.getStackInSlot(i);
+            if (!s.isEmpty() && farm.isItemValidSeed(s)) {
+                Item var5 = s.getItem();
+                if (var5 instanceof BlockItem) {
+                    BlockItem bi = (BlockItem) var5;
+                    if (bi.getBlock().defaultBlockState().canSurvive(worker.level(), p)) {
+                        return s;
+                    }
+                }
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    public static boolean canPlant(EntityCropFarm farm, WorkerNPC worker) {
+        if (farm.positionsToPlant.isEmpty()) return false;
+        if (!hasAnySeedItem(farm, worker)) return false;
+
+        for (BlockPos p : farm.positionsToPlant) {
+            if (getStackToPlantAtPosition(farm, worker, p) != ItemStack.EMPTY) {
+                return true;
+            }
+        }
+
+        return true;
+    }
+
+
+    public ExitCode tryPlant(EntityCropFarm currentFarm) {
+        if (currentFarm.positionsToPlant.contains(currentPlantTarget)) {
+            ItemStack stackToPlant = getStackToPlantAtPosition(currentFarm, worker, currentPlantTarget);
+            if (!stackToPlant.isEmpty()) {
+                ExitCode pathFindExit = worker.moveToPosition(currentPlantTarget, 3);
+                if (pathFindExit.isFailed()) {
+                    currentPlantTarget = null;
+                    return ExitCode.SUCCESS_STILL_RUNNING;
+                } else if (pathFindExit.isCompleted()) {
+                    workDelay++;
+                    if (workDelay > 20) {
+                        workDelay = 0;
+                        // time to plant
+                        worker.level().setBlock(currentPlantTarget, ((BlockItem) (stackToPlant.getItem())).getBlock().defaultBlockState(), 3);
+                        stackToPlant.shrink(1);
+                        worker.setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
+                    }
+                } else if (pathFindExit.isStillRunning()) {
+                    worker.setItemInHand(InteractionHand.OFF_HAND, stackToPlant);
+                }
+                return ExitCode.SUCCESS_STILL_RUNNING;
+            }
+        }
+        currentPlantTarget = null;
+        for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(currentFarm.positionsToPlant, worker)) {
+            if (getStackToPlantAtPosition(currentFarm, worker, i) != ItemStack.EMPTY) {
+                currentPlantTarget = i;
+                if (!worker.moveToPosition(currentPlantTarget, 3).isFailed()) {
+                    return ExitCode.SUCCESS_STILL_RUNNING;
+                }
+            }
+        }
+        return ExitCode.EXIT_SUCCESS;
+    }
 
 
     public static boolean hasAnySeedItem(EntityCropFarm farm, WorkerNPC worker) {

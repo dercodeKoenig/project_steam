@@ -160,12 +160,6 @@ public class EntityCropFarm extends EntityFarmBase {
         BlockState state = level.getBlockState(p);
         if (state.isAir()) return true;
         if (state.canBeReplaced()) return true;
-        return false;
-    }
-    public boolean tryPlantPosition(BlockPos p) {
-        if (!canPlant(p)) return false;
-
-        //System.out.println("try plant: "+p);
 
         //if a stemBlock is around (melon/pumpkin) do not plant next to it
         for (int z = -1; z <= 1; z++) {
@@ -180,6 +174,11 @@ public class EntityCropFarm extends EntityFarmBase {
                 return false;
             }
         }
+
+        return false;
+    }
+    public boolean tryPlantPosition(BlockPos p) {
+        if (!canPlant(p)) return false;
 
         for (int i = 0; i < inputsInventory.getSlots(); i++) {
             ItemStack s = inputsInventory.getStackInSlot(i);

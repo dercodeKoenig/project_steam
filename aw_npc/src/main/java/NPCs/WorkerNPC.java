@@ -4,15 +4,19 @@ import NPCs.programs.CropFarmingProgram;
 import NPCs.programs.ExitCode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
@@ -42,7 +46,7 @@ public class WorkerNPC extends PathfinderMob {
         this.setPersistenceRequired();
         this.noCulling = true;
         setGuaranteedDrop(EquipmentSlot.MAINHAND);
-        setGuaranteedDrop(EquipmentSlot.OFFHAND);
+        setDropChance(EquipmentSlot.OFFHAND,0); // this Stack will only hold reference to stacks in the inventory
         setGuaranteedDrop(EquipmentSlot.CHEST);
         setGuaranteedDrop(EquipmentSlot.HEAD);
         setGuaranteedDrop(EquipmentSlot.LEGS);
@@ -119,6 +123,12 @@ public class WorkerNPC extends PathfinderMob {
         }
     }
 
+    protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            level.addFreshEntity(new ItemEntity(level,getPosition(0).x,getPosition(0).y,getPosition(0).z, inventory.getStackInSlot(i)));
+        }
+    }
+
     @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
@@ -129,6 +139,11 @@ public class WorkerNPC extends PathfinderMob {
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
+
+        // offhand is only used for visuals holding references to itemStacks in the inventory
+        // when it saves and reloads it would double the items because
+        // it would put the last held item in the hand when it should not be there because it is in the inventory.
+        setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
     }
 
 

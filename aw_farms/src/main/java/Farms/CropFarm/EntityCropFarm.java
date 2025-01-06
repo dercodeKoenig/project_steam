@@ -32,7 +32,7 @@ import java.util.*;
 import static Farms.Registry.ENTITY_CROP_FARM;
 
 public class EntityCropFarm extends EntityFarmBase {
-    public static Set<EntityCropFarm> knownCropFarms = new HashSet<>();
+    public static Set<BlockPos> knownCropFarms = new HashSet<>();
 
     public int energy_plant = 3000;
     public int energy_harvest = 3000;
@@ -126,11 +126,11 @@ public class EntityCropFarm extends EntityFarmBase {
     @Override
     public void onLoad(){
         super.onLoad();
-        knownCropFarms.add(this);
+        knownCropFarms.add(this.getBlockPos());
     }
     @Override
     public void setRemoved(){
-        knownCropFarms.remove(this);
+        knownCropFarms.remove(this.getBlockPos());
         super.setRemoved();
     }
 

@@ -29,7 +29,7 @@ import static Farms.Registry.ENTITY_TREE_FARM;
 
 public class EntityTreeFarm extends EntityFarmBase {
 
-    public static Set<EntityTreeFarm> knownTreeFarms = new HashSet<>();
+    public static Set<BlockPos> knownTreeFarms = new HashSet<>();
 
     public int energy_plant = 4000;
     public int energy_harvest_leaves = 2000;
@@ -126,11 +126,11 @@ public class EntityTreeFarm extends EntityFarmBase {
     @Override
     public void onLoad(){
         super.onLoad();
-        knownTreeFarms.add(this);
+        knownTreeFarms.add(this.getBlockPos());
     }
     @Override
     public void setRemoved(){
-        knownTreeFarms.remove(this);
+        knownTreeFarms.remove(this.getBlockPos());
         super.setRemoved();
     }
 

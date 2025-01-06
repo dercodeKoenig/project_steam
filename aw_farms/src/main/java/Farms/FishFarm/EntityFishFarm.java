@@ -33,7 +33,7 @@ import static Farms.Registry.ENTITY_CROP_FARM;
 import static Farms.Registry.ENTITY_FISH_FARM;
 
 public class EntityFishFarm extends EntityFarmBase {
-    public static Set<EntityFishFarm> knownFishFarms = new HashSet<>();
+    public static Set<BlockPos> knownFishFarms = new HashSet<>();
 
     public int energy_try_fish = 8000;
     int depth = 5;
@@ -124,11 +124,11 @@ public class EntityFishFarm extends EntityFarmBase {
     @Override
     public void onLoad(){
         super.onLoad();
-        knownFishFarms.add(this);
+        knownFishFarms.add(this.getBlockPos());
     }
     @Override
     public void setRemoved(){
-        knownFishFarms.remove(this);
+        knownFishFarms.remove(this.getBlockPos());
         super.setRemoved();
     }
 

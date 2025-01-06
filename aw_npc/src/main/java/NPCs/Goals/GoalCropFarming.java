@@ -3,7 +3,11 @@ package NPCs.Goals;
 import Farms.CropFarm.EntityCropFarm;
 import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.HoeItem;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.*;
@@ -17,6 +21,7 @@ public class GoalCropFarming extends Goal {
     public boolean stillValid = false;
     Path currentPath;
     HashSet<BlockPos> unreachableBlocks = new HashSet<>();
+    int failCounter = 0;
 
     public GoalCropFarming(WorkerNPC worker) {
         super();
@@ -26,6 +31,8 @@ public class GoalCropFarming extends Goal {
 
     @Override
     public boolean canUse() {
+        boolean hasHoe = worker.getMainHandItem().getItem() instanceof HoeItem;
+
         for (EntityCropFarm i : EntityCropFarm.knownCropFarms) {
             //System.out.println(i.getBlockPos());
             if (invalidCropFarmsTimer.containsKey(i)) {
@@ -34,6 +41,19 @@ public class GoalCropFarming extends Goal {
                     invalidCropFarmsTimer.remove(i);
                 continue;
             }
+            if (!hasHoe) {
+                boolean farmHasHoe = false;
+                for (int j = 0; j < i.mainInventory.getSlots(); j++) {
+                    ItemStack stackInSlot = i.mainInventory.getStackInSlot(j);
+                    if (stackInSlot.getItem() instanceof HoeItem) {
+                        farmHasHoe = true;
+                        break;
+                    }
+                }
+                if (!farmHasHoe)
+                    continue;
+            }
+
             if (i.getBlockPos().getCenter().distanceTo(this.worker.getPosition(0)) < 512) {
                 if (!i.positionsToHarvest.isEmpty()) {
                     currentFarm = i;
@@ -55,6 +75,7 @@ public class GoalCropFarming extends Goal {
     @Override
     public void start() {
         stillValid = true;
+        failCounter = 0;
     }
 
     @Override
@@ -84,13 +105,17 @@ public class GoalCropFarming extends Goal {
         return worker.getPosition(0).distanceTo(target.getCenter());
     }
 
-    void fail(){
-        stillValid = false;
-        invalidCropFarmsTimer.put(currentFarm, 0);
-        worker.getNavigation().stop();
+    void fail() {
+        failCounter++;
+        if (failCounter > 100) {
+            stillValid = false;
+            invalidCropFarmsTimer.put(currentFarm, 0);
+            worker.getNavigation().stop();
+        }
     }
 
-    boolean programHarvest(){
+    int waitBeforeHarvest = 0;
+    boolean programHarvest() {
         if (!currentFarm.positionsToHarvest.isEmpty()) {
             for (BlockPos currentHarvestTarget : currentFarm.positionsToHarvest) {
                 if (unreachableBlocks.contains(currentHarvestTarget)) {
@@ -100,9 +125,15 @@ public class GoalCropFarming extends Goal {
                     if (!moveToPosition(currentHarvestTarget, 2)) {
                         unreachableBlocks.add(currentHarvestTarget);
                     }
+                    waitBeforeHarvest = 0;
                 } else {
-                    currentFarm.positionsToHarvest.remove(currentHarvestTarget);
-                    currentFarm.harvestPosition(currentHarvestTarget);
+                    waitBeforeHarvest++;
+                    if(waitBeforeHarvest > 20) {
+                        waitBeforeHarvest = 0;
+                        currentFarm.positionsToHarvest.remove(currentHarvestTarget);
+                        currentFarm.harvestPosition(currentHarvestTarget);
+                        worker.swing(InteractionHand.MAIN_HAND);
+                    }
                 }
                 return true;
             }
@@ -110,18 +141,52 @@ public class GoalCropFarming extends Goal {
         return false;
     }
 
+    boolean programGetHoe() {
+        BlockPos target = currentFarm.getBlockPos();
+        if (distanceTo(target) > 3) {
+            if (!moveToPosition(target, 2)) {
+                unreachableBlocks.add(target);
+                return false;
+            }
+            return true;
+        } else {
+            for (int j = 0; j < currentFarm.mainInventory.getSlots(); j++) {
+                ItemStack stackInSlot = currentFarm.mainInventory.getStackInSlot(j);
+                if (stackInSlot.getItem() instanceof HoeItem) {
+                    ItemStack itemInHand = worker.getMainHandItem();
+                    if(!itemInHand.isEmpty()){
+                        worker.level().addFreshEntity(new ItemEntity(worker.level(),worker.getPosition(0).x,worker.getPosition(0).y,worker.getPosition(0).z,itemInHand.copy()));
+                    }
+                    worker.setItemInHand(InteractionHand.MAIN_HAND, stackInSlot);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
     @Override
     public void tick() {
+        // slowly forget unreachable blocks
+        if (worker.level().getGameTime() % 100 == 0 && !unreachableBlocks.isEmpty()) {
+            unreachableBlocks.remove(unreachableBlocks.iterator().next());
+        }
 
-        if (distanceTo(currentFarm.getBlockPos()) > 64) {
-            if (!moveToPosition(currentFarm.getBlockPos(), 64)) {
+        if (distanceTo(currentFarm.getBlockPos()) > 128) {
+            if (!moveToPosition(currentFarm.getBlockPos(), 128)) {
                 fail();
             }
             return;
         }
 
+        boolean hasHoe = worker.getMainHandItem().getItem() instanceof HoeItem;
 
-      if(!programHarvest())
-          fail();
+        if (!hasHoe) {
+            if (!programGetHoe())
+                fail();
+        }
+
+        if (!programHarvest())
+            fail();
     }
 }

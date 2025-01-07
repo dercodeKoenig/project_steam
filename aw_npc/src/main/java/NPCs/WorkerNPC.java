@@ -150,13 +150,15 @@ public class WorkerNPC extends PathfinderMob {
 
         super.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
         super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
+
+        super.getNavigation().setMaxVisitedNodesMultiplier(2);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 20.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D) // Default movement speed
-                .add(Attributes.FOLLOW_RANGE, 1024);
+                .add(Attributes.FOLLOW_RANGE, 512);
     }
 
     @Override
@@ -246,8 +248,6 @@ public class WorkerNPC extends PathfinderMob {
 
     int failTimeOut = 0;
     HashSet<BlockPos> unreachableBlocks = new HashSet<>();
-    BlockPos lastTarget = null;
-
     public ExitCode moveToPosition(BlockPos p, int precision) {
         if (p == null) return ExitCode.EXIT_FAIL;
 
@@ -262,12 +262,11 @@ public class WorkerNPC extends PathfinderMob {
 
         // pathfinder uses  distanceManhattan
         if ( getNavigation().getTargetPos() == null || ProgramUtils.distanceManhattan(getNavigation().getTargetPos(), p) > precision) {
-            System.out.println("create path:" +p+":"+precision);
             failTimeOut = 0;
-            long t0 = System.nanoTime();
+            //long t0 = System.nanoTime();
             getNavigation().moveTo(p.getX(),p.getY(),p.getZ(),precision,1);
-            long t1 = System.nanoTime();
-            System.out.println("time:"+(double)(t1-t0) / 1000 / 1000);
+            //long t1 = System.nanoTime();
+            //System.out.println("time:"+(double)(t1-t0) / 1000 / 1000);
             return ExitCode.SUCCESS_STILL_RUNNING;
         }
 

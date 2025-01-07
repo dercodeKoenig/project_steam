@@ -142,7 +142,7 @@ public class WorkerNPC extends PathfinderMob {
         this.setPersistenceRequired();
         this.noCulling = true;
         setGuaranteedDrop(EquipmentSlot.MAINHAND);
-        setDropChance(EquipmentSlot.OFFHAND, 0); // this Stack will only hold reference to stacks in the inventory
+        setGuaranteedDrop(EquipmentSlot.OFFHAND);
         setGuaranteedDrop(EquipmentSlot.CHEST);
         setGuaranteedDrop(EquipmentSlot.HEAD);
         setGuaranteedDrop(EquipmentSlot.LEGS);
@@ -221,8 +221,9 @@ public class WorkerNPC extends PathfinderMob {
 
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
         for (int i = 0; i < inventory.getSlots(); i++) {
-            level.addFreshEntity(new ItemEntity(level,getPosition(0).x,getPosition(0).y,getPosition(0).z, inventory.getStackInSlot(i)));
+            level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, inventory.getStackInSlot(i)));
         }
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
     }
 
     @Override
@@ -239,32 +240,46 @@ public class WorkerNPC extends PathfinderMob {
 
     int failTimeOut = 0;
     HashSet<BlockPos> unreachableBlocks = new HashSet<>();
-BlockPos lastTarget = null;
+    BlockPos lastTarget = null;
+
     public ExitCode moveToPosition(BlockPos p, int precision) {
-
         if (p == null) return ExitCode.EXIT_FAIL;
-        if(!p.equals(lastTarget)){
-            lastTarget = p;
-            failTimeOut = 0;
-        }
-        if (unreachableBlocks.contains(p)){
-            //return ExitCode.EXIT_FAIL;
-        }
-        int precisionSqr = precision * precision;
 
-        if (getNavigation().getPath() != null && ProgramUtils.distanceToSqr(p, this) <= precisionSqr) {
+        if (ProgramUtils.distanceManhattan(this, p) <= precision+0.5) {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        if (getNavigation().getPath() == null || getNavigation().getPath().getTarget().getCenter().distanceToSqr(p.getCenter()) > precisionSqr || getNavigation().isStuck() || getNavigation().isDone()) {
-            failTimeOut++;
-            if (failTimeOut > 1) {
-                failTimeOut = 0;
+        if (unreachableBlocks.contains(p)) {
+            return ExitCode.EXIT_FAIL;
+        }
+
+        if (!p.equals(lastTarget)) {
+            lastTarget = p;
+            failTimeOut = 0;
+        }
+
+        // pathfinder uses  distanceManhattan
+        if (getNavigation().getPath() == null || ProgramUtils.distanceManhattan(getNavigation().getPath().getTarget(), p) > precision+0.5 || getNavigation().isDone()||getNavigation().isStuck()) {
+            Path currentPath = getNavigation().createPath(p, precision);
+            if (currentPath == null || ProgramUtils.distanceManhattan(currentPath.getTarget(), p) > precision+0.5) {
+                // unable to go there
                 unreachableBlocks.add(p);
                 return ExitCode.EXIT_FAIL;
             }
-            Path currentPath = getNavigation().createPath(p, precision-1);
             getNavigation().moveTo(currentPath, 1);
+        }
+
+
+        if (getNavigation().isStuck() || getNavigation().isDone()) {
+            failTimeOut++;
+            if (failTimeOut > 10) {
+                // try to jump if we are stuck
+                super.jumpControl.jump();
+            }
+            if (failTimeOut > 30) {
+                unreachableBlocks.add(p);
+                return ExitCode.EXIT_FAIL;
+            }
         } else {
             failTimeOut = 0;
         }

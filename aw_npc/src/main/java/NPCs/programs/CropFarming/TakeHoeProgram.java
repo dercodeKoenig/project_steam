@@ -23,11 +23,9 @@ public class TakeHoeProgram {
         if(stackInHand.getItem() instanceof HoeItem) return true;
         if(!hasHoe()) return false;
 
-        ItemStack hoeStack = parentProgram.worker.combinedInventory.getStackInSlot(cachedHoeIndex).copy();
+        ItemStack hoeStack = parentProgram.worker.combinedInventory.getStackInSlot(cachedHoeIndex);
         if(hoeStack.getItem() instanceof HoeItem){
-            // this should always be true now
-             parentProgram.worker.combinedInventory.setStackInSlot(cachedHoeIndex, stackInHand.copy());
-             parentProgram.worker.setItemInHand(InteractionHand.MAIN_HAND, hoeStack);
+            ProgramUtils.moveItemStackToMainHand(hoeStack,parentProgram.worker);
              return true;
         }
 

@@ -18,7 +18,7 @@ public class MainCropFarmingProgram extends Goal {
     public WorkerNPC worker;
     public BlockPos currentFarmPos;
     public EntityCropFarm currentFarm;
-    public double cachedDistanceToFarm;
+    public double cachedDistanceManHattanToFarm;
     public int timeoutForWorkCheck = 20 * 10;
     public boolean canUse = true;
 
@@ -125,7 +125,7 @@ public class MainCropFarmingProgram extends Goal {
         if (!(e instanceof EntityCropFarm farm)) return ExitCode.EXIT_FAIL;
 
         currentFarm = farm;
-        cachedDistanceToFarm = worker.getPosition(0).distanceTo(currentFarmPos.getCenter());
+        cachedDistanceManHattanToFarm = ProgramUtils.distanceManhattan(worker, currentFarmPos);
 
         // first make sure you are anywhere near the farm
         ExitCode moveNearFarmExit = moveNearFarm(128);
@@ -137,7 +137,6 @@ public class MainCropFarmingProgram extends Goal {
         ExitCode takeHoeExit = takeHoeProgram.run();
         if (takeHoeExit.isFailed()) return ExitCode.EXIT_FAIL;
         if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-
 
         // try to restock seeds if required and possible
         ExitCode restockSeedExit = takeSeedsProgram.run();
@@ -169,9 +168,6 @@ public class MainCropFarmingProgram extends Goal {
 
 
     public ExitCode moveNearFarm(int precision) {
-        if (cachedDistanceToFarm > precision + 1) {
-            return worker.moveToPosition(currentFarm.getBlockPos(), precision);
-        }
-        return ExitCode.EXIT_SUCCESS;
+        return worker.moveToPosition(currentFarm.getBlockPos(), precision);
     }
 }

@@ -3,6 +3,7 @@ package NPCs.programs;
 import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 
@@ -48,10 +49,9 @@ public class ProgramUtils {
             return InteractionHand.OFF_HAND;
         }
         else{
-            // move main hand item to offhand
-            // move stack to mainhand
             moveItemStackToOffHand(worker.getMainHandItem(), worker);
             moveItemStackToMainHand(stack, worker);
+
             return InteractionHand.MAIN_HAND;
         }
 
@@ -62,22 +62,13 @@ public class ProgramUtils {
         if (itemStacksEqual(stack, stackInMainHand)) {
             return;
         }
-
-        ItemStack stackInOffHand = worker.getOffhandItem();
-        if (itemStacksEqual(stack, stackInOffHand)) {
-            // flip offhand / mainhand
-            ItemStack tmp = stackInOffHand.copy();
-            worker.setItemInHand(InteractionHand.OFF_HAND, stackInMainHand.copy());
-            worker.setItemInHand(InteractionHand.MAIN_HAND, tmp);
-            return;
-        }
-
-        for (int i = 0; i < worker.inventory.getSlots(); i++) {
-            ItemStack stackInSlot = worker.inventory.getStackInSlot(i);
+        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+            ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
             if (itemStacksEqual(stack, stackInSlot)) {
                 ItemStack tmp = stackInSlot.copy();
-                worker.inventory.setStackInSlot(i, stackInMainHand.copy());
+                worker.combinedInventory.setStackInSlot(i, stackInMainHand.copy());
                 worker.setItemInHand(InteractionHand.MAIN_HAND, tmp);
+                break;
             }
         }
     }
@@ -86,21 +77,13 @@ public class ProgramUtils {
         if (itemStacksEqual(stack, stackInOffHand))
             return;
 
-        ItemStack stackInMainHand = worker.getMainHandItem();
-        if (itemStacksEqual(stack, stackInMainHand)) {
-            // flip offhand / mainhand
-            ItemStack tmp = stackInMainHand.copy();
-            worker.setItemInHand(InteractionHand.OFF_HAND, stackInMainHand.copy());
-            worker.setItemInHand(InteractionHand.MAIN_HAND, tmp);
-            return;
-        }
-
-        for (int i = 0; i < worker.inventory.getSlots(); i++) {
-            ItemStack stackInSlot = worker.inventory.getStackInSlot(i);
+        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+            ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
             if (itemStacksEqual(stack, stackInSlot)) {
                 ItemStack tmp = stackInSlot.copy();
-                worker.inventory.setStackInSlot(i, stackInOffHand.copy());
+                worker.combinedInventory.setStackInSlot(i, stackInOffHand.copy());
                 worker.setItemInHand(InteractionHand.OFF_HAND, tmp);
+                break;
             }
         }
     }
@@ -114,6 +97,18 @@ public class ProgramUtils {
 
     public static double distanceToSqr(BlockPos target, WorkerNPC worker) {
         return worker.getPosition(0).distanceToSqr(target.getCenter());
+    }
+
+    public static double distanceManhattan(BlockPos p1, BlockPos p2) {
+        return Math.abs(p1.getX() - p2.getX()) +
+                Math.abs(p1.getY() - p2.getY()) +
+                Math.abs(p1.getZ() - p2.getZ());
+    }
+
+    public static double distanceManhattan(Entity e, BlockPos p2) {
+        return Math.abs(e.position().x - p2.getX()) +
+                Math.abs(e.position().y - p2.getY()) +
+                Math.abs(e.position().z - p2.getZ());
     }
 
 }

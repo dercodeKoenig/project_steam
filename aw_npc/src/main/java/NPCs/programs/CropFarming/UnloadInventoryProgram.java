@@ -104,7 +104,8 @@ public class UnloadInventoryProgram {
                     for (int i = 0; i < farm.mainInventory.getSlots(); i++) {
                         ItemStack notInserted = farm.mainInventory.insertItem(i, canExtract, true);
                         if (notInserted.isEmpty()) {
-                            return canExtract;
+                            // it should unload only one item but return the full stack because this is what worker will take in hand
+                            return parentProgram.worker.combinedInventory.getStackInSlot(j);
                         }
                     }
                 }

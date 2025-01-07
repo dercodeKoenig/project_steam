@@ -1,11 +1,9 @@
-package NPCs.programs;
+package NPCs.programs.CropFarming;
 
 import Farms.CropFarm.EntityCropFarm;
 import NPCs.WorkerNPC;
-import NPCs.programs.CropFarming.PlantProgram;
-import NPCs.programs.CropFarming.TakeHoeProgram;
-import NPCs.programs.CropFarming.TakeSeedsProgram;
-import NPCs.programs.CropFarming.TillProgram;
+import NPCs.programs.ExitCode;
+import NPCs.programs.ProgramUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,6 +26,7 @@ public class CropFarmingProgram extends Goal {
     public TakeSeedsProgram takeSeedsProgram;
     public PlantProgram plantProgram;
     public TillProgram tillProgram;
+    public HarvestProgram harvestProgram;
 
     public CropFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
@@ -36,6 +35,7 @@ public class CropFarmingProgram extends Goal {
         takeSeedsProgram = new TakeSeedsProgram(this);
         plantProgram = new PlantProgram(this);
         tillProgram = new TillProgram(this);
+        harvestProgram = new HarvestProgram(this);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -59,6 +59,8 @@ public class CropFarmingProgram extends Goal {
 
         // if something can be tilled....
         if (tillProgram.canTillAny(farm)) return true;
+
+        if(harvestProgram.canHarvestAny(farm)) return true;
 
         return false;
     }
@@ -145,6 +147,11 @@ public class CropFarmingProgram extends Goal {
         ExitCode tryTillExit = tillProgram.run();
         if (tryTillExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
         if (tryTillExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+
+        // try to harvest
+        ExitCode tryHarvestExit = harvestProgram.run();
+        if (tryHarvestExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
+        if (tryHarvestExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
         return ExitCode.EXIT_SUCCESS;
     }

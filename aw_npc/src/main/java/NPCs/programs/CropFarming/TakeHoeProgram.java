@@ -1,8 +1,6 @@
 package NPCs.programs.CropFarming;
 
 import Farms.CropFarm.EntityCropFarm;
-import NPCs.WorkerNPC;
-import NPCs.programs.CropFarmingProgram;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -37,7 +35,7 @@ public class TakeHoeProgram {
     }
 
     public boolean hasHoe() {
-        if (parentProgram.worker.inventory.getStackInSlot(cachedHoeIndex).getItem() instanceof HoeItem)
+        if (parentProgram.worker.combinedInventory.getStackInSlot(cachedHoeIndex).getItem() instanceof HoeItem)
             return true;
 
         for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {

@@ -1,14 +1,11 @@
 package NPCs.programs.CropFarming;
 
 import Farms.CropFarm.EntityCropFarm;
-import NPCs.WorkerNPC;
-import NPCs.programs.CropFarmingProgram;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;

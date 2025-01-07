@@ -1,6 +1,6 @@
 package NPCs;
 
-import NPCs.programs.CropFarmingProgram;
+import NPCs.programs.CropFarming.CropFarmingProgram;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.core.BlockPos;
@@ -241,6 +241,7 @@ public class WorkerNPC extends PathfinderMob {
     HashSet<BlockPos> unreachableBlocks = new HashSet<>();
 BlockPos lastTarget = null;
     public ExitCode moveToPosition(BlockPos p, int precision) {
+
         if (p == null) return ExitCode.EXIT_FAIL;
         if(!p.equals(lastTarget)){
             lastTarget = p;
@@ -262,7 +263,7 @@ BlockPos lastTarget = null;
                 unreachableBlocks.add(p);
                 return ExitCode.EXIT_FAIL;
             }
-            Path currentPath = getNavigation().createPath(p, precision);
+            Path currentPath = getNavigation().createPath(p, precision-1);
             getNavigation().moveTo(currentPath, 1);
         } else {
             failTimeOut = 0;

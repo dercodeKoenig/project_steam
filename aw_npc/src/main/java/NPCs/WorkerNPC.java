@@ -151,7 +151,7 @@ public class WorkerNPC extends PathfinderMob {
         super.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
         super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
 
-        super.getNavigation().setMaxVisitedNodesMultiplier(2);
+        //super.getNavigation().setMaxVisitedNodesMultiplier(2);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -171,24 +171,10 @@ public class WorkerNPC extends PathfinderMob {
         int priority = 0;
 
         if (worktype != WorkTypes.UNEMPLOYED) {
-
             if (worktype == WorkTypes.FARMER) {
                 this.goalSelector.addGoal(priority++, new MainCropFarmingProgram(this));
-
             }
-            // empty inventory if > 50% full
-
-            // try farm
-
-            // try empty all inventory (extend empty inventory if > 50% full)
-
-            // if all above fail because current farm is not valid, select a new farm to work on
-
-
-            //this.goalSelector.addGoal(priority++, new CropFarmingProgram(this));
-
         }
-
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));

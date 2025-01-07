@@ -47,7 +47,7 @@ public class SlowPathFinder {
                 !Objects.equals(maxNodes, lastMaxNodes) ||
                 startNode == null
         ) {
-            long t0 = System.nanoTime();
+            //long t0 = System.nanoTime();
 
             // reset all
             lastAccuracy = accuracy;
@@ -55,34 +55,43 @@ public class SlowPathFinder {
             lastTarget = targetPos;
             lastMaxRange = maxRange;
             i = 0;
-            PathNavigationRegion pathnavigationregion = new PathNavigationRegion(mob.level(), targetPos.offset(-maxRange, -maxRange, -maxRange), targetPos.offset(maxRange, maxRange, maxRange));
+
+            PathNavigationRegion pathnavigationregion = new PathNavigationRegion(
+                    mob.level(),
+                    targetPos.offset(-maxRange, -maxRange, -maxRange),
+                    targetPos.offset(maxRange, maxRange, maxRange)
+            );
             this.openSet.clear();
             this.nodeEvaluator.prepare(pathnavigationregion, mob);
             startNode = this.nodeEvaluator.getStart();
-            System.out.println("start node: "+startNode.asBlockPos());
+            //System.out.println("start node: "+startNode.asBlockPos());
             startNode.g = 0.0F;
             startNode.h = startNode.distanceTo(targetPos);
             startNode.f = startNode.h;
             this.openSet.insert(startNode);
 
-            long t1 = System.nanoTime();
-            System.out.println("reset pathfinder: "+targetPos+":"+(double)(t1-t0) / 1000 / 1000);
+            //long t1 = System.nanoTime();
+            //System.out.println("reset pathfinder: "+targetPos+":"+(double)(t1-t0) / 1000 / 1000);
         }
 
-        for (int n = 0; n < steps; n++) {
+        int n = 0;
+        while (n < steps){
             if (openSet.isEmpty()) {
                 startNode = null; // makes it reset on next run
                 nodeEvaluator.done();
                 return new PathFindExit(ExitCode.EXIT_FAIL, null);
             }
-            ++i;
+
             if (i >= maxNodes) {
-                break;
+                startNode = null; // makes it reset on next run
+                nodeEvaluator.done();
+                return new PathFindExit(ExitCode.EXIT_FAIL, null);
             }
 
             Node node = this.openSet.pop();
             node.closed = true;
 
+            //System.out.println(openSet.size()+":"+node.asBlockPos());
 
             if (node.distanceManhattan(targetPos) <= accuracy) {
                 //success
@@ -112,6 +121,9 @@ public class SlowPathFinder {
                         }
                     }
                 }
+
+                i++;
+                n++;
             }
         }
 

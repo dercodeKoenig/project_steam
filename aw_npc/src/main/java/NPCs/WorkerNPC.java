@@ -30,9 +30,9 @@ import java.util.List;
 
 public class WorkerNPC extends PathfinderMob {
 
-    public int slowNavigationMaxDistance = 16*12;
-    public int slowNavigationMaxNodes = 4096*32;
-    public int slowNavigationStepPerTick = 128;
+    public int slowNavigationMaxDistance = 12*16;
+    public int slowNavigationMaxNodes = 4096*16;
+    public int slowNavigationStepPerTick = 512;
 
     public enum WorkTypes {
         FARMER,
@@ -42,7 +42,7 @@ public class WorkerNPC extends PathfinderMob {
         LUMBERJACK,
         UNEMPLOYED
     }
-    public WorkTypes worktype = WorkTypes.UNEMPLOYED;
+    public WorkTypes worktype;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
     public ItemStackHandler combinedInventory = new ItemStackHandler(0) {
@@ -157,6 +157,9 @@ public class WorkerNPC extends PathfinderMob {
         super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
 
         slowMobNavigation = new SlowMobNavigation(this);
+
+        worktype = WorkTypes.FARMER;
+        registerGoals();
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -199,7 +202,7 @@ public class WorkerNPC extends PathfinderMob {
             worktype = WorkTypes.UNEMPLOYED;
 
         registerGoals();
-        return InteractionResult.CONSUME;
+        return InteractionResult.SUCCESS;
     }
 
     @Override

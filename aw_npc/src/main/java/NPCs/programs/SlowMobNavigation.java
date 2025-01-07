@@ -45,10 +45,10 @@ public class SlowMobNavigation {
         if (worker.getNavigation().getPath() == null ||
                 !Objects.equals(worker.getNavigation().getPath().getTarget(), target)) {
             failTimeOut = 0;
-            long t0 = System.nanoTime();
+            //long t0 = System.nanoTime();
             SlowPathFinder.PathFindExit exit = pathFinder.findPath(target,maxDistace,precision,maxNodesVisit,steps);
-            long t1 = System.nanoTime();
-            System.out.println("navigator exit code: "+exit.exitCode+":"+(double)(t1-t0) / 1000 / 1000);
+            //long t1 = System.nanoTime();
+            //System.out.println("navigator exit code: "+exit.exitCode+":"+(double)(t1-t0) / 1000 / 1000);
 
             if(exit.exitCode.isFailed()) {
                 // target can not be reached

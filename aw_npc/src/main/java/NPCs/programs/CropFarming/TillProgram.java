@@ -55,14 +55,11 @@ public class TillProgram {
 
     public ExitCode run() {
         if (!parentProgram.takeHoeProgram.takeHoeToMainHand()) {
-            System.out.println("no hoe");
             return ExitCode.EXIT_SUCCESS;
         }
 
-        System.out.println(currentTillTarget);
         if (parentProgram.currentFarm.positionsToPlant.contains(currentTillTarget)) {
             if (canTillPosition(parentProgram.currentFarm, currentTillTarget)) {
-                System.out.println("tilltarget"+currentTillTarget);
                 ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentTillTarget, 3);
 
                 parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentTillTarget.getCenter());
@@ -70,14 +67,12 @@ public class TillProgram {
 
                 if (pathFindExit.isFailed()) {
                     currentTillTarget = null;
-                    System.out.println("fail");
                     return ExitCode.SUCCESS_STILL_RUNNING;
                 } else if (pathFindExit.isCompleted()) {
                     workDelay++;
                     if (workDelay > 20) {
                         workDelay = 0;
                         // time to Till
-                        System.out.println("till");
                         parentProgram.worker.level().setBlock(currentTillTarget.below(), Blocks.FARMLAND.defaultBlockState(), 3);
                         parentProgram.worker.swing(InteractionHand.MAIN_HAND);
                         parentProgram.currentFarm.positionsToPlant.remove(currentTillTarget);
@@ -93,11 +88,10 @@ public class TillProgram {
         currentTillTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
             if (canTillPosition(parentProgram.currentFarm, i)) {
-                if (!parentProgram.worker.moveToPosition(currentTillTarget, 3).isFailed()) {
-
-                } else {
+                if (!parentProgram.worker.moveToPosition(i, 3).isFailed()) {
                     currentTillTarget = i;
                     return ExitCode.SUCCESS_STILL_RUNNING;
+                } else {
                 }
             }
         }

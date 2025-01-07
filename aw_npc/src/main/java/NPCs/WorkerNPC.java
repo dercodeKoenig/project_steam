@@ -4,10 +4,7 @@ import NPCs.programs.CropFarmingProgram;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -23,7 +20,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.pathfinder.Path;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
@@ -241,36 +237,35 @@ public class WorkerNPC extends PathfinderMob {
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
     }
 
-    int ticksWithoutMove = 0;
+    int failTimeOut = 0;
     HashSet<BlockPos> unreachableBlocks = new HashSet<>();
-
+BlockPos lastTarget = null;
     public ExitCode moveToPosition(BlockPos p, int precision) {
-        System.out.println("move"+p);
         if (p == null) return ExitCode.EXIT_FAIL;
-        if (unreachableBlocks.contains(p)){
-            return ExitCode.EXIT_FAIL;
+        if(!p.equals(lastTarget)){
+            lastTarget = p;
+            failTimeOut = 0;
         }
-
+        if (unreachableBlocks.contains(p)){
+            //return ExitCode.EXIT_FAIL;
+        }
         int precisionSqr = precision * precision;
 
-        //if(        if (getNavigation().getPath() != null))
-        System.out.println(ProgramUtils.distanceToSqr(p, this) +":"+ precisionSqr);
         if (getNavigation().getPath() != null && ProgramUtils.distanceToSqr(p, this) <= precisionSqr) {
-            System.out.println("dest reached"+p);
             return ExitCode.EXIT_SUCCESS;
         }
 
         if (getNavigation().getPath() == null || getNavigation().getPath().getTarget().getCenter().distanceToSqr(p.getCenter()) > precisionSqr || getNavigation().isStuck() || getNavigation().isDone()) {
-            ticksWithoutMove++;
-            if (ticksWithoutMove > 1) {
-                ticksWithoutMove = 0;
+            failTimeOut++;
+            if (failTimeOut > 1) {
+                failTimeOut = 0;
                 unreachableBlocks.add(p);
                 return ExitCode.EXIT_FAIL;
             }
-            Path currentPath = getNavigation().createPath(p, precision);
+            Path currentPath = getNavigation().createPath(p, precision-1);
             getNavigation().moveTo(currentPath, 1);
         } else {
-            ticksWithoutMove = 0;
+            failTimeOut = 0;
         }
         return ExitCode.SUCCESS_STILL_RUNNING;
     }

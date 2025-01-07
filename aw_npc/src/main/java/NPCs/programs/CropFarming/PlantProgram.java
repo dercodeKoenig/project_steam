@@ -26,7 +26,7 @@ public class PlantProgram {
 
         for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); ++i) {
             ItemStack s = parentProgram.worker.combinedInventory.getStackInSlot(i);
-            if (!s.isEmpty() && parentProgram.currentFarm.isItemValidSeed(s)) {
+            if (!s.isEmpty() && farm.isItemValidSeed(s)) {
                 Item var5 = s.getItem();
                 if (var5 instanceof BlockItem bi) {
                     if (bi.getBlock().defaultBlockState().canSurvive(parentProgram.worker.level(), p)) {
@@ -85,11 +85,10 @@ public class PlantProgram {
         currentPlantTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
             if (getStackToPlantAtPosition(parentProgram.currentFarm, i) != ItemStack.EMPTY) {
-                if (!parentProgram.worker.moveToPosition(currentPlantTarget, 3).isFailed()) {
-
-                }else{
+                if (!parentProgram.worker.moveToPosition(i, 3).isFailed()) {
                     currentPlantTarget = i;
                     return ExitCode.SUCCESS_STILL_RUNNING;
+                }else{
                 }
             }
         }

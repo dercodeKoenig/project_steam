@@ -20,6 +20,7 @@ public class HarvestProgram {
     BlockPos currentHarvestTarget = null;
     int workDelay = 0;
     int requiredFreeSlotsToHarvest = 3;
+    int requiredDistance = 2;
 
     public HarvestProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
@@ -46,7 +47,13 @@ public class HarvestProgram {
         }
 
         if (parentProgram.currentFarm.positionsToHarvest.contains(currentHarvestTarget)) {
-            ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentHarvestTarget, 3);
+            ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
+                    currentHarvestTarget,
+                    requiredDistance,
+                    parentProgram.worker.slowNavigationMaxDistance,
+                    parentProgram.worker.slowNavigationMaxNodes,
+                    parentProgram.worker.slowNavigationStepPerTick
+            );
 
 
             if (pathFindExit.isFailed()) {
@@ -87,10 +94,9 @@ public class HarvestProgram {
         }
         currentHarvestTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToHarvest, parentProgram.worker)) {
-            if (!parentProgram.worker.moveToPosition(i, 3).isFailed()) {
+            if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                 currentHarvestTarget = i;
                 return ExitCode.SUCCESS_STILL_RUNNING;
-            } else {
             }
         }
         return ExitCode.EXIT_SUCCESS;

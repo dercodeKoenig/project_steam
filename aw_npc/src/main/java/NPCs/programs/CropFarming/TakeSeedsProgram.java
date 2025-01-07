@@ -13,8 +13,7 @@ public class TakeSeedsProgram {
     int scanInterval = 20 * 10;
     boolean hasWork = false;
     long lastScan = 0;
-
-    int requiredDistance = 3;
+    int requiredDistance = 2;
 
     public TakeSeedsProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;

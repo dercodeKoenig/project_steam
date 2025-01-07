@@ -3,6 +3,7 @@ package NPCs;
 import NPCs.programs.CropFarming.MainCropFarmingProgram;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
+import NPCs.programs.SlowMobNavigation;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
@@ -29,6 +30,10 @@ import java.util.List;
 
 public class WorkerNPC extends PathfinderMob {
 
+    public int slowNavigationMaxDistance = 16*12;
+    public int slowNavigationMaxNodes = 4096*32;
+    public int slowNavigationStepPerTick = 128;
+
     public enum WorkTypes {
         FARMER,
         FISHER,
@@ -37,11 +42,9 @@ public class WorkerNPC extends PathfinderMob {
         LUMBERJACK,
         UNEMPLOYED
     }
-
     public WorkTypes worktype = WorkTypes.UNEMPLOYED;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
-
     public ItemStackHandler combinedInventory = new ItemStackHandler(0) {
 
         public void setStackInSlot(int slot, ItemStack stack) {
@@ -138,6 +141,7 @@ public class WorkerNPC extends PathfinderMob {
         }
     };
 
+    public SlowMobNavigation slowMobNavigation;
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
         this.setPersistenceRequired();
@@ -152,14 +156,14 @@ public class WorkerNPC extends PathfinderMob {
         super.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
         super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
 
-        //super.getNavigation().setMaxVisitedNodesMultiplier(2);
+        slowMobNavigation = new SlowMobNavigation(this);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 20.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D) // Default movement speed
-                .add(Attributes.FOLLOW_RANGE, 512);
+                .add(Attributes.FOLLOW_RANGE, 64);
     }
 
     @Override
@@ -200,24 +204,8 @@ public class WorkerNPC extends PathfinderMob {
 
     @Override
     public void tick() {
-
         super.tick();
-
-
         this.updateSwingTime(); //wtf do i need to call this myself??
-
-        System.out.println(unreachableBlocks.size());
-
-        if (!level().isClientSide) {
-            // slowly forget unreachable blocks
-            for (BlockPos i : unreachableBlocks.keySet()){
-                unreachableBlocks.put(i, unreachableBlocks.get(i)+1);
-                if(unreachableBlocks.get(i) > 20*120){
-                    unreachableBlocks.remove(i);
-                    break;
-                }
-            }
-        }
     }
 
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
@@ -239,49 +227,5 @@ public class WorkerNPC extends PathfinderMob {
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
     }
 
-    int failTimeOut = 0;
-    HashMap<BlockPos, Integer> unreachableBlocks = new HashMap<>();
-    public ExitCode moveToPosition(BlockPos p, int precision) {
-        if (p == null) return ExitCode.EXIT_FAIL;
 
-        double distToTarget =ProgramUtils.distanceManhattan(this, p);
-        if (distToTarget <= precision+1) {
-            return ExitCode.EXIT_SUCCESS;
-        }
-
-        if (unreachableBlocks.containsKey(p)) {
-            return ExitCode.EXIT_FAIL;
-        }
-
-        // pathfinder uses  distanceManhattan
-        if ( getNavigation().getTargetPos() == null || ProgramUtils.distanceManhattan(getNavigation().getTargetPos(), p) > precision) {
-            failTimeOut = 0;
-            //long t0 = System.nanoTime();
-            getNavigation().moveTo(p.getX(),p.getY(),p.getZ(),precision,1);
-            //long t1 = System.nanoTime();
-            //System.out.println("time:"+(double)(t1-t0) / 1000 / 1000);
-            return ExitCode.SUCCESS_STILL_RUNNING;
-        }
-
-        if (getNavigation().getPath() == null || !getNavigation().getPath().canReach() || getNavigation().getTargetPos() == null || ProgramUtils.distanceManhattan(getNavigation().getTargetPos(), p) > precision) {
-            // unable to go there
-            unreachableBlocks.put(p,0);
-            return ExitCode.EXIT_FAIL;
-        }
-
-        if (getNavigation().isStuck() || getNavigation().isDone()) {
-            failTimeOut++;
-            if (failTimeOut > 5 && getNavigation().isStuck()) {
-                // try to jump if we are stuck
-                super.jumpControl.jump();
-            }
-            if (failTimeOut > 10) {
-                unreachableBlocks.put(p, 0);
-                return ExitCode.EXIT_FAIL;
-            }
-        } else {
-            failTimeOut = 0;
-        }
-        return ExitCode.SUCCESS_STILL_RUNNING;
-    }
 }

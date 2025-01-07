@@ -163,6 +163,12 @@ public class MainCropFarmingProgram extends Goal {
 
 
     public ExitCode moveNearFarm(int precision) {
-        return worker.moveToPosition(currentFarm.getBlockPos(), precision);
+        return worker.slowMobNavigation.moveToPosition(
+                currentFarm.getBlockPos(),
+                precision,
+                worker.slowNavigationMaxDistance,
+                worker.slowNavigationMaxNodes,
+                worker.slowNavigationStepPerTick
+        );
     }
 }

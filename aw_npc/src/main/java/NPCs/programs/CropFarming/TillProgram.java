@@ -16,6 +16,7 @@ public class TillProgram {
     MainCropFarmingProgram parentProgram;
     BlockPos currentTillTarget = null;
     int workDelay = 0;
+    int requiredDistance = 2;
 
     public TillProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
@@ -57,7 +58,13 @@ public class TillProgram {
 
         if (parentProgram.currentFarm.positionsToPlant.contains(currentTillTarget)) {
             if (canTillPosition(parentProgram.currentFarm, currentTillTarget)) {
-                ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentTillTarget, 3);
+                ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
+                        currentTillTarget,
+                        requiredDistance,
+                        parentProgram.worker.slowNavigationMaxDistance,
+                        parentProgram.worker.slowNavigationMaxNodes,
+                        parentProgram.worker.slowNavigationStepPerTick
+                );
 
                 if (pathFindExit.isFailed()) {
                     currentTillTarget = null;
@@ -85,10 +92,9 @@ public class TillProgram {
         currentTillTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
             if (canTillPosition(parentProgram.currentFarm, i)) {
-                if (!parentProgram.worker.moveToPosition(i, 3).isFailed()) {
+                if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                     currentTillTarget = i;
                     return ExitCode.SUCCESS_STILL_RUNNING;
-                } else {
                 }
             }
         }

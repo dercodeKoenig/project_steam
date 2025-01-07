@@ -15,7 +15,7 @@ public class UnloadInventoryProgram {
     int keepSeedNum = 64*1;
     int keepFoodNum = 8;
     int keepHoeNum = 1;
-        int requiredDistance = 3;
+        int requiredDistance = 2;
 
     int workDelay = 0;
     long lastScan = 0;

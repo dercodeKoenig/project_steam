@@ -13,6 +13,7 @@ public class TakeHoeProgram {
     MainCropFarmingProgram parentProgram;
     int workDelay = 0;
     int cachedHoeIndex = 0;
+    int requiredDistance = 2;
 
     public TakeHoeProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
@@ -86,9 +87,8 @@ public class TakeHoeProgram {
         }
 
 
-        ExitCode pathFindExit = parentProgram.moveNearFarm(3);
+        ExitCode pathFindExit = parentProgram.moveNearFarm(requiredDistance);
         if (pathFindExit.isFailed()) {
-            System.out.println("ffff");
             return ExitCode.EXIT_FAIL;
         }
         else if (pathFindExit.isStillRunning()) {

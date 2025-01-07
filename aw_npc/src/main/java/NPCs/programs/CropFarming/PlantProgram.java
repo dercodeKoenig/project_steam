@@ -14,6 +14,7 @@ public class PlantProgram {
     MainCropFarmingProgram parentProgram;
     BlockPos currentPlantTarget = null;
     int workDelay = 0;
+int requiredDistance = 2;
 
     public PlantProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
@@ -50,9 +51,15 @@ public class PlantProgram {
         if (parentProgram.currentFarm.positionsToPlant.contains(currentPlantTarget)) {
             ItemStack stackToPlant = getStackToPlantAtPosition(parentProgram.currentFarm, currentPlantTarget);
             if (!stackToPlant.isEmpty()) {
-                ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentPlantTarget, 3);
+                ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
+                        currentPlantTarget,
+                        requiredDistance,
+                        parentProgram.worker.slowNavigationMaxDistance,
+                        parentProgram.worker.slowNavigationMaxNodes,
+                        parentProgram.worker.slowNavigationStepPerTick
+                );
 
-                if(!ItemStack.isSameItemSameComponents(parentProgram.worker.getMainHandItem(), stackToPlant) &&
+                if (!ItemStack.isSameItemSameComponents(parentProgram.worker.getMainHandItem(), stackToPlant) &&
                         !ItemStack.isSameItemSameComponents(parentProgram.worker.getOffhandItem(), stackToPlant)) {
                     ProgramUtils.moveItemStackToAnyHand(stackToPlant, parentProgram.worker);
                 }
@@ -70,9 +77,9 @@ public class PlantProgram {
                         // time to plant
                         parentProgram.worker.level().setBlock(currentPlantTarget, ((BlockItem) (stackToPlant.getItem())).getBlock().defaultBlockState(), 3);
                         stackToPlant.shrink(1);
-                        if(parentProgram.worker.getMainHandItem().getItem().equals(stackToPlant.getItem()))
+                        if (parentProgram.worker.getMainHandItem().getItem().equals(stackToPlant.getItem()))
                             parentProgram.worker.swing(InteractionHand.MAIN_HAND);
-                        else if(parentProgram.worker.getOffhandItem().getItem().equals(stackToPlant.getItem()))
+                        else if (parentProgram.worker.getOffhandItem().getItem().equals(stackToPlant.getItem()))
                             parentProgram.worker.swing(InteractionHand.OFF_HAND);
                         parentProgram.currentFarm.positionsToPlant.remove(currentPlantTarget);
                     }
@@ -86,10 +93,9 @@ public class PlantProgram {
         currentPlantTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
             if (getStackToPlantAtPosition(parentProgram.currentFarm, i) != ItemStack.EMPTY) {
-                if (!parentProgram.worker.moveToPosition(i, 3).isFailed()) {
+                if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                     currentPlantTarget = i;
                     return ExitCode.SUCCESS_STILL_RUNNING;
-                }else{
                 }
             }
         }

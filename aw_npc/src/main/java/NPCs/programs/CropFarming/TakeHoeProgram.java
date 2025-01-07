@@ -87,8 +87,10 @@ public class TakeHoeProgram {
 
 
         ExitCode pathFindExit = parentProgram.moveNearFarm(3);
-        if (pathFindExit.isFailed())
+        if (pathFindExit.isFailed()) {
+            System.out.println("ffff");
             return ExitCode.EXIT_FAIL;
+        }
         else if (pathFindExit.isStillRunning()) {
             workDelay = 0;
             return ExitCode.SUCCESS_STILL_RUNNING;
@@ -109,7 +111,7 @@ public class TakeHoeProgram {
                             parentProgram.currentFarm.mainInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
                             parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot,parentProgram.worker));
-                            return ExitCode.EXIT_SUCCESS;
+                            return ExitCode.SUCCESS_STILL_RUNNING;
                         }
                     }
                 }
@@ -123,7 +125,7 @@ public class TakeHoeProgram {
                             parentProgram.currentFarm.inputsInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
                             parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot,parentProgram.worker));
-                            return ExitCode.EXIT_SUCCESS;
+                            return ExitCode.SUCCESS_STILL_RUNNING;
                         }
                     }
                 }
@@ -138,7 +140,7 @@ public class TakeHoeProgram {
                             parentProgram.currentFarm.specialResourcesInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
                             parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot,parentProgram.worker));
-                            return ExitCode.EXIT_SUCCESS;
+                            return ExitCode.SUCCESS_STILL_RUNNING;
                         }
                     }
                 }

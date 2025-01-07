@@ -23,6 +23,7 @@ import net.minecraft.world.level.pathfinder.Path;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
@@ -205,10 +206,16 @@ public class WorkerNPC extends PathfinderMob {
 
         this.updateSwingTime(); //wtf do i need to call this myself??
 
+        System.out.println(unreachableBlocks.size());
+
         if (!level().isClientSide) {
             // slowly forget unreachable blocks
-            if (level().getGameTime() % 1000 == 0 && !unreachableBlocks.isEmpty()) {
-                unreachableBlocks.remove(unreachableBlocks.iterator().next());
+            for (BlockPos i : unreachableBlocks.keySet()){
+                unreachableBlocks.put(i, unreachableBlocks.get(i)+1);
+                if(unreachableBlocks.get(i) > 20*120){
+                    unreachableBlocks.remove(i);
+                    break;
+                }
             }
         }
     }
@@ -233,7 +240,7 @@ public class WorkerNPC extends PathfinderMob {
     }
 
     int failTimeOut = 0;
-    HashSet<BlockPos> unreachableBlocks = new HashSet<>();
+    HashMap<BlockPos, Integer> unreachableBlocks = new HashMap<>();
     public ExitCode moveToPosition(BlockPos p, int precision) {
         if (p == null) return ExitCode.EXIT_FAIL;
 
@@ -242,7 +249,7 @@ public class WorkerNPC extends PathfinderMob {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        if (unreachableBlocks.contains(p)) {
+        if (unreachableBlocks.containsKey(p)) {
             return ExitCode.EXIT_FAIL;
         }
 
@@ -258,7 +265,7 @@ public class WorkerNPC extends PathfinderMob {
 
         if (getNavigation().getPath() == null || !getNavigation().getPath().canReach() || getNavigation().getTargetPos() == null || ProgramUtils.distanceManhattan(getNavigation().getTargetPos(), p) > precision) {
             // unable to go there
-            unreachableBlocks.add(p);
+            unreachableBlocks.put(p,0);
             return ExitCode.EXIT_FAIL;
         }
 
@@ -269,7 +276,7 @@ public class WorkerNPC extends PathfinderMob {
                 super.jumpControl.jump();
             }
             if (failTimeOut > 10) {
-                unreachableBlocks.add(p);
+                unreachableBlocks.put(p, 0);
                 return ExitCode.EXIT_FAIL;
             }
         } else {

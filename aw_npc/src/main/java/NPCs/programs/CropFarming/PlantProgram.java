@@ -21,16 +21,15 @@ public class PlantProgram {
         this.parentProgram = parentProgram;
     }
 
-    public static ItemStack getStackToPlantAtPosition(EntityCropFarm farm, WorkerNPC worker, BlockPos p) {
+    public ItemStack getStackToPlantAtPosition(EntityCropFarm farm, BlockPos p) {
         if (!farm.canPlant(p)) return ItemStack.EMPTY;
 
-        for (int i = 0; i < worker.inventory.getSlots(); ++i) {
-            ItemStack s = worker.inventory.getStackInSlot(i);
-            if (!s.isEmpty() && farm.isItemValidSeed(s)) {
+        for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); ++i) {
+            ItemStack s = parentProgram.worker.combinedInventory.getStackInSlot(i);
+            if (!s.isEmpty() && parentProgram.currentFarm.isItemValidSeed(s)) {
                 Item var5 = s.getItem();
-                if (var5 instanceof BlockItem) {
-                    BlockItem bi = (BlockItem) var5;
-                    if (bi.getBlock().defaultBlockState().canSurvive(worker.level(), p)) {
+                if (var5 instanceof BlockItem bi) {
+                    if (bi.getBlock().defaultBlockState().canSurvive(parentProgram.worker.level(), p)) {
                         return s;
                     }
                 }
@@ -39,9 +38,9 @@ public class PlantProgram {
         return ItemStack.EMPTY;
     }
 
-    public static boolean canPlantAny(EntityCropFarm farm, WorkerNPC worker) {
-        for (BlockPos p : farm.positionsToPlant) {
-            if (getStackToPlantAtPosition(farm, worker, p) != ItemStack.EMPTY) {
+    public boolean canPlantAny(EntityCropFarm target) {
+        for (BlockPos p : target.positionsToPlant) {
+            if (getStackToPlantAtPosition(target, p) != ItemStack.EMPTY) {
                 return true;
             }
         }
@@ -51,14 +50,17 @@ public class PlantProgram {
 
     public ExitCode run() {
         if (parentProgram.currentFarm.positionsToPlant.contains(currentPlantTarget)) {
-            ItemStack stackToPlant = getStackToPlantAtPosition(parentProgram.currentFarm, parentProgram.worker, currentPlantTarget);
+            ItemStack stackToPlant = getStackToPlantAtPosition(parentProgram.currentFarm, currentPlantTarget);
             if (!stackToPlant.isEmpty()) {
                 ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentPlantTarget, 3);
 
                 parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentPlantTarget.getCenter());
                 parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentPlantTarget.getCenter());
 
-                parentProgram.worker.setItemInHand(InteractionHand.OFF_HAND, stackToPlant);
+                if(!ItemStack.isSameItemSameComponents(parentProgram.worker.getMainHandItem(), stackToPlant) &&
+                        !ItemStack.isSameItemSameComponents(parentProgram.worker.getOffhandItem(), stackToPlant)) {
+                    ProgramUtils.moveItemStackToAnyHand(stackToPlant, parentProgram.worker);
+                }
 
                 if (pathFindExit.isFailed()) {
                     currentPlantTarget = null;
@@ -82,9 +84,11 @@ public class PlantProgram {
         }
         currentPlantTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
-            if (getStackToPlantAtPosition(parentProgram.currentFarm, parentProgram.worker, i) != ItemStack.EMPTY) {
-                currentPlantTarget = i;
+            if (getStackToPlantAtPosition(parentProgram.currentFarm, i) != ItemStack.EMPTY) {
                 if (!parentProgram.worker.moveToPosition(currentPlantTarget, 3).isFailed()) {
+
+                }else{
+                    currentPlantTarget = i;
                     return ExitCode.SUCCESS_STILL_RUNNING;
                 }
             }

@@ -5,6 +5,7 @@ import NPCs.WorkerNPC;
 import NPCs.programs.CropFarming.PlantProgram;
 import NPCs.programs.CropFarming.TakeHoeProgram;
 import NPCs.programs.CropFarming.TakeSeedsProgram;
+import NPCs.programs.CropFarming.TillProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -23,9 +24,10 @@ public class CropFarmingProgram extends Goal {
     public int timeoutForWorkCheck = 20 * 10;
     public boolean canUse = true;
 
-    TakeHoeProgram takeHoeProgram;
-    TakeSeedsProgram takeSeedsProgram;
-    PlantProgram plantProgram;
+    public TakeHoeProgram takeHoeProgram;
+    public TakeSeedsProgram takeSeedsProgram;
+    public PlantProgram plantProgram;
+    public TillProgram tillProgram;
 
     public CropFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
@@ -33,6 +35,7 @@ public class CropFarmingProgram extends Goal {
         takeHoeProgram = new TakeHoeProgram(this);
         takeSeedsProgram = new TakeSeedsProgram(this);
         plantProgram = new PlantProgram(this);
+        tillProgram = new TillProgram(this);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -40,19 +43,22 @@ public class CropFarmingProgram extends Goal {
     }
 
 
-    public static boolean hasWorkAtCropFarm(BlockPos p, WorkerNPC worker) {
+    public boolean hasWorkAtCropFarm(BlockPos p) {
 
         BlockEntity e = worker.level().getBlockEntity(p);
         if (!(e instanceof EntityCropFarm farm)) return false;
 
         // check if the farm has a hoe to take if worker does not already have one
-        if (TakeHoeProgram.canPickupHoeFromFarm(farm, worker)) return true;
+        if (takeHoeProgram.canPickupHoeFromFarm(farm)) return true;
 
         // check if the worker has any seeds in inventory. if not, check if he can take a seed from the farm. if yes, this farm has work
-        if (!TakeSeedsProgram. hasAnySeedItem(farm, worker) && TakeSeedsProgram.takeOneSeedFromFarm(farm, worker, true)) return true;
+        if (!takeSeedsProgram.hasAnySeedItem(farm, worker) && takeSeedsProgram.takeOneSeedFromFarm(farm,true)) return true;
 
         // if the worker can plant any seeds on the farm it has work
-        if(PlantProgram.canPlantAny(farm, worker)) return true;
+        if (plantProgram.canPlantAny(farm)) return true;
+
+        // if something can be tilled....
+        if (tillProgram.canTillAny(farm)) return true;
 
         return false;
     }
@@ -76,7 +82,7 @@ public class CropFarmingProgram extends Goal {
                     continue;
             }
             workCheckedTracker.put(p, gameTime);
-            if (hasWorkAtCropFarm(p, worker)) {
+            if (hasWorkAtCropFarm(p)) {
                 currentFarmPos = p;
                 return true;
             }
@@ -135,6 +141,10 @@ public class CropFarmingProgram extends Goal {
         if (tryPlantExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
         if (tryPlantExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
+        // try to till
+        ExitCode tryTillExit = tillProgram.run();
+        if (tryTillExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
+        if (tryTillExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
         return ExitCode.EXIT_SUCCESS;
     }

@@ -4,6 +4,7 @@ import Farms.CropFarm.EntityCropFarm;
 import NPCs.WorkerNPC;
 import NPCs.programs.CropFarmingProgram;
 import NPCs.programs.ExitCode;
+import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -11,7 +12,7 @@ import net.minecraft.world.item.ItemStack;
 public class TakeSeedsProgram {
     CropFarmingProgram parentProgram;
     int workDelay = 0;
-    int scanInterval = 20*10;
+    int scanInterval = 20 * 10;
     boolean hasWork = false;
     long lastScan = 0;
 
@@ -22,9 +23,10 @@ public class TakeSeedsProgram {
     }
 
 
-    public static boolean hasAnySeedItem(EntityCropFarm farm, WorkerNPC worker) {
-        for (int i = 0; i < worker.inventory.getSlots(); i++) {
-            ItemStack stackInSlot = worker.inventory.getStackInSlot(i);
+    public boolean hasAnySeedItem(EntityCropFarm farm, WorkerNPC worker) {
+
+        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+            ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
             if (farm.isItemValidSeed(stackInSlot)) {
                 return true;
             }
@@ -32,20 +34,20 @@ public class TakeSeedsProgram {
         return false;
     }
 
-    public static boolean takeOneSeedFromFarm(EntityCropFarm farm, WorkerNPC worker, boolean simulate) {
+    public boolean takeOneSeedFromFarm(EntityCropFarm farm, boolean simulate) {
         // check if the farm has any seed and if worker has space for seed
         for (int i = 0; i < farm.inputsInventory.getSlots(); i++) {
             ItemStack canExtract = farm.inputsInventory.extractItem(i, 1, true);
             if (!canExtract.isEmpty()) {
-                for (int j = 0; j < worker.inventory.getSlots(); j++) {
-                    ItemStack notInserted = worker.inventory.insertItem(j, canExtract, true);
+                for (int j = 0; j < parentProgram.worker.combinedInventory.getSlots(); j++) {
+                    ItemStack notInserted = parentProgram.worker.combinedInventory.insertItem(j, canExtract, true);
                     if (notInserted.isEmpty()) {
                         if (!simulate) {
                             // if it can be inserted, do the actual movement and break
-                            ItemStack extracted = farm.inputsInventory.extractItem(j, 1, false);
-                            worker.inventory.insertItem(i, extracted, false);
-                            worker.setItemInHand(InteractionHand.OFF_HAND, worker.inventory.getStackInSlot(i));
-                            worker.swing(InteractionHand.OFF_HAND);
+                            ItemStack extracted = farm.inputsInventory.extractItem(i, 1, false);
+                            parentProgram.worker.combinedInventory.insertItem(j, extracted, false);
+                            InteractionHand movedTo =  ProgramUtils.moveItemStackToAnyHand(parentProgram.worker.combinedInventory.getStackInSlot(j), parentProgram.worker);
+                            parentProgram.worker.swing(movedTo);
                         }
                         return true;
                     }
@@ -55,7 +57,7 @@ public class TakeSeedsProgram {
         return false;
     }
 
-    public void recalculateHasWork(){
+    public void recalculateHasWork() {
         hasWork = true;
 
         // if the worker already has one or more seed items he does not need to reload
@@ -64,11 +66,10 @@ public class TakeSeedsProgram {
         if (parentProgram.cachedDistanceToFarm > requiredDistance) {
             if (hasAnySeedItem(parentProgram.currentFarm, parentProgram.worker))
                 hasWork = false;
-        }
-        else{
+        } else {
             int seedItemsCount = 0;
-            for (int i = 0; i < parentProgram.worker.inventory.getSlots(); i++) {
-                ItemStack stackInSlot = parentProgram.worker.inventory.getStackInSlot(i);
+            for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
+                ItemStack stackInSlot = parentProgram.worker.combinedInventory.getStackInSlot(i);
                 if (parentProgram.currentFarm.isItemValidSeed(stackInSlot)) {
                     seedItemsCount += stackInSlot.getCount();
                 }
@@ -81,8 +82,8 @@ public class TakeSeedsProgram {
 
         // if previous filters did not prevent from wanting to take up items,
         // check if it can not pick up any seeds from the farm because inventory full or no seeds in farm, do not run
-        if(hasWork) {
-            if (!takeOneSeedFromFarm(parentProgram.currentFarm, parentProgram.worker, true)) {
+        if (hasWork) {
+            if (!takeOneSeedFromFarm(parentProgram.currentFarm,true)) {
                 hasWork = false;
             }
         }
@@ -91,12 +92,12 @@ public class TakeSeedsProgram {
 
     public ExitCode run() {
         long gameTime = parentProgram.worker.level().getGameTime();
-        if(gameTime > lastScan+scanInterval) {
+        if (gameTime > lastScan + scanInterval) {
             lastScan = gameTime;
             recalculateHasWork();
         }
 
-        if(!hasWork){
+        if (!hasWork) {
             return ExitCode.EXIT_SUCCESS;
         }
 
@@ -114,7 +115,7 @@ public class TakeSeedsProgram {
         if (workDelay > 20) {
             workDelay = 0;
             // try to take 1 seed item
-            takeOneSeedFromFarm(parentProgram.currentFarm,parentProgram.worker, false);
+            takeOneSeedFromFarm(parentProgram.currentFarm,false);
             recalculateHasWork();
         }
         workDelay++;

@@ -2,8 +2,12 @@ package NPCs;
 
 import NPCs.programs.CropFarmingProgram;
 import NPCs.programs.ExitCode;
+import NPCs.programs.ProgramUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -41,12 +45,108 @@ public class WorkerNPC extends PathfinderMob {
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
 
+    public ItemStackHandler combinedInventory = new ItemStackHandler(0) {
+
+        public void setStackInSlot(int slot, ItemStack stack) {
+            if (slot == 0)
+                setItemInHand(InteractionHand.MAIN_HAND, stack);
+            else if (slot == 1)
+                setItemInHand(InteractionHand.OFF_HAND, stack);
+            else {
+                inventory.setStackInSlot(slot - 2, stack);
+            }
+        }
+
+        public int getSlots() {
+            return 2 + inventory.getSlots();
+        }
+
+        public ItemStack getStackInSlot(int slot) {
+            if (slot == 0)
+                return getMainHandItem();
+            else if (slot == 1)
+                return getOffhandItem();
+            else {
+                return inventory.getStackInSlot(slot - 2);
+            }
+        }
+
+        public ItemStack insertItem(int slot, ItemStack stack, boolean simulate) {
+            if (slot >= 2) return inventory.insertItem(slot - 2, stack, simulate);
+
+            if (stack.isEmpty()) {
+                return ItemStack.EMPTY;
+            } else {
+                ItemStack existing = getStackInSlot(slot);
+                int limit = this.getStackLimit(slot, stack);
+                if (!existing.isEmpty()) {
+                    if (!ItemStack.isSameItemSameComponents(stack, existing)) {
+                        return stack;
+                    }
+                    limit -= existing.getCount();
+                }
+
+                if (limit <= 0) {
+                    return stack;
+                } else {
+                    boolean reachedLimit = stack.getCount() > limit;
+                    if (!simulate) {
+                        if (existing.isEmpty()) {
+                            setStackInSlot(slot, reachedLimit ? stack.copyWithCount(limit) : stack);
+                        } else {
+                            existing.grow(reachedLimit ? limit : stack.getCount());
+                        }
+
+                        this.onContentsChanged(slot);
+                    }
+
+                    return reachedLimit ? stack.copyWithCount(stack.getCount() - limit) : ItemStack.EMPTY;
+                }
+            }
+        }
+
+        public ItemStack extractItem(int slot, int amount, boolean simulate) {
+            if (slot >= 2) return inventory.extractItem(slot - 2, amount, simulate);
+
+            if (amount == 0) {
+                return ItemStack.EMPTY;
+            } else {
+                this.validateSlotIndex(slot);
+                ItemStack existing = getStackInSlot(slot);
+                if (existing.isEmpty()) {
+                    return ItemStack.EMPTY;
+                } else {
+                    int toExtract = Math.min(amount, existing.getMaxStackSize());
+                    if (existing.getCount() <= toExtract) {
+                        if (!simulate) {
+                            setStackInSlot(slot, ItemStack.EMPTY);
+                            this.onContentsChanged(slot);
+                            return existing;
+                        } else {
+                            return existing.copy();
+                        }
+                    } else {
+                        if (!simulate) {
+                            setStackInSlot(slot, existing.copyWithCount(existing.getCount() - toExtract));
+                            this.onContentsChanged(slot);
+                        }
+
+                        return existing.copyWithCount(toExtract);
+                    }
+                }
+            }
+        }
+
+        protected void validateSlotIndex(int slot) {
+        }
+    };
+
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
         this.setPersistenceRequired();
         this.noCulling = true;
         setGuaranteedDrop(EquipmentSlot.MAINHAND);
-        setDropChance(EquipmentSlot.OFFHAND,0); // this Stack will only hold reference to stacks in the inventory
+        setDropChance(EquipmentSlot.OFFHAND, 0); // this Stack will only hold reference to stacks in the inventory
         setGuaranteedDrop(EquipmentSlot.CHEST);
         setGuaranteedDrop(EquipmentSlot.HEAD);
         setGuaranteedDrop(EquipmentSlot.LEGS);
@@ -139,28 +239,24 @@ public class WorkerNPC extends PathfinderMob {
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
-
-        // offhand is only used for visuals holding references to itemStacks in the inventory
-        // when it saves and reloads it would double the items because
-        // it would put the last held item in the hand when it should not be there because it is in the inventory.
-        setItemInHand(InteractionHand.OFF_HAND, ItemStack.EMPTY);
-    }
-
-
-    public double distanceToSqr(BlockPos target) {
-        return getPosition(0).distanceToSqr(target.getCenter());
     }
 
     int ticksWithoutMove = 0;
     HashSet<BlockPos> unreachableBlocks = new HashSet<>();
 
     public ExitCode moveToPosition(BlockPos p, int precision) {
+        System.out.println("move"+p);
         if (p == null) return ExitCode.EXIT_FAIL;
-        if (unreachableBlocks.contains(p)) return ExitCode.EXIT_FAIL;
+        if (unreachableBlocks.contains(p)){
+            return ExitCode.EXIT_FAIL;
+        }
 
         int precisionSqr = precision * precision;
 
-        if (getNavigation().getPath() != null && distanceToSqr(p) <= precisionSqr) {
+        //if(        if (getNavigation().getPath() != null))
+        System.out.println(ProgramUtils.distanceToSqr(p, this) +":"+ precisionSqr);
+        if (getNavigation().getPath() != null && ProgramUtils.distanceToSqr(p, this) <= precisionSqr) {
+            System.out.println("dest reached"+p);
             return ExitCode.EXIT_SUCCESS;
         }
 

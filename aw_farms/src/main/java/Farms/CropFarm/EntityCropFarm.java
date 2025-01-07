@@ -12,10 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.BoneMealItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
@@ -50,7 +47,7 @@ public class EntityCropFarm extends EntityFarmBase {
     public ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return isItemValidSeed(stack);
+            return isItemValidSeed(stack) || stack.getItem() instanceof HoeItem;
         }
 
         @Override
@@ -62,9 +59,7 @@ public class EntityCropFarm extends EntityFarmBase {
     public ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (stack.getItem().equals(Items.BONE_MEAL))
-                return true;
-            else return false;
+            return stack.getItem().equals(Items.BONE_MEAL) || stack.getItem() instanceof HoeItem;
         }
 
         @Override
@@ -158,8 +153,6 @@ public class EntityCropFarm extends EntityFarmBase {
 
     public boolean canPlant(BlockPos p) {
         BlockState state = level.getBlockState(p);
-        if (state.isAir()) return true;
-        if (state.canBeReplaced()) return true;
 
         //if a stemBlock is around (melon/pumpkin) do not plant next to it
         for (int z = -1; z <= 1; z++) {
@@ -174,6 +167,9 @@ public class EntityCropFarm extends EntityFarmBase {
                 return false;
             }
         }
+
+        if (state.isAir()) return true;
+        if (state.canBeReplaced()) return true;
 
         return false;
     }

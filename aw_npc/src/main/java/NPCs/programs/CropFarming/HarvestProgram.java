@@ -48,13 +48,15 @@ public class HarvestProgram {
         if (parentProgram.currentFarm.positionsToHarvest.contains(currentHarvestTarget)) {
             ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentHarvestTarget, 3);
 
-            parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentHarvestTarget.getCenter());
-            parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentHarvestTarget.getCenter());
 
             if (pathFindExit.isFailed()) {
                 currentHarvestTarget = null;
                 return ExitCode.SUCCESS_STILL_RUNNING;
             } else if (pathFindExit.isCompleted()) {
+
+                parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentHarvestTarget.getCenter());
+                parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentHarvestTarget.getCenter());
+
                 workDelay++;
                 if (workDelay > 20) {
                     workDelay = 0;

@@ -60,7 +60,7 @@ public class TakeSeedsProgram {
         // if the worker already has one or more seed items he does not need to reload
         // but we want him not to load 1 item and run away and come back all the time
         // so if he is currently near the farm, count how many seeds he has and only if he has enough exit
-        if (parentProgram.cachedDistanceToFarm > requiredDistance) {
+        if (parentProgram.cachedDistanceManHattanToFarm > requiredDistance) {
             if (workerHasAnySeedItem())
                 hasWork = false;
         } else {
@@ -98,9 +98,6 @@ public class TakeSeedsProgram {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
-        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
-
         ExitCode pathFindExit = parentProgram.moveNearFarm(requiredDistance);
         if (pathFindExit.isFailed())
             return ExitCode.EXIT_FAIL;
@@ -108,6 +105,9 @@ public class TakeSeedsProgram {
             workDelay = 0;
             return ExitCode.SUCCESS_STILL_RUNNING;
         }
+
+        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
+        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
 
         if (workDelay > 20) {
             workDelay = 0;

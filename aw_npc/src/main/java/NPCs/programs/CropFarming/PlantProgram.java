@@ -52,9 +52,6 @@ public class PlantProgram {
             if (!stackToPlant.isEmpty()) {
                 ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentPlantTarget, 3);
 
-                parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentPlantTarget.getCenter());
-                parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentPlantTarget.getCenter());
-
                 if(!ItemStack.isSameItemSameComponents(parentProgram.worker.getMainHandItem(), stackToPlant) &&
                         !ItemStack.isSameItemSameComponents(parentProgram.worker.getOffhandItem(), stackToPlant)) {
                     ProgramUtils.moveItemStackToAnyHand(stackToPlant, parentProgram.worker);
@@ -64,6 +61,9 @@ public class PlantProgram {
                     currentPlantTarget = null;
                     return ExitCode.SUCCESS_STILL_RUNNING;
                 } else if (pathFindExit.isCompleted()) {
+                    parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentPlantTarget.getCenter());
+                    parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentPlantTarget.getCenter());
+
                     workDelay++;
                     if (workDelay > 20) {
                         workDelay = 0;

@@ -127,11 +127,6 @@ public class MainCropFarmingProgram extends Goal {
         currentFarm = farm;
         cachedDistanceManHattanToFarm = ProgramUtils.distanceManhattan(worker, currentFarmPos);
 
-        // first make sure you are anywhere near the farm
-        ExitCode moveNearFarmExit = moveNearFarm(128);
-        if (moveNearFarmExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (moveNearFarmExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-
 
         // make sure you have a valid hoe item or fail
         ExitCode takeHoeExit = takeHoeProgram.run();

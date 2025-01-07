@@ -85,8 +85,6 @@ public class TakeHoeProgram {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
-        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
 
         ExitCode pathFindExit = parentProgram.moveNearFarm(3);
         if (pathFindExit.isFailed())
@@ -95,6 +93,10 @@ public class TakeHoeProgram {
             workDelay = 0;
             return ExitCode.SUCCESS_STILL_RUNNING;
         }
+
+        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
+        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
+
 
         if (workDelay > 20) {
             workDelay = 0;

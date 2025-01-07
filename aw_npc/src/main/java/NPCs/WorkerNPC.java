@@ -147,13 +147,16 @@ public class WorkerNPC extends PathfinderMob {
         setGuaranteedDrop(EquipmentSlot.HEAD);
         setGuaranteedDrop(EquipmentSlot.LEGS);
         setGuaranteedDrop(EquipmentSlot.FEET);
+
+        super.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
+        super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 20.0D) // Default health
                 .add(Attributes.MOVEMENT_SPEED, 0.25D) // Default movement speed
-                .add(Attributes.FOLLOW_RANGE, 4096);
+                .add(Attributes.FOLLOW_RANGE, 1024);
     }
 
     @Override
@@ -208,12 +211,15 @@ public class WorkerNPC extends PathfinderMob {
 
     @Override
     public void tick() {
+
         super.tick();
+
+
         this.updateSwingTime(); //wtf do i need to call this myself??
 
         if (!level().isClientSide) {
             // slowly forget unreachable blocks
-            if (level().getGameTime() % 100 == 0 && !unreachableBlocks.isEmpty()) {
+            if (level().getGameTime() % 1000 == 0 && !unreachableBlocks.isEmpty()) {
                 unreachableBlocks.remove(unreachableBlocks.iterator().next());
             }
         }
@@ -245,7 +251,8 @@ public class WorkerNPC extends PathfinderMob {
     public ExitCode moveToPosition(BlockPos p, int precision) {
         if (p == null) return ExitCode.EXIT_FAIL;
 
-        if (ProgramUtils.distanceManhattan(this, p) <= precision+0.5) {
+        double distToTarget =ProgramUtils.distanceManhattan(this, p);
+        if (distToTarget <= precision+1) {
             return ExitCode.EXIT_SUCCESS;
         }
 
@@ -253,30 +260,30 @@ public class WorkerNPC extends PathfinderMob {
             return ExitCode.EXIT_FAIL;
         }
 
-        if (!p.equals(lastTarget)) {
-            lastTarget = p;
-            failTimeOut = 0;
-        }
-
         // pathfinder uses  distanceManhattan
-        if (getNavigation().getPath() == null || ProgramUtils.distanceManhattan(getNavigation().getPath().getTarget(), p) > precision+0.5 || getNavigation().isDone()||getNavigation().isStuck()) {
-            Path currentPath = getNavigation().createPath(p, precision);
-            if (currentPath == null || ProgramUtils.distanceManhattan(currentPath.getTarget(), p) > precision+0.5) {
-                // unable to go there
-                unreachableBlocks.add(p);
-                return ExitCode.EXIT_FAIL;
-            }
-            getNavigation().moveTo(currentPath, 1);
+        if ( getNavigation().getTargetPos() == null || ProgramUtils.distanceManhattan(getNavigation().getTargetPos(), p) > precision) {
+            System.out.println("create path:" +p+":"+precision);
+            failTimeOut = 0;
+            long t0 = System.nanoTime();
+            getNavigation().moveTo(p.getX(),p.getY(),p.getZ(),precision,1);
+            long t1 = System.nanoTime();
+            System.out.println("time:"+(double)(t1-t0) / 1000 / 1000);
+            return ExitCode.SUCCESS_STILL_RUNNING;
         }
 
+        if (getNavigation().getPath() == null || !getNavigation().getPath().canReach() || getNavigation().getTargetPos() == null || ProgramUtils.distanceManhattan(getNavigation().getTargetPos(), p) > precision) {
+            // unable to go there
+            unreachableBlocks.add(p);
+            return ExitCode.EXIT_FAIL;
+        }
 
         if (getNavigation().isStuck() || getNavigation().isDone()) {
             failTimeOut++;
-            if (failTimeOut > 10) {
+            if (failTimeOut > 5 && getNavigation().isStuck()) {
                 // try to jump if we are stuck
                 super.jumpControl.jump();
             }
-            if (failTimeOut > 30) {
+            if (failTimeOut > 10) {
                 unreachableBlocks.add(p);
                 return ExitCode.EXIT_FAIL;
             }

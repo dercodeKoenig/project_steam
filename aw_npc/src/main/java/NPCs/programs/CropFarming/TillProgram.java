@@ -59,13 +59,13 @@ public class TillProgram {
             if (canTillPosition(parentProgram.currentFarm, currentTillTarget)) {
                 ExitCode pathFindExit = parentProgram.worker.moveToPosition(currentTillTarget, 3);
 
-                parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentTillTarget.getCenter());
-                parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentTillTarget.getCenter());
-
                 if (pathFindExit.isFailed()) {
                     currentTillTarget = null;
                     return ExitCode.SUCCESS_STILL_RUNNING;
                 } else if (pathFindExit.isCompleted()) {
+                    parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentTillTarget.getCenter());
+                    parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentTillTarget.getCenter());
+
                     workDelay++;
                     if (workDelay > 20) {
                         workDelay = 0;

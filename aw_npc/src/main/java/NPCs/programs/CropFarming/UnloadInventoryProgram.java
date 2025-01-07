@@ -184,9 +184,6 @@ public class UnloadInventoryProgram {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
-        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
-
         if(!ItemStack.isSameItemSameComponents(parentProgram.worker.getMainHandItem(), nextStackToUnload) &&
                 !ItemStack.isSameItemSameComponents(parentProgram.worker.getOffhandItem(), nextStackToUnload)) {
             ProgramUtils.moveItemStackToAnyHand(nextStackToUnload, parentProgram.worker);
@@ -199,6 +196,9 @@ public class UnloadInventoryProgram {
             workDelay = 0;
             return ExitCode.SUCCESS_STILL_RUNNING;
         }
+
+        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
+        parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
 
         if (workDelay > 20) {
             workDelay = 0;

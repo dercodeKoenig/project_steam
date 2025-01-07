@@ -136,7 +136,7 @@ public class UnloadInventoryProgram {
                     if (notInserted.isEmpty()) {
                         if (!simulate) {
                             ItemStack extracted = parentProgram.worker.combinedInventory.extractItem(j, 1, false);
-                            farm.specialResourcesInventory.insertItem(j, extracted, false);
+                            farm.specialResourcesInventory.insertItem(i, extracted, false);
                         }
                         return true;
                     }
@@ -146,7 +146,7 @@ public class UnloadInventoryProgram {
                     if (notInserted.isEmpty()) {
                         if (!simulate) {
                             ItemStack extracted = parentProgram.worker.combinedInventory.extractItem(j, 1, false);
-                            farm.inputsInventory.insertItem(j, extracted, false);
+                            farm.inputsInventory.insertItem(i, extracted, false);
                         }
                         return true;
                     }
@@ -156,7 +156,7 @@ public class UnloadInventoryProgram {
                     if (notInserted.isEmpty()) {
                         if (!simulate) {
                             ItemStack extracted = parentProgram.worker.combinedInventory.extractItem(j, 1, false);
-                            farm.mainInventory.insertItem(j, extracted, false);
+                            farm.mainInventory.insertItem(i, extracted, false);
                         }
                         return true;
                     }

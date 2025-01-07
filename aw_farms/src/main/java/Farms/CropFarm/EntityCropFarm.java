@@ -129,7 +129,7 @@ public class EntityCropFarm extends EntityFarmBase {
         super.setRemoved();
     }
 
-    public boolean isItemValidSeed(ItemStack s) {
+    public static boolean isItemValidSeed(ItemStack s) {
         if (s.getItem() instanceof BlockItem bi) {
             Block itemBlock = bi.getBlock();
             if (itemBlock instanceof CropBlock) {

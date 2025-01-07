@@ -27,6 +27,7 @@ public class CropFarmingProgram extends Goal {
     public PlantProgram plantProgram;
     public TillProgram tillProgram;
     public HarvestProgram harvestProgram;
+    public UnloadInventoryProgram unloadInventoryProgram;
 
     public CropFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
@@ -36,6 +37,7 @@ public class CropFarmingProgram extends Goal {
         plantProgram = new PlantProgram(this);
         tillProgram = new TillProgram(this);
         harvestProgram = new HarvestProgram(this);
+        unloadInventoryProgram = new UnloadInventoryProgram(this);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -52,7 +54,7 @@ public class CropFarmingProgram extends Goal {
         if (takeHoeProgram.canPickupHoeFromFarm(farm)) return true;
 
         // check if the worker has any seeds in inventory. if not, check if he can take a seed from the farm. if yes, this farm has work
-        if (!takeSeedsProgram.hasAnySeedItem(farm, worker) && takeSeedsProgram.takeOneSeedFromFarm(farm,true)) return true;
+        if (takeSeedsProgram.recalculateHasWork(farm)) return true;
 
         // if the worker can plant any seeds on the farm it has work
         if (plantProgram.canPlantAny(farm)) return true;
@@ -60,7 +62,11 @@ public class CropFarmingProgram extends Goal {
         // if something can be tilled....
         if (tillProgram.canTillAny(farm)) return true;
 
-        if(harvestProgram.canHarvestAny(farm)) return true;
+        // check if he can harvest anything
+        if (harvestProgram.canHarvestAny(farm)) return true;
+
+        // check if he can unload his inventory there
+        if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
 
         return false;
     }
@@ -153,6 +159,11 @@ public class CropFarmingProgram extends Goal {
         if (tryHarvestExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
         if (tryHarvestExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
+        // try to unload Inventory
+        ExitCode tryUnloadExit = unloadInventoryProgram.run();
+        if (tryUnloadExit.isFailed()) return ExitCode.EXIT_FAIL;
+        if (tryUnloadExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+
         return ExitCode.EXIT_SUCCESS;
     }
 
@@ -163,36 +174,4 @@ public class CropFarmingProgram extends Goal {
         }
         return ExitCode.EXIT_SUCCESS;
     }
-
-
 }
-
-
-/*
-    int waitBeforeHarvest = 0;
-    boolean programHarvest() {
-        if (!currentFarm.positionsToHarvest.isEmpty()) {
-            for (BlockPos currentHarvestTarget : currentFarm.positionsToHarvest) {
-                if (unreachableBlocks.contains(currentHarvestTarget)) {
-                    continue;
-                }
-                if (distanceTo(currentHarvestTarget) > 3) {
-                    if (!moveToPosition(currentHarvestTarget, 2)) {
-                        unreachableBlocks.add(currentHarvestTarget);
-                    }
-                    waitBeforeHarvest = 0;
-                } else {
-                    waitBeforeHarvest++;
-                    if(waitBeforeHarvest > 20) {
-                        waitBeforeHarvest = 0;
-                        currentFarm.positionsToHarvest.remove(currentHarvestTarget);
-                        currentFarm.harvestPosition(currentHarvestTarget);
-                        worker.swing(InteractionHand.MAIN_HAND);
-                    }
-                }
-                return true;
-            }
-        }
-        return false;
-    }
- */

@@ -1,7 +1,6 @@
 package NPCs.programs.CropFarming;
 
 import Farms.CropFarm.EntityCropFarm;
-import NPCs.WorkerNPC;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -22,11 +21,10 @@ public class TakeSeedsProgram {
     }
 
 
-    public boolean hasAnySeedItem(EntityCropFarm farm, WorkerNPC worker) {
-
-        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
-            ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
-            if (farm.isItemValidSeed(stackInSlot)) {
+    public boolean workerHasAnySeedItem() {
+        for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
+            ItemStack stackInSlot = parentProgram.worker.combinedInventory.getStackInSlot(i);
+            if (EntityCropFarm.isItemValidSeed(stackInSlot)) {
                 return true;
             }
         }
@@ -45,7 +43,7 @@ public class TakeSeedsProgram {
                             // if it can be inserted, do the actual movement and break
                             ItemStack extracted = farm.inputsInventory.extractItem(i, 1, false);
                             parentProgram.worker.combinedInventory.insertItem(j, extracted, false);
-                            InteractionHand movedTo =  ProgramUtils.moveItemStackToAnyHand(parentProgram.worker.combinedInventory.getStackInSlot(j), parentProgram.worker);
+                            InteractionHand movedTo = ProgramUtils.moveItemStackToAnyHand(parentProgram.worker.combinedInventory.getStackInSlot(j), parentProgram.worker);
                             parentProgram.worker.swing(movedTo);
                         }
                         return true;
@@ -56,20 +54,20 @@ public class TakeSeedsProgram {
         return false;
     }
 
-    public void recalculateHasWork() {
+    public boolean recalculateHasWork(EntityCropFarm farm) {
         hasWork = true;
 
         // if the worker already has one or more seed items he does not need to reload
         // but we want him not to load 1 item and run away and come back all the time
         // so if he is currently near the farm, count how many seeds he has and only if he has enough exit
         if (parentProgram.cachedDistanceToFarm > requiredDistance) {
-            if (hasAnySeedItem(parentProgram.currentFarm, parentProgram.worker))
+            if (workerHasAnySeedItem())
                 hasWork = false;
         } else {
             int seedItemsCount = 0;
             for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
                 ItemStack stackInSlot = parentProgram.worker.combinedInventory.getStackInSlot(i);
-                if (parentProgram.currentFarm.isItemValidSeed(stackInSlot)) {
+                if (EntityCropFarm.isItemValidSeed(stackInSlot)) {
                     seedItemsCount += stackInSlot.getCount();
                 }
             }
@@ -82,18 +80,18 @@ public class TakeSeedsProgram {
         // if previous filters did not prevent from wanting to take up items,
         // check if it can not pick up any seeds from the farm because inventory full or no seeds in farm, do not run
         if (hasWork) {
-            if (!takeOneSeedFromFarm(parentProgram.currentFarm,true)) {
+            if (!takeOneSeedFromFarm(farm, true)) {
                 hasWork = false;
             }
         }
-
+        return hasWork;
     }
 
     public ExitCode run() {
         long gameTime = parentProgram.worker.level().getGameTime();
         if (gameTime > lastScan + scanInterval) {
             lastScan = gameTime;
-            recalculateHasWork();
+            recalculateHasWork(parentProgram.currentFarm);
         }
 
         if (!hasWork) {
@@ -103,7 +101,7 @@ public class TakeSeedsProgram {
         parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
         parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
 
-        ExitCode pathFindExit = parentProgram.moveNearFarm(3);
+        ExitCode pathFindExit = parentProgram.moveNearFarm(requiredDistance);
         if (pathFindExit.isFailed())
             return ExitCode.EXIT_FAIL;
         else if (pathFindExit.isStillRunning()) {
@@ -114,8 +112,8 @@ public class TakeSeedsProgram {
         if (workDelay > 20) {
             workDelay = 0;
             // try to take 1 seed item
-            takeOneSeedFromFarm(parentProgram.currentFarm,false);
-            recalculateHasWork();
+            takeOneSeedFromFarm(parentProgram.currentFarm, false);
+            recalculateHasWork(parentProgram.currentFarm);
         }
         workDelay++;
 

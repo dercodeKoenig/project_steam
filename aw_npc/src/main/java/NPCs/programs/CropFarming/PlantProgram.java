@@ -72,7 +72,10 @@ public class PlantProgram {
                         // time to plant
                         parentProgram.worker.level().setBlock(currentPlantTarget, ((BlockItem) (stackToPlant.getItem())).getBlock().defaultBlockState(), 3);
                         stackToPlant.shrink(1);
-                        parentProgram.worker.swing(InteractionHand.OFF_HAND);
+                        if(parentProgram.worker.getMainHandItem().getItem().equals(stackToPlant.getItem()))
+                            parentProgram.worker.swing(InteractionHand.MAIN_HAND);
+                        else if(parentProgram.worker.getOffhandItem().getItem().equals(stackToPlant.getItem()))
+                            parentProgram.worker.swing(InteractionHand.OFF_HAND);
                         parentProgram.currentFarm.positionsToPlant.remove(currentPlantTarget);
                     }
                 } else {

@@ -262,7 +262,7 @@ BlockPos lastTarget = null;
                 unreachableBlocks.add(p);
                 return ExitCode.EXIT_FAIL;
             }
-            Path currentPath = getNavigation().createPath(p, precision-1);
+            Path currentPath = getNavigation().createPath(p, precision);
             getNavigation().moveTo(currentPath, 1);
         } else {
             failTimeOut = 0;

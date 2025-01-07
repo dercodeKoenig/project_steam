@@ -32,9 +32,10 @@ public class TakeSeedsProgram {
 
     public boolean takeOneSeedFromFarm(EntityCropFarm farm, boolean simulate) {
         // check if the farm has any seed and if worker has space for seed
+        // farm can also have hoe in the inputs inventory, so verify
         for (int i = 0; i < farm.inputsInventory.getSlots(); i++) {
             ItemStack canExtract = farm.inputsInventory.extractItem(i, 1, true);
-            if (!canExtract.isEmpty()) {
+            if (!canExtract.isEmpty() && EntityCropFarm.isItemValidSeed(canExtract)) {
                 for (int j = 0; j < parentProgram.worker.combinedInventory.getSlots(); j++) {
                     ItemStack notInserted = parentProgram.worker.combinedInventory.insertItem(j, canExtract, true);
                     if (notInserted.isEmpty()) {

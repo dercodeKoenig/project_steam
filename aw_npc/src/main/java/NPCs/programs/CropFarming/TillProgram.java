@@ -13,11 +13,11 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class TillProgram {
 
-    CropFarmingProgram parentProgram;
+    MainCropFarmingProgram parentProgram;
     BlockPos currentTillTarget = null;
     int workDelay = 0;
 
-    public TillProgram(CropFarmingProgram parentProgram) {
+    public TillProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 

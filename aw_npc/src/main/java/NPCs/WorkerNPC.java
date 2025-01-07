@@ -1,6 +1,6 @@
 package NPCs;
 
-import NPCs.programs.CropFarming.CropFarmingProgram;
+import NPCs.programs.CropFarming.MainCropFarmingProgram;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.core.BlockPos;
@@ -168,7 +168,7 @@ public class WorkerNPC extends PathfinderMob {
         if (worktype != WorkTypes.UNEMPLOYED) {
 
             if (worktype == WorkTypes.FARMER) {
-                this.goalSelector.addGoal(priority++, new CropFarmingProgram(this));
+                this.goalSelector.addGoal(priority++, new MainCropFarmingProgram(this));
 
             }
             // empty inventory if > 50% full

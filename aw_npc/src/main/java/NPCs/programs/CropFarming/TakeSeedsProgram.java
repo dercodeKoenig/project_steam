@@ -8,7 +8,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 
 public class TakeSeedsProgram {
-    CropFarmingProgram parentProgram;
+    MainCropFarmingProgram parentProgram;
     int workDelay = 0;
     int scanInterval = 20 * 10;
     boolean hasWork = false;
@@ -16,7 +16,7 @@ public class TakeSeedsProgram {
 
     int requiredDistance = 3;
 
-    public TakeSeedsProgram(CropFarmingProgram parentProgram) {
+    public TakeSeedsProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 

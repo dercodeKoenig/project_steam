@@ -10,11 +10,11 @@ import net.minecraft.world.item.ItemStack;
 
 public class TakeHoeProgram {
 
-    CropFarmingProgram parentProgram;
+    MainCropFarmingProgram parentProgram;
     int workDelay = 0;
     int cachedHoeIndex = 0;
 
-    public TakeHoeProgram(CropFarmingProgram parentProgram) {
+    public TakeHoeProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 

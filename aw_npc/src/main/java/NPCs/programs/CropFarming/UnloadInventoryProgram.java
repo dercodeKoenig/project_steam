@@ -10,7 +10,7 @@ import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 
 public class UnloadInventoryProgram {
-        CropFarmingProgram parentProgram;
+        MainCropFarmingProgram parentProgram;
         int scanInterval = 20 * 10;
     int keepSeedNum = 64*1;
     int keepFoodNum = 8;
@@ -21,7 +21,7 @@ public class UnloadInventoryProgram {
     long lastScan = 0;
     ItemStack nextStackToUnload;
 
-        public UnloadInventoryProgram(CropFarmingProgram parentProgram) {
+        public UnloadInventoryProgram(MainCropFarmingProgram parentProgram) {
             this.parentProgram = parentProgram;
         }
 

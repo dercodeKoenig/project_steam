@@ -9,7 +9,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -17,12 +16,12 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import java.util.List;
 
 public class HarvestProgram {
-    CropFarmingProgram parentProgram;
+    MainCropFarmingProgram parentProgram;
     BlockPos currentHarvestTarget = null;
     int workDelay = 0;
     int requiredFreeSlotsToHarvest = 3;
 
-    public HarvestProgram(CropFarmingProgram parentProgram) {
+    public HarvestProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 

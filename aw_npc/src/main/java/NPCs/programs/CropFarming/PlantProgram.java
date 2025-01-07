@@ -11,11 +11,11 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class PlantProgram {
-    CropFarmingProgram parentProgram;
+    MainCropFarmingProgram parentProgram;
     BlockPos currentPlantTarget = null;
     int workDelay = 0;
 
-    public PlantProgram(CropFarmingProgram parentProgram) {
+    public PlantProgram(MainCropFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 

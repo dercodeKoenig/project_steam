@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-public class CropFarmingProgram extends Goal {
+public class MainCropFarmingProgram extends Goal {
 
     public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
 
@@ -29,7 +29,7 @@ public class CropFarmingProgram extends Goal {
     public HarvestProgram harvestProgram;
     public UnloadInventoryProgram unloadInventoryProgram;
 
-    public CropFarmingProgram(WorkerNPC worker) {
+    public MainCropFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
         takeHoeProgram = new TakeHoeProgram(this);

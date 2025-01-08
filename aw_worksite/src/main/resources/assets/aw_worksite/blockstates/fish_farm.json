@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": {"model": "aw_worksite:block/fish_farm"},
+        "facing=south": {"model": "aw_worksite:block/fish_farm", "y": 180},
+        "facing=west": {"model": "aw_worksite:block/fish_farm", "y": 270},
+        "facing=east": {"model": "aw_worksite:block/fish_farm", "y": 90}
+    }
+}

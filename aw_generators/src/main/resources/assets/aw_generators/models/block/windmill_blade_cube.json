@@ -1,0 +1,6 @@
+{
+  "parent": "block/cube_all",
+  "textures": {
+    "all": "aw_generators:block/windmill_blade_cube"
+  }
+}

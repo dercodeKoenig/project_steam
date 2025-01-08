@@ -1,8 +1,0 @@
-{
-    "variants": {
-        "facing=north": {"model": "aw_farms:block/quarry"},
-        "facing=south": {"model": "aw_farms:block/quarry", "y": 180},
-        "facing=west": {"model": "aw_farms:block/quarry", "y": 270},
-        "facing=east": {"model": "aw_farms:block/quarry", "y": 90}
-    }
-}

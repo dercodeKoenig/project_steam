@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "GCG",
+    "P P",
+    "P P"
+  ],
+  "key": {
+    "P": {
+      "tag": "minecraft:planks"
+    },
+    "C": {
+      "item": "age_of_steam:casing"
+    },
+    "G": {
+      "item": "age_of_steam:wooden_gear"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:sieve",
+    "count": 1
+  }
+}

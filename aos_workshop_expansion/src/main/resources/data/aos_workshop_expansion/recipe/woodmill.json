@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "iAi",
+    "i i",
+    "CCC"
+  ],
+  "key": {
+    "A": {
+      "item": "minecraft:iron_axe"
+    },
+    "C": {
+      "item": "age_of_steam:casing"
+    },
+    "i": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:woodmill",
+    "count": 1
+  }
+}

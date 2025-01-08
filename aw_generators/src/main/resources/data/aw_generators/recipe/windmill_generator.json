@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "PSP",
+    "SAS",
+    "PSP"
+  ],
+  "key": {
+    "P": {
+      "item": "minecraft:string"
+    },
+    "A": {
+      "item": "age_of_steam:wooden_axle"
+    },
+    "S": {
+      "item": "minecraft:stick"
+    }
+  },
+  "result": {
+    "id": "aw_generators:windmill_generator",
+    "count": 1
+  }
+}

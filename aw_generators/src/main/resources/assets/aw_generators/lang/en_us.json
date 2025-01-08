@@ -1,0 +1,14 @@
+{
+  "block.aw_generators.waterwheel_generator": "Water Wheel Generator",
+  "item.aw_generators.waterwheel_generator": "Water Wheel Generator",
+
+  "block.aw_generators.stirling_generator": "Stirling Generator",
+  "item.aw_generators.stirling_generator": "Stirling Generator",
+
+  "block.aw_generators.windmill_generator": "Windmill Generator",
+  "item.aw_generators.windmill_generator": "Windmill Generator",
+
+  "block.aw_generators.windmill_blade": "Windmill Blade",
+  "item.aw_generators.windmill_vlade": "Windmill Blade"
+}
+

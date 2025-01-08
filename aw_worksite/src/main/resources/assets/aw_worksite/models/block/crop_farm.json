@@ -1,0 +1,12 @@
+{
+    "parent": "minecraft:block/cube",
+    "textures": {
+        "particle": "aw_worksite:block/farm_front",
+        "down": "aw_worksite:block/farm_bottom",
+        "up": "aw_worksite:block/crop_farm_top",
+        "north": "aw_worksite:block/farm_front",
+        "south": "aw_worksite:block/farm_front",
+        "east": "aw_worksite:block/farm_side",
+        "west": "aw_worksite:block/farm_side"
+    }
+}

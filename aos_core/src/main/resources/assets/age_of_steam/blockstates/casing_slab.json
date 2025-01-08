@@ -1,0 +1,13 @@
+{
+    "variants": {
+        "type=bottom": {
+            "model": "age_of_steam:block/casing_slab"
+        },
+        "type=double": {
+            "model": "age_of_steam:block/casing"
+        },
+        "type=top": {
+            "model": "age_of_steam:block/casing_slab", "x": 180
+        }
+    }
+}

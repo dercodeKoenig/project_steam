@@ -1,0 +1,97 @@
+{
+  "loader": "neoforge:obj",
+  "model": "aos_workshop_expansion:models/item/mechanical_sieve.obj",
+  "mtl_override": "aos_workshop_expansion:models/item/mechanical_sieve.mtl",
+  "automatic_culling": false,
+  "shade_quads": false,
+  "flip_v": true,
+  "emissive_ambient": false,
+  "display": {
+    "gui": {
+      "rotation": [
+        20,
+        10,
+        10
+      ],
+      "translation": [
+        8,
+        8,
+        0
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "firstperson_righthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        8,
+        8,
+        8
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "firstperson_lefthand": {
+      "rotation": [
+        0,
+        0,
+        0
+      ],
+      "translation": [
+        -8,
+        8,
+        8
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+    "thirdperson_lefthand": {
+      "rotation": [
+        90,
+        0,
+        0
+      ],
+      "translation": [
+        -8,
+        -8,
+        8
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    },
+
+    "thirdperson_righthand": {
+      "rotation": [
+        90,
+        0,
+        0
+      ],
+      "translation": [
+        8,
+        -8,
+        8
+      ],
+      "scale": [
+        1,
+        1,
+        1
+      ]
+    }
+  }
+}

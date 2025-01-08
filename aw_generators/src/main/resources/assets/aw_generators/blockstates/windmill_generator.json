@@ -1,0 +1,20 @@
+{
+    "multipart": [
+        {
+            "when": { "facing": "north" },
+            "apply": { "model": "aw_generators:block/windmill_generator", "y": 0 }
+        },
+        {
+            "when": { "facing": "south" },
+            "apply": { "model": "aw_generators:block/windmill_generator", "y": 180 }
+        },
+        {
+            "when": { "facing": "west" },
+            "apply": { "model": "aw_generators:block/windmill_generator", "y": 270 }
+        },
+        {
+            "when": { "facing": "east" },
+            "apply": { "model": "aw_generators:block/windmill_generator", "y": 90 }
+        }
+    ]
+}

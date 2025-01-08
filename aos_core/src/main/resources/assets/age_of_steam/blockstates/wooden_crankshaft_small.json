@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "axis=z": {
+            "model": "age_of_steam:block/crankshaft_base_small"
+        },
+        "axis=x": {
+            "model": "age_of_steam:block/crankshaft_base_small", "y": 90
+        }
+    }
+}

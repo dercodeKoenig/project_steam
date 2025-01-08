@@ -1,0 +1,32 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "0": "age_of_steam:block/casing_frame",
+    "1": "age_of_steam:block/gearbox2",
+    "particle": "age_of_steam:block/andesite_casing"
+  },
+  "elements": [
+    {
+      "name": "Core1",
+      "from": [0.95, 2, 14.05],
+      "to": [15.05, 14, 15.05],
+      "faces": {
+        "north": {"uv": [16, 2, 0, 14], "texture": "#1"},
+        "south": {"uv": [0, 2, 16, 14], "texture": "#1"},
+        "east": {"uv": [0, 2, 1, 14], "texture": "#1"},
+        "west": {"uv": [0, 2, 1, 14], "texture": "#1"}
+      }
+    },
+    {
+      "name": "Core2",
+      "from": [0.95, 2, 0.95],
+      "to": [15.05, 14, 1.95],
+      "faces": {
+        "north": {"uv": [16, 2, 0, 14], "texture": "#1"},
+        "south": {"uv": [0, 2, 16, 14], "texture": "#1"},
+        "east": {"uv": [0, 2, 1, 14], "texture": "#1"},
+        "west": {"uv": [0, 2, 1, 14], "texture": "#1"}
+      }
+    }
+  ]
+}

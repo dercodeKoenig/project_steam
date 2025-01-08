@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smelting",
+  "category": "food",
+  "cookingtime": 200,
+  "experience": 0.35,
+  "ingredient": {
+    "item": "aos_workshop_expansion:flour"
+  },
+  "result": {
+    "id": "minecraft:bread"
+  }
+}

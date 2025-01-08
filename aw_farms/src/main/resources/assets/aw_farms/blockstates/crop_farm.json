@@ -1,8 +1,0 @@
-{
-    "variants": {
-        "facing=north": {"model": "aw_farms:block/crop_farm"},
-        "facing=south": {"model": "aw_farms:block/crop_farm", "y": 180},
-        "facing=west": {"model": "aw_farms:block/crop_farm", "y": 270},
-        "facing=east": {"model": "aw_farms:block/crop_farm", "y": 90}
-    }
-}

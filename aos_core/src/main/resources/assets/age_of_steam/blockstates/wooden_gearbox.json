@@ -1,0 +1,37 @@
+{
+    "multipart": [
+        {
+            "when": { "facing": "north" },
+            "apply": { "model": "age_of_steam:block/wooden_gearbox", "y": 180 }
+        },
+        {
+            "when": { "facing": "south" },
+            "apply": { "model": "age_of_steam:block/wooden_gearbox", "y": 0 }
+        },
+        {
+            "when": { "facing": "east" },
+            "apply": { "model": "age_of_steam:block/wooden_gearbox", "y": 270 }
+        },
+        {
+            "when": { "facing": "west" },
+            "apply": { "model": "age_of_steam:block/wooden_gearbox", "y": 90 }
+        },
+
+        {
+            "when": { "solid_conn_up": "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small" }
+        },
+        {
+            "when": { "solid_conn_down": "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small", "x": 180 }
+        },
+        {
+            "when": { "solid_conn_up": "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended" }
+        },
+        {
+            "when": { "solid_conn_down": "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended", "x": 180 }
+        }
+    ]
+}

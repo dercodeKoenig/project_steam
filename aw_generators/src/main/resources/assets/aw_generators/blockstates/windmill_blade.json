@@ -1,0 +1,10 @@
+{
+    "variants": {
+        "state=false": {
+            "model": "aw_generators:block/windmill_blade_cube"
+        },
+        "state=true": {
+            "model": "minecraft:block/air"
+        }
+    }
+}

@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "III",
+    "   "
+  ],
+  "key": {
+    "I": {
+      "tag": "minecraft:wooden_slabs"
+    }
+  },
+  "result": {
+    "id": "age_of_steam:wooden_axle",
+    "count": 1
+  }
+}

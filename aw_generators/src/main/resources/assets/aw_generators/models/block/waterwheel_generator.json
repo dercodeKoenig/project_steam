@@ -1,0 +1,11 @@
+{
+    "loader": "neoforge:obj",
+    "model": "aw_generators:models/block/waterwheel_generator.obj",
+    "mtl_override": "aw_generators:models/block/waterwheel_generator.mtl",
+    "automatic_culling": false,
+    "flip_v": true,
+    "emissive_ambient": false,
+    "textures": {
+        "particle": "aw_generators:block/andesite_casing"
+    }
+}

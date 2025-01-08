@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    "GWG",
+    " C "
+  ],
+  "key": {
+    "W": {
+      "item": "minecraft:iron_hoe"
+    },
+    "G": {
+      "item": "age_of_steam:wooden_gear"
+    },
+    "C": {
+      "item": "minecraft:chest"
+    }
+  },
+  "result": {
+    "id": "aw_worksite:crop_farm",
+    "count": 1
+  }
+}

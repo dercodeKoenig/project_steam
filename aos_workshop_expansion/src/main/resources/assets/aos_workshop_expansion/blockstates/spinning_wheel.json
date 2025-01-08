@@ -1,0 +1,20 @@
+{
+    "multipart": [
+        {
+            "when": { "facing": "north" },
+            "apply": { "model": "aos_workshop_expansion:block/spinning_wheel", "y": 180 }
+        },
+        {
+            "when": { "facing": "south" },
+            "apply": { "model": "aos_workshop_expansion:block/spinning_wheel", "y": 0 }
+        },
+        {
+            "when": { "facing": "west" },
+            "apply": { "model": "aos_workshop_expansion:block/spinning_wheel", "y": 90 }
+        },
+        {
+            "when": { "facing": "east" },
+            "apply": { "model": "aos_workshop_expansion:block/spinning_wheel", "y": 270 }
+        }
+    ]
+}

@@ -1,0 +1,15 @@
+{
+    "variants": {
+        "axis=x": {
+            "model": "age_of_steam:block/wooden_axle_encased",
+            "y": 90
+        },
+        "axis=y": {
+            "model": "age_of_steam:block/wooden_axle_encased",
+            "x": 90
+        },
+        "axis=z": {
+            "model": "age_of_steam:block/wooden_axle_encased"
+        }
+    }
+}

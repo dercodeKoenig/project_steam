@@ -1,0 +1,13 @@
+{
+  "block.aw_worksite.fish_farm": "Fish Farm",
+  "item.aw_worksite.fish_farm": "Fish Farm",
+
+  "block.aw_worksite.tree_farm": "Tree Farm",
+  "item.aw_worksite.tree_farm": "Tree Farm",
+
+  "block.aw_worksite.crop_farm": "Crop Farm",
+  "item.aw_worksite.crop_farm": "Crop Farm",
+
+  "block.aw_worksite.quarry": "Quarry",
+  "item.aw_worksite.quarry": "Quarry"
+}

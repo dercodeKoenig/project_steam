@@ -1,0 +1,17 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "   ",
+    " S ",
+    "   "
+  ],
+  "key": {
+    "S": {
+      "item": "age_of_steam:motor"
+    }
+  },
+  "result": {
+    "id": "age_of_steam:motor",
+    "count": 1
+  }
+}

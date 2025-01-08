@@ -1,0 +1,163 @@
+package AgeOfSteam.Blocks.Mechanics.FlyWheel;
+
+import ARLib.network.INetworkTagReceiver;
+import ARLib.network.PacketBlockEntity;
+import AgeOfSteam.Core.AbstractMechanicalBlock;
+import AgeOfSteam.Core.IMechanicalBlockProvider;
+import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
+import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.UUID;
+
+import static AgeOfSteam.Blocks.Mechanics.FlyWheel.BlockFlyWheelBase.ROTATION_AXIS;
+
+public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver {
+
+    public double myInertia;
+    public double myFriction;
+    public double maxStress;
+
+    int rotationoffset;
+
+    public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
+        @Override
+        public double getMaxStress() {
+            return maxStress;
+        }
+
+        @Override
+        public double getInertia(Direction face) {
+            return myInertia;
+        }
+
+        @Override
+        public double getTorqueResistance(Direction face) {
+            return myFriction;
+        }
+
+        @Override
+        public double getTorqueProduced(Direction face) {
+            return 0;
+        }
+
+        @Override
+        public double getRotationMultiplierToInside(@org.jetbrains.annotations.Nullable Direction receivingFace) {
+            return 1;
+        }
+
+        @Override
+        public void propagateResetRotation(double rotation, Direction receivingFace, HashSet<AbstractMechanicalBlock> workedPositions) {
+            if (!workedPositions.contains(this)) {
+                workedPositions.add(this);
+                Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
+
+
+                if (receivingFace != null) {
+                    rotation += rotationoffset * 90;
+                }
+
+                currentRotation = rotation;
+
+                for (Direction i : connections.keySet()) {
+                    double rotationToOutside = (currentRotation - rotationoffset * 90) * getRotationMultiplierToOutside(i);
+                    connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
+                }
+            }
+        }
+    };
+
+    public EntityFlyWheelBase(BlockEntityType t, BlockPos pos, BlockState blockState) {
+        super(t, pos, blockState);
+    }
+
+    @Override
+    public void setRemoved() {
+        super.setRemoved();
+    }
+
+
+    public void tick(){
+        myMechanicalBlock.mechanicalTick();
+    }
+
+    public static <T extends BlockEntity> void tick(Level level, BlockPos blockPos, BlockState blockState, T t) {
+        ((EntityFlyWheelBase) t).tick();
+    }
+
+    @Override
+    public AbstractMechanicalBlock getMechanicalBlock(Direction side) {
+        BlockState myState = getBlockState();
+        if (myState.getBlock() instanceof BlockFlyWheelBase) {
+            Direction.Axis blockAxis = myState.getValue(ROTATION_AXIS);
+            if (side.getAxis() == blockAxis) {
+                return myMechanicalBlock;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public BlockEntity getBlockEntity(){return this;}
+
+
+    @Override
+    public void onLoad() {
+        super.onLoad();
+        myMechanicalBlock.mechanicalOnload();
+        if (level.isClientSide) {
+            CompoundTag i = new CompoundTag();
+            i.putUUID("request_rotationOffset", Minecraft.getInstance().player.getUUID());
+            PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
+        }
+    }
+
+
+    @Override
+    public void readClient(CompoundTag tag) {
+        if (tag.contains("rotationOffset")) {
+            rotationoffset = tag.getInt("rotationOffset");
+            myMechanicalBlock.propagateResetRotation(myMechanicalBlock.currentRotation + 90, null, new HashSet<>());
+        }
+        myMechanicalBlock.mechanicalReadClient(tag);
+    }
+
+    @Override
+    public void readServer(CompoundTag tag) {
+        if (tag.contains("request_rotationOffset")) {
+            UUID from = tag.getUUID("request_rotationOffset");
+            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+            CompoundTag res = new CompoundTag();
+            res.putInt("rotationOffset", rotationoffset);
+            if (p != null) {
+                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, res));
+            }
+        }
+        myMechanicalBlock.mechanicalReadServer(tag);
+    }
+
+    @Override
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
+        rotationoffset = tag.getInt("rotationOffset");
+    }
+
+    @Override
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
+        tag.putInt("rotationOffset", rotationoffset);
+    }
+}

@@ -1,0 +1,45 @@
+{
+  "block.age_of_steam.wooden_axle": "Wooden Axle",
+  "item.age_of_steam.wooden_axle": "Wooden Axle",
+
+  "block.age_of_steam.wooden_axle_encased": "Encased Wooden Axle",
+  "item.age_of_steam.wooden_axle_encased": "Encased Wooden Axle",
+
+  "block.age_of_steam.wooden_flywheel": "Wooden Flywheel",
+  "item.age_of_steam.wooden_flywheel": "Wooden Flywheel",
+
+  "block.age_of_steam.wooden_flywheel_large": "Large Wooden Flywheel",
+  "item.age_of_steam.wooden_flywheel_large": "Large Wooden Flywheel",
+
+  "block.age_of_steam.wooden_crankshaft_small": "Small Wooden Crankshaft",
+  "item.age_of_steam.wooden_crankshaft_small": "Small Wooden Crankshaft",
+
+  "block.age_of_steam.wooden_crankshaft_big": "Big Wooden Crankshaft",
+  "item.age_of_steam.wooden_crankshaft_big": "Big Wooden Crankshaft",
+
+  "block.age_of_steam.wooden_gearbox": "Wooden Gearbox",
+  "item.age_of_steam.wooden_gearbox": "Wooden Gearbox",
+
+  "block.age_of_steam.wooden_tjunction": "Wooden T Junction",
+  "item.age_of_steam.wooden_tjunction": "Wooden T Junction",
+
+  "block.age_of_steam.wooden_distributor_gearbox": "4 sided Gearbox Wooden",
+  "item.age_of_steam.wooden_distributor_gearbox": "4 sided Gearbox Wooden",
+
+  "block.age_of_steam.motor": "Electric Motor",
+  "item.age_of_steam.motor": "Electric Motor",
+
+  "block.age_of_steam.clutch": "Clutch",
+  "item.age_of_steam.clutch": "Clutch",
+
+  "block.age_of_steam.hand_generator": "Hand powered generator",
+  "item.age_of_steam.hand_generator": "Hand powered generator",
+
+  "block.age_of_steam.casing": "Casing",
+  "item.age_of_steam.casing": "Casing",
+  "block.age_of_steam.casing_slab": "Casing Slab",
+  "item.age_of_steam.casing_slab": "Casing Slab",
+
+  "item.age_of_steam.wooden_hammer": "Wooden Hammer",
+  "item.age_of_steam.wooden_gear": "Wooden Gear"
+}

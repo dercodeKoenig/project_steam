@@ -1,0 +1,11 @@
+{
+    "loader": "neoforge:obj",
+    "model": "aos_workshop_expansion:models/block/spinning_wheel.obj",
+    "mtl_override": "aos_workshop_expansion:models/block/spinning_wheel.mtl",
+    "automatic_culling": false,
+    "flip_v": true,
+    "emissive_ambient": false,
+    "textures": {
+        "particle": "aos_workshop_expansion:block/andesite_casing"
+    }
+}

@@ -1,0 +1,23 @@
+{
+    "type": "minecraft:crafting_shaped",
+    "pattern": [
+        " g ",
+        " C ",
+        "aag"
+    ],
+    "key": {
+        "C": {
+            "item": "age_of_steam:casing"
+        },
+        "g": {
+            "item": "age_of_steam:wooden_gear"
+        },
+        "a": {
+            "item": "age_of_steam:wooden_axle"
+        }
+    },
+    "result": {
+        "id": "age_of_steam:wooden_tjunction",
+        "count": 1
+    }
+}

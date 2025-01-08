@@ -1,0 +1,23 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    " F ",
+    "GCG",
+    "   "
+  ],
+  "key": {
+    "F": {
+      "item": "age_of_steam:wooden_flywheel"
+    },
+    "C": {
+      "item": "age_of_steam:casing"
+    },
+    "G": {
+      "item": "age_of_steam:wooden_gear"
+    }
+  },
+  "result": {
+    "id": "aos_workshop_expansion:spinning_wheel",
+    "count": 1
+  }
+}

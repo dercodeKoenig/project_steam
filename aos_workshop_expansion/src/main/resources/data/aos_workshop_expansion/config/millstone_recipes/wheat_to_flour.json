@@ -1,0 +1,9 @@
+{
+      "inputItem": {
+        "id": "minecraft:wheat"
+      },
+      "outputItem": {
+        "id": "aos_workshop_expansion:flour",
+        "amount" : 2
+      }
+}

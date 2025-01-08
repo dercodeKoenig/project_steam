@@ -1,0 +1,6 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "age_of_steam:item/wooden_hammer"
+  }
+}

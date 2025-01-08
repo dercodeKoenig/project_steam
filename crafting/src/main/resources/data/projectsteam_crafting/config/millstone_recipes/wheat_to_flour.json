@@ -1,9 +1,0 @@
-{
-      "inputItem": {
-        "id": "minecraft:wheat"
-      },
-      "outputItem": {
-        "id": "projectsteam_crafting:flour",
-        "amount" : 2
-      }
-}

@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "aos_workshop_expansion:item/string_mesh"
+  }
+}

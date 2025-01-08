@@ -1,0 +1,8 @@
+{
+    "variants": {
+        "facing=north": {"model": "aw_worksite:block/quarry"},
+        "facing=south": {"model": "aw_worksite:block/quarry", "y": 180},
+        "facing=west": {"model": "aw_worksite:block/quarry", "y": 270},
+        "facing=east": {"model": "aw_worksite:block/quarry", "y": 90}
+    }
+}

@@ -1,0 +1,70 @@
+{
+    "multipart": [
+        {
+            "when": { "axis": "y" },
+            "apply": { "model": "age_of_steam:block/wooden_distributor_gearbox" }
+        },
+        {
+            "when": { "axis": "x" },
+            "apply": { "model": "age_of_steam:block/wooden_distributor_gearbox", "x": 90, "y": 90 }
+        },
+        {
+            "when": { "axis": "z" },
+            "apply": { "model": "age_of_steam:block/wooden_distributor_gearbox", "x": 90, "y": 0 }
+        },
+
+
+        {
+            "when": { "axis": "y", "solid_conn_up" : "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small" }
+        },
+        {
+            "when": { "axis": "y", "solid_conn_down" : "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small", "x": 180 }
+        },
+        {
+            "when": { "axis": "y", "solid_conn_up" : "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended" }
+        },
+        {
+            "when": { "axis": "y", "solid_conn_down" : "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended", "x": 180 }
+        }
+
+    ,
+        {
+            "when": { "axis": "z", "solid_conn_north" : "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small" , "x": 90, "y" : 0 }
+        },
+        {
+            "when": { "axis": "z", "solid_conn_south" : "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small", "x": 90, "y" : 180 }
+        },
+        {
+            "when": { "axis": "z", "solid_conn_north" : "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended"  , "x": 90, "y" : 0 }
+        },
+        {
+            "when": { "axis": "z", "solid_conn_south" : "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended", "x": 90, "y": 180 }
+        }
+
+    ,
+        {
+            "when": { "axis": "x", "solid_conn_west" : "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small" , "x": 90, "y" : 270 }
+        },
+        {
+            "when": { "axis": "x", "solid_conn_east" : "false" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_small", "x": 90, "y" : 90 }
+        },
+        {
+            "when": { "axis": "x", "solid_conn_west" : "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended"  , "x": 90, "y" : 270 }
+        },
+        {
+            "when": { "axis": "x", "solid_conn_east" : "true" },
+            "apply": { "model": "age_of_steam:block/gearbox2_top_extended", "x": 90, "y": 90 }
+        }
+    ]
+}

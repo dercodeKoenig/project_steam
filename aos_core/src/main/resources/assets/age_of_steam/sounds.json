@@ -1,0 +1,11 @@
+{
+  "motor": {
+    "sounds": [
+      {
+
+        "name": "age_of_steam:motor",
+        "preload": true
+      }
+      ]
+  }
+}

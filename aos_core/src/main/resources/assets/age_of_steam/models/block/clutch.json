@@ -1,0 +1,47 @@
+{
+  "parent": "block/block",
+  "textures": {
+    "0": "age_of_steam:block/andesite_casing",
+    "1": "age_of_steam:block/clutch",
+    "particle": "age_of_steam:block/andesite_casing"
+  },
+  "elements": [
+    {
+      "name": "Bottom",
+      "from": [0, 0, 0],
+      "to": [16, 2, 16],
+      "faces": {
+        "north": {"uv": [0, 14, 16, 16], "texture": "#0"},
+        "east": {"uv": [0, 14, 16, 16], "texture": "#0"},
+        "south": {"uv": [0, 14, 16, 16], "texture": "#0"},
+        "west": {"uv": [0, 14, 16, 16], "texture": "#0"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#0"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#0"}
+      }
+    },
+    {
+      "name": "Core1",
+      "from": [0, 2, 0.95],
+      "to": [16, 14, 15.05],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 16], "texture": "#0"},
+        "south": {"uv": [0, 0, 16, 16], "texture": "#0"},
+        "east": {"uv": [0, 0, 16, 16], "texture": "#1"},
+        "west": {"uv": [0, 0, 16, 16], "texture": "#1"}
+      }
+    },
+    {
+      "name": "Top",
+      "from": [0, 14, 0],
+      "to": [16, 16, 16],
+      "faces": {
+        "north": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "east": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "south": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "west": {"uv": [0, 0, 16, 2], "texture": "#0"},
+        "up": {"uv": [0, 0, 16, 16], "texture": "#0"},
+        "down": {"uv": [0, 0, 16, 16], "texture": "#0"}
+      }
+    }
+  ]
+}

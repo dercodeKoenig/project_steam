@@ -193,6 +193,7 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         guiModuleItemHandlerSlot head = new guiModuleItemHandlerSlot(0, armorInventory, EquipmentSlot.HEAD.getIndex(), 1, 0, guiHandler, 10, 10){
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                if(this.client_getItemStackToRender().isEmpty())
                 guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_helmet.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
                 ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
                 if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
@@ -204,6 +205,7 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         guiModuleItemHandlerSlot chest = new guiModuleItemHandlerSlot(1, armorInventory, EquipmentSlot.CHEST.getIndex(), 1, 0, guiHandler, 10, 30){
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                if(this.client_getItemStackToRender().isEmpty())
                 guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_chestplate.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
                 ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
                 if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
@@ -215,6 +217,7 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         guiModuleItemHandlerSlot leg = new guiModuleItemHandlerSlot(2, armorInventory, EquipmentSlot.LEGS.getIndex(), 1, 0, guiHandler, 10, 50){
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                if(this.client_getItemStackToRender().isEmpty())
                 guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_leggings.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
                 ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
                 if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
@@ -226,7 +229,8 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         guiModuleItemHandlerSlot feet = new guiModuleItemHandlerSlot(3, armorInventory, EquipmentSlot.FEET.getIndex(), 1, 0, guiHandler, 10, 70){
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
-                guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_boots.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
+                if(this.client_getItemStackToRender().isEmpty())
+                    guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_boots.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
                 ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
                 if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
                     guiGraphics.fill(this.onGuiX, this.onGuiY, this.w + this.onGuiX, this.h + this.onGuiY, 822083583);
@@ -303,6 +307,12 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         this.updateSwingTime(); //wtf do i need to call this myself??
     }
 
+    @Override
+    protected void hurtArmor(DamageSource damageSource, float damage) {
+        this.doHurtEquipment(damageSource, damage, new EquipmentSlot[]{EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD});
+    }
+
+    @Override
     protected void dropCustomDeathLoot(ServerLevel level, DamageSource damageSource, boolean recentlyHit) {
         for (int i = 0; i < inventory.getSlots(); i++) {
             level.addFreshEntity(new ItemEntity(level, getPosition(0).x, getPosition(0).y, getPosition(0).z, inventory.getStackInSlot(i)));

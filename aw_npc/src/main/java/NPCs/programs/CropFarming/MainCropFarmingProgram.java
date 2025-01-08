@@ -1,9 +1,9 @@
 package NPCs.programs.CropFarming;
 
-import Farms.CropFarm.EntityCropFarm;
 import NPCs.WorkerNPC;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
+import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;

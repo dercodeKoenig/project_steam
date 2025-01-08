@@ -1,6 +1,7 @@
 package ARLib;
 
 import ARLib.network.PacketBlockEntity;
+import ARLib.network.PacketEntity;
 import ARLib.network.PacketPlayerMainHand;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -36,6 +37,7 @@ public class ARLib {
         final PayloadRegistrar registrar = event.registrar("1");
         PacketBlockEntity.register(registrar);
         PacketPlayerMainHand.register(registrar);
+        PacketEntity.register(registrar);
     }
 
     private void RegisterCapabilities(RegisterCapabilitiesEvent e) {

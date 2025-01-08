@@ -1,6 +1,7 @@
 package NPCs.programs.CropFarming;
 
-import Farms.CropFarm.EntityCropFarm;
+import WorkSites.CropFarm.EntityCropFarm;
+
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;

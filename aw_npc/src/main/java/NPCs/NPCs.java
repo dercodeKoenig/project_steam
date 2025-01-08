@@ -1,9 +1,11 @@
 package NPCs;
 
+import AOSWorkshopExpansion.MillStone.ScreenMillStone;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.event.entity.EntityAttributeCreationEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -11,6 +13,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
+import static AOSWorkshopExpansion.Registry.MENU_MILLSTONE;
 import static NPCs.Registry.ENTITY_WORKER;
 
 

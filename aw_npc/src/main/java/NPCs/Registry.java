@@ -1,13 +1,16 @@
 package NPCs;
 
+import AOSWorkshopExpansion.MillStone.MenuMillStone;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -31,7 +34,6 @@ public class Registry {
             "worker",
             () -> EntityType.Builder.of(WorkerNPC::new, MobCategory.CREATURE).build(NPCs.MODID+":worker")
     );
-
     static {
     }
 

@@ -1,11 +1,18 @@
 package NPCs;
 
+import ARLib.gui.GuiHandlerEntity;
+import ARLib.gui.ModularScreen;
+import ARLib.gui.modules.GuiModuleBase;
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
+import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.network.INetworkTagReceiver;
 import NPCs.programs.CropFarming.MainCropFarmingProgram;
-import NPCs.programs.ExitCode;
-import NPCs.programs.ProgramUtils;
 import NPCs.programs.SlowMobNavigation;
-import net.minecraft.core.BlockPos;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -18,21 +25,20 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.pathfinder.Path;
 import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
-public class WorkerNPC extends PathfinderMob {
+public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
 
-    public int slowNavigationMaxDistance = 12*16;
-    public int slowNavigationMaxNodes = 4096*16;
+    public int slowNavigationMaxDistance = 12 * 16;
+    public int slowNavigationMaxNodes = 4096 * 16;
     public int slowNavigationStepPerTick = 512;
+
 
     public enum WorkTypes {
         FARMER,
@@ -42,6 +48,7 @@ public class WorkerNPC extends PathfinderMob {
         LUMBERJACK,
         UNEMPLOYED
     }
+
     public WorkTypes worktype;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
@@ -140,9 +147,10 @@ public class WorkerNPC extends PathfinderMob {
         protected void validateSlotIndex(int slot) {
         }
     };
-
+    public ItemStackHandler armorInventory;
     public SlowMobNavigation slowMobNavigation;
-    public
+
+    GuiHandlerEntity guiHandler;
 
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
@@ -160,8 +168,91 @@ public class WorkerNPC extends PathfinderMob {
 
         slowMobNavigation = new SlowMobNavigation(this);
 
+        armorInventory = new ItemStackHandler((NonNullList<ItemStack>) super.getArmorSlots()) {
+            public boolean isItemValid(int slot, ItemStack stack) {
+                if (slot == EquipmentSlot.HEAD.getIndex()) {
+                    return WorkerNPC.super.getEquipmentSlotForItem(stack).equals(EquipmentSlot.HEAD);
+                }
+                if (slot == EquipmentSlot.CHEST.getIndex()) {
+                    return WorkerNPC.super.getEquipmentSlotForItem(stack).equals(EquipmentSlot.CHEST);
+                }
+                if (slot == EquipmentSlot.LEGS.getIndex()) {
+                    return WorkerNPC.super.getEquipmentSlotForItem(stack).equals(EquipmentSlot.LEGS);
+                }
+                if (slot == EquipmentSlot.FEET.getIndex()) {
+                    return WorkerNPC.super.getEquipmentSlotForItem(stack).equals(EquipmentSlot.FEET);
+                }
+                return false;
+            }
+        };
+
         worktype = WorkTypes.FARMER;
         registerGoals();
+
+        guiHandler = new GuiHandlerEntity(this);
+        guiModuleItemHandlerSlot head = new guiModuleItemHandlerSlot(0, armorInventory, EquipmentSlot.HEAD.getIndex(), 1, 0, guiHandler, 10, 10){
+            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_helmet.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
+                ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
+                if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
+                    guiGraphics.fill(this.onGuiX, this.onGuiY, this.w + this.onGuiX, this.h + this.onGuiY, 822083583);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, this.client_getItemStackToRender(), mouseX, mouseY);
+                }
+            }
+        };
+        guiModuleItemHandlerSlot chest = new guiModuleItemHandlerSlot(1, armorInventory, EquipmentSlot.CHEST.getIndex(), 1, 0, guiHandler, 10, 30){
+            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_chestplate.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
+                ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
+                if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
+                    guiGraphics.fill(this.onGuiX, this.onGuiY, this.w + this.onGuiX, this.h + this.onGuiY, 822083583);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, this.client_getItemStackToRender(), mouseX, mouseY);
+                }
+            }
+        };
+        guiModuleItemHandlerSlot leg = new guiModuleItemHandlerSlot(2, armorInventory, EquipmentSlot.LEGS.getIndex(), 1, 0, guiHandler, 10, 50){
+            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_leggings.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
+                ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
+                if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
+                    guiGraphics.fill(this.onGuiX, this.onGuiY, this.w + this.onGuiX, this.h + this.onGuiY, 822083583);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, this.client_getItemStackToRender(), mouseX, mouseY);
+                }
+            }
+        };
+        guiModuleItemHandlerSlot feet = new guiModuleItemHandlerSlot(3, armorInventory, EquipmentSlot.FEET.getIndex(), 1, 0, guiHandler, 10, 70){
+            public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+                guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
+                guiGraphics.blit(ResourceLocation.withDefaultNamespace("textures/item/empty_armor_slot_boots.png"), this.onGuiX+1, this.onGuiY+1, 0.0F, 0.0F, 16, 16, 16, 16);
+                ModularScreen.renderItemStack(guiGraphics, this.onGuiX, this.onGuiY, this.client_getItemStackToRender());
+                if (!this.client_getItemStackToRender().isEmpty() && this.client_isMouseOver((double) mouseX, (double) mouseY, this.onGuiX, this.onGuiY, this.w, this.h)) {
+                    guiGraphics.fill(this.onGuiX, this.onGuiY, this.w + this.onGuiX, this.h + this.onGuiY, 822083583);
+                    guiGraphics.renderTooltip(Minecraft.getInstance().font, this.client_getItemStackToRender(), mouseX, mouseY);
+                }
+            }
+        };
+        guiHandler.getModules().add(head);
+        guiHandler.getModules().add(chest);
+        guiHandler.getModules().add(leg);
+        guiHandler.getModules().add(feet);
+
+        int w = 5;
+        for (int i = 0; i < combinedInventory.getSlots(); i++) {
+            int x = i % w * 18 + 40;
+            int y = i / w * 18 + 10;
+            guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(i + 100, combinedInventory, i, 1, 0, guiHandler, x, y);
+            guiHandler.getModules().add(m);
+        }
+
+        for(GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10,150,200,0,1,guiHandler)){
+            guiHandler.getModules().add(m);
+        }
+        for(GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,90,300,0,1,guiHandler)){
+            guiHandler.getModules().add(m);
+        }
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -197,19 +288,18 @@ public class WorkerNPC extends PathfinderMob {
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-
-        if (worktype == WorkTypes.UNEMPLOYED)
-            worktype = WorkTypes.FARMER;
-        else
-            worktype = WorkTypes.UNEMPLOYED;
-
-        registerGoals();
-        return InteractionResult.SUCCESS;
+        if (level().isClientSide) {
+            guiHandler.openGui(180, 180, true);
+        }
+        return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
 
     @Override
     public void tick() {
         super.tick();
+        if (!level().isClientSide) {
+            guiHandler.serverTick();
+        }
         this.updateSwingTime(); //wtf do i need to call this myself??
     }
 
@@ -233,4 +323,13 @@ public class WorkerNPC extends PathfinderMob {
     }
 
 
+    @Override
+    public void readServer(CompoundTag compoundTag) {
+        guiHandler.readServer(compoundTag);
+    }
+
+    @Override
+    public void readClient(CompoundTag compoundTag) {
+        guiHandler.readClient(compoundTag);
+    }
 }

@@ -26,7 +26,6 @@ import java.util.UUID;
 public class PacketEntity implements CustomPacketPayload {
 
 
-
     public static final Type<PacketEntity> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath("arlib", "packetentity"));
 
@@ -42,7 +41,10 @@ public class PacketEntity implements CustomPacketPayload {
     public CompoundTag getTag() {
         return tag;
     }
-    public CompoundTag entityTag(){return entityTag;}
+
+    public CompoundTag entityTag() {
+        return entityTag;
+    }
 
     public static final StreamCodec<ByteBuf, PacketEntity> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.COMPOUND_TAG,
@@ -56,23 +58,21 @@ public class PacketEntity implements CustomPacketPayload {
     public static void readClient_onlyonclient(final PacketEntity data, final IPayloadContext context) {
         // use the current Dimension, the client does not need to find the dimension by String
         ClientLevel world = Minecraft.getInstance().level;
-        for (int i = 0; i < world.getEntityCount(); i++) {
-            Entity e = world.getEntity(i);
-            if (e instanceof INetworkTagReceiver ntr) {
-                if (e.getUUID().equals(data.entityTag.getUUID("uuid"))) {
-                    ntr.readClient(data.tag);
-                }
-            }
+        Entity e = world.getEntity(data.entityTag.getInt("id"));
+        if (e instanceof INetworkTagReceiver) {
+            ((INetworkTagReceiver) e).readClient(data.getTag());
         }
     }
+
     //  this can not be dist.client because it is used in register method
     public static void readClient(final PacketEntity data, final IPayloadContext context) {
-        readClient_onlyonclient(data,context);
+        readClient_onlyonclient(data, context);
     }
+
     public static void readServer(final PacketEntity data, final IPayloadContext context) {
         Level world = DimensionUtils.getDimensionLevelServer(data.entityTag.getString("level"));
         if (world instanceof ServerLevel l) {
-            Entity e = l.getEntities().get(data.entityTag.getUUID("uuid"));
+            Entity e = l.getEntities().get(data.entityTag.getInt("id"));
             if (e instanceof INetworkTagReceiver) {
                 ((INetworkTagReceiver) e).readServer(data.getTag());
             }
@@ -96,17 +96,17 @@ public class PacketEntity implements CustomPacketPayload {
     }
 
 
-    public static PacketEntity getEntityPacket(Entity e, CompoundTag tag){
-        return getEntityPacket(e.getUUID(), DimensionUtils.getLevelId(e.level()) , tag);
+    public static PacketEntity getEntityPacket(Entity e, CompoundTag tag) {
+        return getEntityPacket(e.getId(), DimensionUtils.getLevelId(e.level()), tag);
     }
-    public static PacketEntity getEntityPacket(UUID entity,String levelId, CompoundTag tag){
+
+    public static PacketEntity getEntityPacket(int entityId, String levelId, CompoundTag tag) {
         CompoundTag uuidTag = new CompoundTag();
-        uuidTag.putUUID("uuid",entity);
+        uuidTag.putInt("id", entityId);
         uuidTag.putString("level", levelId);
         return new PacketEntity(
                 uuidTag,
                 tag
         );
     }
-
 }

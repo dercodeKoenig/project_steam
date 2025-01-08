@@ -16,17 +16,17 @@ import java.util.UUID;
 
 public abstract class guiModuleInventorySlotBase extends GuiModuleBase {
 
-    ResourceLocation slot_background = ResourceLocation.fromNamespaceAndPath("arlib","textures/gui/gui_item_slot_background.png");
-    int slot_bg_w = 18;
-    int slot_bg_h = 18;
+    public ResourceLocation slot_background = ResourceLocation.fromNamespaceAndPath("arlib","textures/gui/gui_item_slot_background.png");
+    public int slot_bg_w = 18;
+    public int slot_bg_h = 18;
     public void setSlotBackground(ResourceLocation bg, int textureWidth, int textureHeight){
         slot_background = bg;
         slot_bg_h = textureHeight;
         slot_bg_w = textureWidth;
     }
 
-    int w = 18;
-    int h = 18;
+    public int w = 18;
+    public int h = 18;
 
     int invGroup;
     int instantTransferTarget;

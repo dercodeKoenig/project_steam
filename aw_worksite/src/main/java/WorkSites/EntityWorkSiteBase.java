@@ -176,7 +176,7 @@ super.setRemoved();
                 for (Entity e : workersWorkingHereWithTimeout.keySet()){
                     int ticks = workersWorkingHereWithTimeout.get(e);
                     workersWorkingHereWithTimeout.put(e, ticks+1);
-                    if(ticks > 20){
+                    if(ticks > 100){
                         workersWorkingHereWithTimeout.remove(e);
                         break;
                     }

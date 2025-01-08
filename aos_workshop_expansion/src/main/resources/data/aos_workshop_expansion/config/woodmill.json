@@ -1,4 +1,5 @@
 {
   "baseResistance": 10.0,
-"speedMultiplier" : 1.0
+  "maxStress": 600,
+  "speedMultiplier": 1.0
 }

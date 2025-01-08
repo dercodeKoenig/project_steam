@@ -25,6 +25,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
@@ -42,14 +43,17 @@ import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_SIEVE;
 import static AOSWorkshopExpansion.Registry.SIEVE_HOPPER_UPGRADE;
 
 public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
+
+    // aw npc compat
+    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
+
 
     VertexBuffer myInputRendererBuffer;
     ItemStack lastInputStackForRender = ItemStack.EMPTY;
@@ -120,6 +124,10 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
             myOnloadTag.putUUID("ClientSieveOnload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, myOnloadTag));
         }
+
+        if (!level.isClientSide) {
+            knownBlockEntities.add(getBlockPos());
+        }
     }
 
     @Override
@@ -130,6 +138,10 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
                 myHopperInputRendererBuffer.close();
             });
         }
+
+            if (!level.isClientSide) {
+                knownBlockEntities.remove(getBlockPos());
+            }
         super.setRemoved();
     }
 
@@ -522,6 +534,18 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
                     }
                 }
             } else currentProgress = 0;
+        }
+
+        if (!level.isClientSide) {
+            // timeout workers
+            for (Entity e : workersWorkingHereWithTimeout.keySet()) {
+                int ticks = workersWorkingHereWithTimeout.get(e);
+                workersWorkingHereWithTimeout.put(e, ticks + 1);
+                if (ticks > 100) {
+                    workersWorkingHereWithTimeout.remove(e);
+                    break;
+                }
+            }
         }
     }
 

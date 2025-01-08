@@ -23,6 +23,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
@@ -38,16 +39,18 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_MILLSTONE;
 import static AOSWorkshopExpansion.Registry.MILLSTONE;
 import static AgeOfSteam.Registry.WOODEN_AXLE;
 
 public class EntityMillStone extends EntityMultiblockMaster implements IMechanicalBlockProvider {
+
+    // aw npc compat
+    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
+
 
     AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
@@ -112,19 +115,31 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
             i.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
         }
+
+        if (!level.isClientSide) {
+            knownBlockEntities.add(getBlockPos());
+        }
         super.onLoad();
     }
 
-    public void placeStructurePreview(){
+    @Override
+    public void setRemoved() {
+        if (!level.isClientSide) {
+            knownBlockEntities.remove(getBlockPos());
+        }
+        super.setRemoved();
+    }
+
+    public void placeStructurePreview() {
         Direction facing = getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING);
         CompoundTag info = new CompoundTag();
-        info.putString("dimension",DimensionUtils.getLevelId(level));
+        info.putString("dimension", DimensionUtils.getLevelId(level));
         info.putString("selectedMachine", "MillStone");
-        info.putInt("y",0);
-        BlockPos offset = new BlockPos(0,0,0).relative(facing).relative(facing.getClockWise());
-        info.putInt("posX",getBlockPos().getX()+offset.getX());
-        info.putInt("posY",getBlockPos().getY());
-        info.putInt("posZ",getBlockPos().getZ()+offset.getZ());
+        info.putInt("y", 0);
+        BlockPos offset = new BlockPos(0, 0, 0).relative(facing).relative(facing.getClockWise());
+        info.putInt("posX", getBlockPos().getX() + offset.getX());
+        info.putInt("posY", getBlockPos().getY());
+        info.putInt("posZ", getBlockPos().getZ() + offset.getZ());
         info.putInt("stepX", facing.getStepX());
         info.putInt("stepZ", facing.getStepZ());
         ((itemHoloProjector) ARLibRegistry.ITEM_HOLOPROJECTOR.get()).placeLayer(info);
@@ -166,12 +181,12 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
         myMechanicalBlock.mechanicalOnload();
     }
 
-    public void popInventory(){
+    public void popInventory() {
         ItemStack stack;
         for (int i = 0; i < 18; i++) {
             stack = inventory.getStackInSlot(i).copy();
             Block.popResource(level, getBlockPos(), stack);
-            inventory.setStackInSlot(i,ItemStack.EMPTY);
+            inventory.setStackInSlot(i, ItemStack.EMPTY);
         }
         setChanged();
         sendUpdateTag(null);
@@ -233,6 +248,18 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
             SoundEvent randomEvent = sounds[randomIndex];
             level.playSound(null, getBlockPos(), randomEvent,
                     SoundSource.BLOCKS, 0.02f * (float) ((Math.abs(myMechanicalBlock.internalVelocity))), 0.1f * (float) (Math.abs(myMechanicalBlock.internalVelocity)));  //
+        }
+
+        if (!level.isClientSide) {
+            // timeout workers
+            for (Entity e : workersWorkingHereWithTimeout.keySet()) {
+                int ticks = workersWorkingHereWithTimeout.get(e);
+                workersWorkingHereWithTimeout.put(e, ticks + 1);
+                if (ticks > 100) {
+                    workersWorkingHereWithTimeout.remove(e);
+                    break;
+                }
+            }
         }
     }
 

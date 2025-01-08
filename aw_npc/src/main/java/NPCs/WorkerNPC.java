@@ -142,6 +142,8 @@ public class WorkerNPC extends PathfinderMob {
     };
 
     public SlowMobNavigation slowMobNavigation;
+    public
+
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
         this.setPersistenceRequired();

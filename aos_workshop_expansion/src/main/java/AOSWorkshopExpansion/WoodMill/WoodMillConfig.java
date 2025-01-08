@@ -31,7 +31,9 @@ public class WoodMillConfig {
 
     public static WoodMillConfig INSTANCE = loadConfig();
 
-        public float baseResistance;
+    public float baseResistance;
+    public float maxStress;
+
         public List<WoodMillRecipe> recipes = new ArrayList<>();
         public float speedMultiplier;
 

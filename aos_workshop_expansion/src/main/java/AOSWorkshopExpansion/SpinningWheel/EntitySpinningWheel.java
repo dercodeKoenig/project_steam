@@ -15,6 +15,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -23,12 +24,16 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.ENTITY_SPINNING_WHEEL;
 
 public class EntitySpinningWheel extends BlockEntity implements INetworkTagReceiver, IMechanicalBlockProvider {
+
+    // aw npc compat
+    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
+
 
     public SpinningWheelConfig.SpinningWheelRecipe currentRecipe = null;
     public double currentProgress;
@@ -111,6 +116,16 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     public void onLoad(){
         super.onLoad();
         myMechanicalBlock.mechanicalOnload();
+        if (!level.isClientSide) {
+            knownBlockEntities.add(getBlockPos());
+        }
+    }
+    @Override
+    public void setRemoved(){
+        if (!level.isClientSide) {
+            knownBlockEntities.remove(getBlockPos());
+        }
+        super.setRemoved();
     }
 
     public void popInventory(){
@@ -206,6 +221,18 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
             } else {
                 myForce = 0;
                 ticksRemainingForForce = 0;
+            }
+        }
+
+        if (!level.isClientSide) {
+            // timeout workers
+            for (Entity e : workersWorkingHereWithTimeout.keySet()) {
+                int ticks = workersWorkingHereWithTimeout.get(e);
+                workersWorkingHereWithTimeout.put(e, ticks + 1);
+                if (ticks > 100) {
+                    workersWorkingHereWithTimeout.remove(e);
+                    break;
+                }
             }
         }
     }

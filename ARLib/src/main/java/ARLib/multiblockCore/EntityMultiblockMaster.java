@@ -73,6 +73,11 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
     public void onStructureComplete() {
 
     }
+    // will be called if the stucture is scanned and can not be completed AND the structure was completed before
+    // runs on client and server
+    public void onStructureInvalid() {
+
+    }
 
 
     public EntityMultiblockMaster(BlockEntityType<?> p_155228_, BlockPos p_155229_, BlockState p_155230_) {
@@ -218,6 +223,12 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
         boolean canComplete = canCompleteStructure();
 
         if (!canComplete) {
+            if(getBlockState().getValue(STATE_MULTIBLOCK_FORMED)){
+                CompoundTag info = new CompoundTag();
+                info.putBoolean("onStructureInvalid", true);
+                PacketDistributor.sendToPlayersTrackingChunk((ServerLevel) level, new ChunkPos(getBlockPos()), PacketBlockEntity.getBlockEntityPacket(this, info));
+                onStructureInvalid();
+            }
             un_replace_blocks();
         } else {
             replace_blocks();
@@ -328,8 +339,11 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
 
     @Override
     public void readClient(CompoundTag tag) {
-if(tag.contains("onStructureComplete")){
-    onStructureComplete();
-}
+        if(tag.contains("onStructureComplete")){
+            onStructureComplete();
+        }
+        if(tag.contains("onStructureInvalid")){
+            onStructureInvalid();
+        }
     }
 }

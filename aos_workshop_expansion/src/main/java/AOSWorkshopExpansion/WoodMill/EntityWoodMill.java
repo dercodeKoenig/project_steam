@@ -26,6 +26,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -43,15 +44,17 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static AOSWorkshopExpansion.Registry.*;
 import static AgeOfSteam.Registry.CASING_SLAB;
 
 public class EntityWoodMill extends EntityMultiblockMaster implements IMechanicalBlockProvider, INetworkTagReceiver, ICrankShaftConnector {
+
+    // aw npc compat
+    public static Set<BlockPos> knownBlockEntities = new HashSet<>();
+    public HashMap<Entity, Integer> workersWorkingHereWithTimeout = new HashMap<>();
+
 
     public static class workingRecipe {
         ItemStack currentInput;
@@ -64,7 +67,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
 
     double myFriction = WoodMillConfig.INSTANCE.baseResistance;
     double myInertia = 1;
-    double maxStress = 600;
+    double maxStress = WoodMillConfig.INSTANCE.maxStress;
 
     double timeRequired = 50;
 
@@ -127,13 +130,14 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
 
     @Override
     public void onStructureComplete() {
-        if(level.isClientSide)
+        if (level.isClientSide)
             // this is executed before minecraft updates the blockstate on client
             // but resetRotation (to make it sync to the rotation) checks for connected mechanical blocks and it only connects to other mechanical blocks when the multiblock is formed
             // so i update it directly here
-            level.setBlock(getBlockPos(),getBlockState().setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED,true),3);
+            level.setBlock(getBlockPos(), getBlockState().setValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED, true), 3);
         myMechanicalBlock.mechanicalOnload();
     }
+
     @Override
     public void onLoad() {
         if (level.isClientSide) {
@@ -141,20 +145,16 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
             myOnloadTag.putUUID("ClientWoodMillOnload", Minecraft.getInstance().player.getUUID());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, myOnloadTag));
         }
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-
-            });
+        if (!level.isClientSide) {
+            knownBlockEntities.add(getBlockPos());
         }
         super.onLoad();
     }
 
     @Override
     public void setRemoved() {
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            RenderSystem.recordRenderCall(() -> {
-
-            });
+        if (!level.isClientSide) {
+            knownBlockEntities.remove(getBlockPos());
         }
         super.setRemoved();
     }
@@ -397,10 +397,23 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
 
                 double rotationScaled = ((Math.abs(myMechanicalBlock.currentRotation)) % 360) / 360; // just making sure it is positive
                 //System.out.println(rotationScaled+":"+progressMade);
-                if ((rotationScaled > offset && rotationScaled - progressMade< offset) || (rotationScaled > offset + 0.5 && rotationScaled -progressMade < offset + 0.5)) {
+                if ((rotationScaled > offset && rotationScaled - progressMade < offset) || (rotationScaled > offset + 0.5 && rotationScaled - progressMade < offset + 0.5)) {
                     level.playSound(null, getBlockPos(), SoundEvents.FENCE_GATE_OPEN, SoundSource.BLOCKS, 0.2f, 0.5f);
                 }
 
+            }
+        }
+
+
+        if (!level.isClientSide) {
+            // timeout workers
+            for (Entity e : workersWorkingHereWithTimeout.keySet()) {
+                int ticks = workersWorkingHereWithTimeout.get(e);
+                workersWorkingHereWithTimeout.put(e, ticks + 1);
+                if (ticks > 100) {
+                    workersWorkingHereWithTimeout.remove(e);
+                    break;
+                }
             }
         }
     }

@@ -16,10 +16,11 @@ public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<Work
         super(context, new PlayerModel<>(context.bakeLayer(ModelLayers.PLAYER), false), 0.5F);
         this.addLayer(new ItemInHandLayer<>(this, context.getItemInHandRenderer()));
         this.addLayer(new HumanoidArmorLayer<>(this,
-                super.model,
-                super.model,
+                new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_INNER_ARMOR)),
+                new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR)),
                 context.getModelManager()
         ));
+
     }
 
     @Override

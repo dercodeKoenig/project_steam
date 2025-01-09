@@ -1,6 +1,7 @@
 package NPCs.programs.CropFarming;
 
 import NPCs.programs.ExitCode;
+import NPCs.programs.MainFarmingProgram;
 import NPCs.programs.ProgramUtils;
 import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -11,13 +12,21 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 public class PlantProgram {
-    MainCropFarmingProgram parentProgram;
+    MainFarmingProgram parentProgram;
     BlockPos currentPlantTarget = null;
     int workDelay = 0;
-int requiredDistance = 2;
+    int scanInterval = 20 * 10;
+    long lastScan = 0;
+    boolean hasWork = false;
+    int requiredDistance = 2;
 
-    public PlantProgram(MainCropFarmingProgram parentProgram) {
+    public PlantProgram(MainFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
+    }
+
+    public static boolean isAllowedToPlantItemByWorkOrder(ItemStack seed, EntityCropFarm farm) {
+        // check if seed is whitelisted in work order for current farm
+        return true;
     }
 
     public ItemStack getStackToPlantAtPosition(EntityCropFarm farm, BlockPos p) {
@@ -25,7 +34,7 @@ int requiredDistance = 2;
 
         for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); ++i) {
             ItemStack s = parentProgram.worker.combinedInventory.getStackInSlot(i);
-            if (!s.isEmpty() && farm.isItemValidSeed(s)) {
+            if (!s.isEmpty() && TakeSeedsProgram.isValidSeedItem(farm,s)) {
                 Item var5 = s.getItem();
                 if (var5 instanceof BlockItem bi) {
                     if (bi.getBlock().defaultBlockState().canSurvive(parentProgram.worker.level(), p)) {
@@ -37,17 +46,32 @@ int requiredDistance = 2;
         return ItemStack.EMPTY;
     }
 
-    public boolean canPlantAny(EntityCropFarm target) {
-        for (BlockPos p : target.positionsToPlant) {
-            if (getStackToPlantAtPosition(target, p) != ItemStack.EMPTY) {
-                return true;
+    public boolean recalculateHasWork(EntityCropFarm farm) {
+        hasWork = false;
+
+        if (TakeSeedsProgram.workerHasAnyValidSeedItem(farm, parentProgram.worker)) {
+            for (BlockPos p : farm.positionsToPlant) {
+                if (getStackToPlantAtPosition(farm, p) != ItemStack.EMPTY) {
+                    hasWork = true;
+                }
             }
         }
-        return false;
+
+        return hasWork;
     }
 
-
     public ExitCode run() {
+
+        long gameTime = parentProgram.worker.level().getGameTime();
+        if (gameTime > lastScan + scanInterval) {
+            lastScan = gameTime;
+            recalculateHasWork(parentProgram.currentFarm);
+        }
+
+        if (!hasWork) {
+            return ExitCode.EXIT_SUCCESS;
+        }
+
         if (parentProgram.currentFarm.positionsToPlant.contains(currentPlantTarget)) {
             ItemStack stackToPlant = getStackToPlantAtPosition(parentProgram.currentFarm, currentPlantTarget);
             if (!stackToPlant.isEmpty()) {

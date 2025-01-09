@@ -1,6 +1,7 @@
 package NPCs.programs.CropFarming;
 
 import NPCs.programs.ExitCode;
+import NPCs.programs.MainFarmingProgram;
 import NPCs.programs.ProgramUtils;
 import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -16,35 +17,53 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import java.util.List;
 
 public class HarvestProgram {
-    MainCropFarmingProgram parentProgram;
+    MainFarmingProgram parentProgram;
     BlockPos currentHarvestTarget = null;
     int workDelay = 0;
+    int scanInterval = 20 * 10;
+    long lastScan = 0;
+    boolean hasWork = false;
     int requiredFreeSlotsToHarvest = 3;
     int requiredDistance = 2;
 
-    public HarvestProgram(MainCropFarmingProgram parentProgram) {
+    public HarvestProgram(MainFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 
-    public boolean canHarvestAny(EntityCropFarm target) {
+    public boolean recalculateHasWork(EntityCropFarm target) {
+        hasWork = true;
+        if (!parentProgram.takeHoeProgram.hasHoe() && !parentProgram.takeHoeProgram.canPickupHoeFromFarm(target))
+            hasWork = false;
+        if (target.positionsToHarvest.isEmpty()) hasWork = false;
 
-        if(!parentProgram.takeHoeProgram.hasHoe()) return false;
-        if(target.positionsToHarvest.isEmpty()) return false;
-
-        int numEmptySlots = 0;
-        for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
-            if(parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty())numEmptySlots++;
+        if (hasWork) {
+            int numEmptySlots = 0;
+            for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
+                if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()) numEmptySlots++;
+            }
+            if (numEmptySlots < requiredFreeSlotsToHarvest) hasWork = false;
         }
-        if(numEmptySlots < requiredFreeSlotsToHarvest) return false;
 
-        return true;
+        return hasWork;
     }
 
 
     public ExitCode run() {
-        if (!parentProgram.takeHoeProgram.takeHoeToMainHand()) {
+        long gameTime = parentProgram.worker.level().getGameTime();
+        if (gameTime > lastScan + scanInterval) {
+            lastScan = gameTime;
+            recalculateHasWork(parentProgram.currentFarm);
+        }
+
+        if (!hasWork) {
             return ExitCode.EXIT_SUCCESS;
         }
+
+        ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
+        if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        if (takeHoeExit.isFailed()) return ExitCode.EXIT_SUCCESS; // nothing to do because no hoe available
+
+        parentProgram.takeHoeProgram.takeHoeToMainHand();
 
         if (parentProgram.currentFarm.positionsToHarvest.contains(currentHarvestTarget)) {
             ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
@@ -73,14 +92,14 @@ public class HarvestProgram {
                     // i require 3 free slots to harvest
                     if (parentProgram.currentFarm.canHarvestPosition(currentHarvestTarget)) {
                         BlockState s = parentProgram.worker.level().getBlockState(currentHarvestTarget);
-                        LootParams.Builder b = (new LootParams.Builder((ServerLevel)parentProgram.worker.level())).withParameter(LootContextParams.TOOL, new ItemStack(Items.IRON_HOE)).withParameter(LootContextParams.ORIGIN, parentProgram.worker.getPosition(0));
+                        LootParams.Builder b = (new LootParams.Builder((ServerLevel) parentProgram.worker.level())).withParameter(LootContextParams.TOOL, new ItemStack(Items.IRON_HOE)).withParameter(LootContextParams.ORIGIN, parentProgram.worker.getPosition(0));
                         List<ItemStack> drops = s.getDrops(b);
-                        for(ItemStack i : drops) {
-                            for(int j = 0; j < parentProgram.worker.combinedInventory.getSlots(); ++j) {
+                        for (ItemStack i : drops) {
+                            for (int j = 0; j < parentProgram.worker.combinedInventory.getSlots(); ++j) {
                                 i = parentProgram.worker.combinedInventory.insertItem(j, i, false);
                             }
                         }
-                        parentProgram.worker.level().destroyBlock(currentHarvestTarget,false);
+                        parentProgram.worker.level().destroyBlock(currentHarvestTarget, false);
                         parentProgram.worker.swing(InteractionHand.MAIN_HAND);
                         ProgramUtils.damageMainHandItem(parentProgram.worker);
                     }

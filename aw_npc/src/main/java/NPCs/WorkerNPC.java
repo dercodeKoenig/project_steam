@@ -6,10 +6,11 @@ import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.network.INetworkTagReceiver;
-import NPCs.programs.CropFarming.MainCropFarmingProgram;
+import NPCs.programs.MainFarmingProgram;
 import NPCs.programs.SlowMobNavigation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
@@ -25,7 +26,6 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -49,6 +49,7 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         UNEMPLOYED
     }
 
+    public BlockPos homePosition;
     public WorkTypes worktype;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
@@ -259,6 +260,8 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         }
     }
 
+
+
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
                 .add(Attributes.MAX_HEALTH, 20.0D) // Default health
@@ -277,7 +280,7 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
 
         if (worktype != WorkTypes.UNEMPLOYED) {
             if (worktype == WorkTypes.FARMER) {
-                this.goalSelector.addGoal(priority++, new MainCropFarmingProgram(this));
+                this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
             }
         }
 
@@ -324,12 +327,22 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         inventory.deserializeNBT(this.registryAccess(), compound.getCompound("inventory1"));
+
+        if(homePosition != null) {
+            compound.putInt("homePositionX", homePosition.getX());
+            compound.putInt("homePositionY", homePosition.getY());
+            compound.putInt("homePositionZ", homePosition.getZ());
+        }
     }
 
     @Override
     public void readAdditionalSaveData(CompoundTag compound) {
         super.readAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
+
+        if(compound.contains("homePositionX") && compound.contains("homePositionY") && compound.contains("homePositionZ")){
+            homePosition = new BlockPos(compound.getInt("homePositionX"), compound.getInt("homePositionY"), compound.getInt("homePositionZ"));
+        }
     }
 
 

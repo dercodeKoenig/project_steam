@@ -32,10 +32,12 @@ public class SlowMobNavigation {
     }
 
     public ExitCode moveToPosition(BlockPos target, int precision, int maxDistace, int maxNodesVisit, int steps) {
+        //System.out.println("move to "+target+":"+precision);
+
         if (target == null) return ExitCode.EXIT_FAIL;
 
-        double distToTarget = ProgramUtils.distanceManhattan(worker, target);
-        if (distToTarget <= precision + 1) {
+        double distToTarget = ProgramUtils.distanceManhattan(worker, target.getCenter());
+        if (distToTarget <= precision +2) {
             return ExitCode.EXIT_SUCCESS;
         }
         if(isPositionCachedAsInvalid(target)){
@@ -43,7 +45,9 @@ public class SlowMobNavigation {
         }
 
         if (worker.getNavigation().getPath() == null ||
-                !Objects.equals(worker.getNavigation().getPath().getTarget(), target)) {
+                !Objects.equals(worker.getNavigation().getPath().getTarget(), target)||
+                worker.getNavigation().isDone()
+        ) {
             failTimeOut = 0;
             //long t0 = System.nanoTime();
             SlowPathFinder.PathFindExit exit = pathFinder.findPath(target,maxDistace,precision,maxNodesVisit,steps);

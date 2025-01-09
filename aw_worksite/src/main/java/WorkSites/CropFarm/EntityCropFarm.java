@@ -280,9 +280,13 @@ public class EntityCropFarm extends EntityWorkSiteBase {
 
             if (canPlant(nextPosToScan)) {
                 positionsToPlant.add(nextPosToScan);
+            }else{
+                positionsToPlant.remove(nextPosToScan);
             }
             if (canBoneMeal(nextPosToScan)) {
                 positionsToBoneMeal.add(nextPosToScan);
+            }else{
+                positionsToBoneMeal.remove(nextPosToScan);
             }
             BlockPos nextHarvestPos = getPositionToHarvest(nextPosToScan);
             //System.out.println(nextHarvestPos+":"+nextPosToScan);

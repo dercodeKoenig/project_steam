@@ -1,33 +1,33 @@
 package NPCs.programs.CropFarming;
 
+import NPCs.programs.MainFarmingProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 
 public class TakeHoeProgram {
 
-    MainCropFarmingProgram parentProgram;
+    MainFarmingProgram parentProgram;
     int workDelay = 0;
     int cachedHoeIndex = 0;
     int requiredDistance = 2;
 
-    public TakeHoeProgram(MainCropFarmingProgram parentProgram) {
+    public TakeHoeProgram(MainFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 
-    public boolean takeHoeToMainHand(){
+    public boolean takeHoeToMainHand() {
         ItemStack stackInHand = parentProgram.worker.getMainHandItem();
-        if(stackInHand.getItem() instanceof HoeItem) return true;
-        if(!hasHoe()) return false;
+        if (stackInHand.getItem() instanceof HoeItem) return true;
+        if (!hasHoe()) return false;
 
         ItemStack hoeStack = parentProgram.worker.combinedInventory.getStackInSlot(cachedHoeIndex);
-        if(hoeStack.getItem() instanceof HoeItem){
-            ProgramUtils.moveItemStackToMainHand(hoeStack,parentProgram.worker);
-             return true;
+        if (hoeStack.getItem() instanceof HoeItem) {
+            ProgramUtils.moveItemStackToMainHand(hoeStack, parentProgram.worker);
+            return true;
         }
 
         return false;
@@ -38,7 +38,7 @@ public class TakeHoeProgram {
             return true;
 
         for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
-            if(parentProgram.worker.combinedInventory.getStackInSlot(i).getItem() instanceof HoeItem){
+            if (parentProgram.worker.combinedInventory.getStackInSlot(i).getItem() instanceof HoeItem) {
                 cachedHoeIndex = i;
                 return true;
             }
@@ -48,17 +48,15 @@ public class TakeHoeProgram {
     }
 
     public boolean canPickupHoeFromFarm(EntityCropFarm farm) {
-        if(hasHoe()) return false;
-
         // check if he has space to hold the hoe
         boolean hasEmptySlot = false;
-        for (int i = 0; i <parentProgram.worker.combinedInventory.getSlots() ; i++) {
+        for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
             if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()) {
                 hasEmptySlot = true;
                 break;
             }
         }
-        if(!hasEmptySlot) return false;
+        if (!hasEmptySlot) return false;
 
         for (int j = 0; j < farm.inputsInventory.getSlots(); j++) {
             ItemStack stackInSlot = farm.inputsInventory.getStackInSlot(j);
@@ -82,16 +80,15 @@ public class TakeHoeProgram {
     }
 
     public ExitCode run() {
-        if (!canPickupHoeFromFarm(parentProgram.currentFarm)) {
-            return ExitCode.EXIT_SUCCESS;
+        if (hasHoe()) return ExitCode.EXIT_SUCCESS;
+        else if (!canPickupHoeFromFarm(parentProgram.currentFarm)) {
+            return ExitCode.EXIT_FAIL;
         }
-
 
         ExitCode pathFindExit = parentProgram.moveNearFarm(requiredDistance);
         if (pathFindExit.isFailed()) {
             return ExitCode.EXIT_FAIL;
-        }
-        else if (pathFindExit.isStillRunning()) {
+        } else if (pathFindExit.isStillRunning()) {
             workDelay = 0;
             return ExitCode.SUCCESS_STILL_RUNNING;
         }
@@ -106,11 +103,11 @@ public class TakeHoeProgram {
                 ItemStack stackInSlot = parentProgram.currentFarm.mainInventory.getStackInSlot(j);
                 if (stackInSlot.getItem() instanceof HoeItem) {
                     for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
-                        if(parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()){
-                            parentProgram.worker.combinedInventory.setStackInSlot(i,stackInSlot);
+                        if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()) {
+                            parentProgram.worker.combinedInventory.setStackInSlot(i, stackInSlot);
                             parentProgram.currentFarm.mainInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
-                            parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot,parentProgram.worker));
+                            parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, parentProgram.worker));
                             return ExitCode.SUCCESS_STILL_RUNNING;
                         }
                     }
@@ -120,11 +117,11 @@ public class TakeHoeProgram {
                 ItemStack stackInSlot = parentProgram.currentFarm.inputsInventory.getStackInSlot(j);
                 if (stackInSlot.getItem() instanceof HoeItem) {
                     for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
-                        if(parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()){
-                            parentProgram.worker.combinedInventory.setStackInSlot(i,stackInSlot);
+                        if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()) {
+                            parentProgram.worker.combinedInventory.setStackInSlot(i, stackInSlot);
                             parentProgram.currentFarm.inputsInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
-                            parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot,parentProgram.worker));
+                            parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, parentProgram.worker));
                             return ExitCode.SUCCESS_STILL_RUNNING;
                         }
                     }
@@ -135,11 +132,11 @@ public class TakeHoeProgram {
                 ItemStack stackInSlot = parentProgram.currentFarm.specialResourcesInventory.getStackInSlot(j);
                 if (stackInSlot.getItem() instanceof HoeItem) {
                     for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
-                        if(parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()){
-                            parentProgram.worker.combinedInventory.setStackInSlot(i,stackInSlot);
+                        if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()) {
+                            parentProgram.worker.combinedInventory.setStackInSlot(i, stackInSlot);
                             parentProgram.currentFarm.specialResourcesInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
-                            parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot,parentProgram.worker));
+                            parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, parentProgram.worker));
                             return ExitCode.SUCCESS_STILL_RUNNING;
                         }
                     }

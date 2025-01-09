@@ -1,5 +1,6 @@
 package NPCs.programs.CropFarming;
 
+import NPCs.programs.MainFarmingProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 
 import NPCs.programs.ExitCode;
@@ -14,16 +15,20 @@ import net.minecraft.world.level.block.state.BlockState;
 
 public class TillProgram {
 
-    MainCropFarmingProgram parentProgram;
+    MainFarmingProgram parentProgram;
     BlockPos currentTillTarget = null;
     int workDelay = 0;
+    int scanInterval = 20 * 10;
+    long lastScan = 0;
+    boolean hasWork = false;
     int requiredDistance = 2;
 
-    public TillProgram(MainCropFarmingProgram parentProgram) {
+
+    public TillProgram(MainFarmingProgram parentProgram) {
         this.parentProgram = parentProgram;
     }
 
-    public boolean canTillPosition(EntityCropFarm farm,  BlockPos p) {
+    public boolean canTillPosition(EntityCropFarm farm, BlockPos p) {
         // first check if the position is valid to grow anything (not blocked by other blocks or stem plants)
         // this is required because getStackToPlantAtPosition will return EMPTY if the position is completely invalid for planting
         if (!farm.canPlant(p)) return false;
@@ -42,20 +47,41 @@ public class TillProgram {
         return false;
     }
 
-    public boolean canTillAny(EntityCropFarm target) {
-        if (!parentProgram.takeHoeProgram.hasHoe()) return false;
-        for (BlockPos p : target.positionsToPlant) {
-            if (canTillPosition(target, p))
-                return true;
+    public boolean recalculateHasWork(EntityCropFarm target) {
+        hasWork = true;
+
+        if (!parentProgram.takeHoeProgram.hasHoe() && !parentProgram.takeHoeProgram.canPickupHoeFromFarm(target))
+            hasWork = false;
+
+        if (hasWork) {
+            for (BlockPos p : target.positionsToPlant) {
+                if (!canTillPosition(target, p)) {
+                    hasWork = false;
+                    break;
+                }
+            }
         }
-        return false;
+        return hasWork;
     }
 
 
     public ExitCode run() {
-        if (!parentProgram.takeHoeProgram.takeHoeToMainHand()) {
+
+        long gameTime = parentProgram.worker.level().getGameTime();
+        if (gameTime > lastScan + scanInterval) {
+            lastScan = gameTime;
+            recalculateHasWork(parentProgram.currentFarm);
+        }
+
+        if (!hasWork) {
             return ExitCode.EXIT_SUCCESS;
         }
+        System.out.println("till take hoe");
+
+        ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
+        if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        if (takeHoeExit.isFailed()) return ExitCode.EXIT_SUCCESS; // nothing to do because no hoe available
+
 
         if (parentProgram.currentFarm.positionsToPlant.contains(currentTillTarget)) {
             if (canTillPosition(parentProgram.currentFarm, currentTillTarget)) {

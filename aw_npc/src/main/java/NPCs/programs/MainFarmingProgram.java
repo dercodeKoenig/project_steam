@@ -1,9 +1,9 @@
-package NPCs.programs.CropFarming;
+package NPCs.programs;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ExitCode;
-import NPCs.programs.ProgramUtils;
+import NPCs.programs.CropFarming.*;
 import WorkSites.CropFarm.EntityCropFarm;
+import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -11,33 +11,32 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-public class MainCropFarmingProgram extends Goal {
+public class MainFarmingProgram extends Goal {
 
     public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
 
     public WorkerNPC worker;
-    public BlockPos currentFarmPos;
     public EntityCropFarm currentFarm;
-    public double cachedDistanceManHattanToFarm;
+    public BlockPos currentFarmPosition;
+    public double cachedDistanceManhattanToFarm;
     public int timeoutForWorkCheck = 20 * 10;
-    public boolean canUse = true;
 
-    public TakeHoeProgram takeHoeProgram;
     public TakeSeedsProgram takeSeedsProgram;
     public PlantProgram plantProgram;
     public TillProgram tillProgram;
     public HarvestProgram harvestProgram;
     public UnloadInventoryProgram unloadInventoryProgram;
+    public TakeHoeProgram takeHoeProgram;
 
-    public MainCropFarmingProgram(WorkerNPC worker) {
+    public MainFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-        takeHoeProgram = new TakeHoeProgram(this);
-        takeSeedsProgram = new TakeSeedsProgram(this);
         plantProgram = new PlantProgram(this);
         tillProgram = new TillProgram(this);
         harvestProgram = new HarvestProgram(this);
         unloadInventoryProgram = new UnloadInventoryProgram(this);
+        takeSeedsProgram = new TakeSeedsProgram(this);
+        takeHoeProgram = new TakeHoeProgram(this);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -50,20 +49,17 @@ public class MainCropFarmingProgram extends Goal {
         BlockEntity e = worker.level().getBlockEntity(p);
         if (!(e instanceof EntityCropFarm farm)) return false;
 
-        // check if the farm has a hoe to take if worker does not already have one
-        if (takeHoeProgram.canPickupHoeFromFarm(farm)) return true;
+        // if the worker can plant any seeds on the farm it has work
+        if (plantProgram.recalculateHasWork(farm)) return true;
 
-        // check if the worker has any seeds in inventory. if not, check if he can take a seed from the farm. if yes, this farm has work
+        // if the worker can take any seeds that can be planted on the farm after taking it has work
         if (takeSeedsProgram.recalculateHasWork(farm)) return true;
 
-        // if the worker can plant any seeds on the farm it has work
-        if (plantProgram.canPlantAny(farm)) return true;
-
         // if something can be tilled....
-        if (tillProgram.canTillAny(farm)) return true;
+        if (tillProgram.recalculateHasWork(farm)) return true;
 
         // check if he can harvest anything
-        if (harvestProgram.canHarvestAny(farm)) return true;
+        if (harvestProgram.recalculateHasWork(farm)) return true;
 
         // check if he can unload his inventory there
         if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
@@ -85,16 +81,23 @@ public class MainCropFarmingProgram extends Goal {
 
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(EntityCropFarm.knownCropFarms, worker)) {
-            if (workCheckedTracker.containsKey(p)) {
-                if (workCheckedTracker.get(p) + timeoutForWorkCheck > gameTime)
-                    continue;
-            }
-            workCheckedTracker.put(p, gameTime);
-            if (hasWorkAtCropFarm(p)) {
-                currentFarmPos = p;
-                return true;
-            }
+            BlockEntity worksite = worker.level().getBlockEntity(p);
+            if(worksite instanceof EntityWorkSiteBase w) {
 
+                if (w.workersWorkingHereWithTimeout.size() >= w.maxWorkersAllowed)
+                    continue;
+
+                if (workCheckedTracker.containsKey(p)) {
+                    if (workCheckedTracker.get(p) + timeoutForWorkCheck > gameTime)
+                        continue;
+                }
+
+                workCheckedTracker.put(p, gameTime);
+                if (hasWorkAtCropFarm(p)) {
+                    currentFarmPosition = p;
+                    return true;
+                }
+            }
         }
 
         return false;
@@ -102,12 +105,11 @@ public class MainCropFarmingProgram extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return canUse;
+        return currentFarmPosition != null;
     }
 
     @Override
     public void start() {
-        canUse = true;
     }
 
     @Override
@@ -116,42 +118,40 @@ public class MainCropFarmingProgram extends Goal {
         ExitCode e = run();
         long t1 = System.nanoTime();
         //System.out.println((double)(t1-t0) / 1000 / 1000);
-        if (e.isEnd()) canUse = false;
+        if (e.isEnd()) currentFarmPosition = null;
     }
 
     public ExitCode run() {
+        if (currentFarmPosition == null) return  ExitCode.EXIT_FAIL;
 
-        BlockEntity e = worker.level().getBlockEntity(currentFarmPos);
+        BlockEntity e = worker.level().getBlockEntity(currentFarmPosition);
         if (!(e instanceof EntityCropFarm farm)) return ExitCode.EXIT_FAIL;
+        if (farm.workersWorkingHereWithTimeout.size() > farm.maxWorkersAllowed) return  ExitCode.EXIT_FAIL;
+        farm.workersWorkingHereWithTimeout.put(worker, 0);
 
         currentFarm = farm;
-        cachedDistanceManHattanToFarm = ProgramUtils.distanceManhattan(worker, currentFarmPos);
+        cachedDistanceManhattanToFarm = ProgramUtils.distanceManhattan(worker,currentFarmPosition.getCenter());
 
 
-        // make sure you have a valid hoe item or fail
-        ExitCode takeHoeExit = takeHoeProgram.run();
-        if (takeHoeExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        // try to harvest
+        ExitCode tryHarvestExit = harvestProgram.run();
+        if (tryHarvestExit.isFailed()) return ExitCode.EXIT_FAIL;
+        if (tryHarvestExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
-        // try to restock seeds if required and possible
-        ExitCode restockSeedExit = takeSeedsProgram.run();
-        if (restockSeedExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (restockSeedExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        // try to take seeds if required
+        ExitCode takeSeedExit = takeSeedsProgram.run();
+        if(takeSeedExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        if(takeSeedExit.isFailed()) return ExitCode.EXIT_SUCCESS;
 
         // try to plant
         ExitCode tryPlantExit = plantProgram.run();
-        if (tryPlantExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
+        if (tryPlantExit.isFailed()) return ExitCode.EXIT_FAIL;
         if (tryPlantExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
         // try to till
         ExitCode tryTillExit = tillProgram.run();
-        if (tryTillExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
+        if (tryTillExit.isFailed()) return ExitCode.EXIT_FAIL;
         if (tryTillExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-
-        // try to harvest
-        ExitCode tryHarvestExit = harvestProgram.run();
-        if (tryHarvestExit.isFailed()) return ExitCode.EXIT_FAIL; // this should never fail
-        if (tryHarvestExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
         // try to unload Inventory
         ExitCode tryUnloadExit = unloadInventoryProgram.run();

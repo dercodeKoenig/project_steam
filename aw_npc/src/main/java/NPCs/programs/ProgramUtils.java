@@ -2,6 +2,7 @@ package NPCs.programs;
 
 import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -88,6 +89,17 @@ public class ProgramUtils {
         }
     }
 
+    public static int countFoodItems(WorkerNPC worker) {
+        int count = 0;
+        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+            ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
+            if (stackInSlot.has(DataComponents.FOOD)) {
+                count += stackInSlot.getCount();
+            }
+        }
+        return count;
+    }
+
 
     public static void damageMainHandItem(WorkerNPC worker) {
         worker.getMainHandItem().setDamageValue(worker.getMainHandItem().getDamageValue() + 1);
@@ -95,20 +107,10 @@ public class ProgramUtils {
             worker.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
     }
 
-    public static double distanceToSqr(BlockPos target, WorkerNPC worker) {
-        return worker.getPosition(0).distanceToSqr(target.getCenter());
-    }
-
-    public static double distanceManhattan(BlockPos p1, BlockPos p2) {
-        return Math.abs(p1.getX() - p2.getX()) +
-                Math.abs(p1.getY() - p2.getY()) +
-                Math.abs(p1.getZ() - p2.getZ());
-    }
-
-    public static double distanceManhattan(Entity e, BlockPos p2) {
-        return Math.abs(e.position().x - p2.getX()) +
-                Math.abs(e.position().y - p2.getY()) +
-                Math.abs(e.position().z - p2.getZ());
+    public static double distanceManhattan(Entity e, Vec3 p2) {
+        return Math.abs(e.position().x - p2.x) +
+                Math.abs(e.position().y - p2.y) +
+                Math.abs(e.position().z - p2.z);
     }
 
 }

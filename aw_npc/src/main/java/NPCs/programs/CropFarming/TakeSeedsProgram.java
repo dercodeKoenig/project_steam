@@ -96,6 +96,8 @@ public class TakeSeedsProgram {
                     seedItemsCount += stackInSlot.getCount();
                 }
             }
+
+            // TODO not all positions are plantable because of block.cansurvive
             if (seedItemsCount >= Math.min(farm.positionsToPlant.size(), 32)) {
                 hasWork = false;
             }
@@ -138,9 +140,7 @@ public class TakeSeedsProgram {
             // try to take 1 seed item
             takeOneSeedFromFarm(parentProgram.currentFarm, parentProgram.worker, false);
 
-            parentProgram.plantProgram.recalculateHasWork(parentProgram.currentFarm);
-            parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
-            recalculateHasWork(parentProgram.currentFarm);
+            parentProgram. recalculateHasWorkForAll();
         }
         workDelay++;
 

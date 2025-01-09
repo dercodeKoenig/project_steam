@@ -113,7 +113,8 @@ public class UnloadInventoryProgram {
                 parentProgram.worker.swing(InteractionHand.OFF_HAND);
             }
             unloadOneItem(parentProgram.currentFarm, false);
-            recalculateHasWork(parentProgram.currentFarm);
+
+            parentProgram. recalculateHasWorkForAll();
         }
         workDelay++;
 

@@ -72,6 +72,17 @@ public UseMillStoneProgram useMillStoneProgram;
         return false;
     }
 
+    // after inventory changes programs can call this to make them recompute if they have work
+    public void recalculateHasWorkForAll(){
+        plantProgram.recalculateHasWork(currentFarm);
+        takeSeedsProgram.recalculateHasWork(currentFarm);
+        tillProgram.recalculateHasWork(currentFarm);
+        harvestProgram.recalculateHasWork(currentFarm);
+        unloadInventoryProgram.recalculateHasWork(currentFarm);
+
+        // this one last because it needs all others except unload to have no work
+        useMillStoneProgram.recalculateHasWork(currentFarm);
+    }
 
     @Override
     public boolean canUse() {

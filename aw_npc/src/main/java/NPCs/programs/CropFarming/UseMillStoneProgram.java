@@ -133,7 +133,7 @@ public class UseMillStoneProgram {
                         if (!simulate) {
                             ItemStack extracted = millStone.inventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
-                            worker.swing(ProgramUtils.moveItemStackToAnyHand(extracted, worker));
+                            worker.swing(ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker));
                         }
                         return true;
                     }

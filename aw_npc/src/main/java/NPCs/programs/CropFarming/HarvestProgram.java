@@ -101,11 +101,10 @@ public class HarvestProgram {
                         parentProgram.worker.level().destroyBlock(currentHarvestTarget, false);
                         parentProgram.worker.swing(InteractionHand.MAIN_HAND);
                         ProgramUtils.damageMainHandItem(parentProgram.worker);
-                        parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
                     }
                     parentProgram.currentFarm.positionsToHarvest.remove(currentHarvestTarget);
 
-                    recalculateHasWork(parentProgram.currentFarm);
+                    parentProgram. recalculateHasWorkForAll();
                 }
             } else {
                 workDelay = 0;

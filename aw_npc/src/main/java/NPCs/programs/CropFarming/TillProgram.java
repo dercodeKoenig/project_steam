@@ -105,8 +105,8 @@ public class TillProgram {
                         parentProgram.worker.swing(InteractionHand.MAIN_HAND);
                         parentProgram.currentFarm.positionsToPlant.remove(currentTillTarget);
                         ProgramUtils.damageMainHandItem(parentProgram.worker);
-                        recalculateHasWork(parentProgram.currentFarm);
 
+                        parentProgram. recalculateHasWorkForAll();
                     }
                 } else {
                     workDelay = 0;

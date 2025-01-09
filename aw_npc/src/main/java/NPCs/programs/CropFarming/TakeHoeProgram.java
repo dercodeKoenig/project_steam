@@ -107,6 +107,7 @@ public class TakeHoeProgram {
                             parentProgram.worker.combinedInventory.setStackInSlot(i, stackInSlot);
                             parentProgram.currentFarm.mainInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
+                            parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
                             parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, parentProgram.worker));
                             return ExitCode.SUCCESS_STILL_RUNNING;
                         }
@@ -121,6 +122,7 @@ public class TakeHoeProgram {
                             parentProgram.worker.combinedInventory.setStackInSlot(i, stackInSlot);
                             parentProgram.currentFarm.inputsInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
+                            parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
                             parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, parentProgram.worker));
                             return ExitCode.SUCCESS_STILL_RUNNING;
                         }
@@ -136,6 +138,7 @@ public class TakeHoeProgram {
                             parentProgram.worker.combinedInventory.setStackInSlot(i, stackInSlot);
                             parentProgram.currentFarm.specialResourcesInventory.setStackInSlot(j, ItemStack.EMPTY);
                             parentProgram.currentFarm.setChanged();
+                            parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
                             parentProgram.worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, parentProgram.worker));
                             return ExitCode.SUCCESS_STILL_RUNNING;
                         }

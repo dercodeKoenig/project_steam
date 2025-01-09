@@ -140,6 +140,8 @@ public class TakeSeedsProgram {
             takeOneSeedFromFarm(parentProgram.currentFarm, parentProgram.worker, false);
             recalculateHasWork(parentProgram.currentFarm);
             parentProgram.plantProgram.recalculateHasWork(parentProgram.currentFarm);
+            parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
+            recalculateHasWork(parentProgram.currentFarm);
         }
         workDelay++;
 

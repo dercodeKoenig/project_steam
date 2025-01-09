@@ -48,17 +48,16 @@ public class TillProgram {
     }
 
     public boolean recalculateHasWork(EntityCropFarm target) {
-        hasWork = true;
+        hasWork = false;
 
-        if (!parentProgram.takeHoeProgram.hasHoe() && !parentProgram.takeHoeProgram.canPickupHoeFromFarm(target))
-            hasWork = false;
+        if (!parentProgram.takeHoeProgram.hasHoe() && !parentProgram.takeHoeProgram.canPickupHoeFromFarm(target)){
+            return false;
+        }
 
-        if (hasWork) {
-            for (BlockPos p : target.positionsToPlant) {
-                if (!canTillPosition(target, p)) {
-                    hasWork = false;
-                    break;
-                }
+        for (BlockPos p : target.positionsToPlant) {
+            if (canTillPosition(target, p)) {
+                hasWork = true;
+                break;
             }
         }
         return hasWork;
@@ -76,7 +75,6 @@ public class TillProgram {
         if (!hasWork) {
             return ExitCode.EXIT_SUCCESS;
         }
-        System.out.println("till take hoe");
 
         ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
         if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;

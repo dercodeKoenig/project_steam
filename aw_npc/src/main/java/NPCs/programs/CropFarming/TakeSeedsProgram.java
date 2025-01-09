@@ -86,7 +86,7 @@ public class TakeSeedsProgram {
         // if the worker already has one or more seed items he does not need to reload
         // but we want him not to load 1 item and run away and come back all the time
         // so if he is currently near the farm, count how many seeds he has and only if he has enough exit
-        if (parentProgram.cachedDistanceManhattanToFarm > requiredDistance+2 || parentProgram.currentFarm == null) {
+        if (parentProgram.worker.cachedDistanceManhattanToWorksite > requiredDistance+2 || parentProgram.currentFarm == null) {
             if (workerHasAnyValidSeedItem(farm, parentProgram.worker))
                 hasWork = false;
         } else {
@@ -138,7 +138,7 @@ public class TakeSeedsProgram {
             workDelay = 0;
             // try to take 1 seed item
             takeOneSeedFromFarm(parentProgram.currentFarm, parentProgram.worker, false);
-            recalculateHasWork(parentProgram.currentFarm);
+
             parentProgram.plantProgram.recalculateHasWork(parentProgram.currentFarm);
             parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
             recalculateHasWork(parentProgram.currentFarm);

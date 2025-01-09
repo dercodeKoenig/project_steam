@@ -5,14 +5,17 @@ import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.GuiModuleBase;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.gui.modules.guiModuleProgressBarHorizontal6px;
 import ARLib.network.INetworkTagReceiver;
 import NPCs.programs.MainFarmingProgram;
+import NPCs.programs.ProgramUtils;
 import NPCs.programs.SlowMobNavigation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
@@ -39,17 +42,21 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
     public int slowNavigationMaxNodes = 4096 * 16;
     public int slowNavigationStepPerTick = 512;
 
+    public int regenerateOneAfterTicks = 20*10;
+    public double hunger = 20;
+    public double maxHunger = 20;
 
     public enum WorkTypes {
-        FARMER,
+        Farmer,
         FISHER,
         MINER,
         HUNTER,
         LUMBERJACK,
-        UNEMPLOYED
+        Worker
     }
 
     public BlockPos homePosition;
+    public BlockPos lastWorksitePosition;
     public WorkTypes worktype;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
@@ -152,6 +159,14 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
     public SlowMobNavigation slowMobNavigation;
 
     GuiHandlerEntity guiHandler;
+    guiModuleProgressBarHorizontal6px lifeBar;
+    guiModuleProgressBarHorizontal6px hungerBar;
+
+    int ticksSinceLastRegen = 0;
+
+    public double cachedDistanceManhattanToWorksite;
+
+
 
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
@@ -187,7 +202,7 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
             }
         };
 
-        worktype = WorkTypes.FARMER;
+        worktype = WorkTypes.Farmer;
         registerGoals();
 
         guiHandler = new GuiHandlerEntity(this);
@@ -258,6 +273,17 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         for(GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10,90,300,0,1,guiHandler)){
             guiHandler.getModules().add(m);
         }
+
+        lifeBar = new guiModuleProgressBarHorizontal6px(1000,0xffBE0204,guiHandler, 40,50);
+        hungerBar = new guiModuleProgressBarHorizontal6px(1001,0xff563225,guiHandler, 40,60);
+
+        guiHandler.getModules().add(lifeBar);
+        guiHandler.getModules().add(hungerBar);
+
+        hungerBar.setProgressAndSync( hunger /  maxHunger);
+
+        setCustomName(Component.literal(worktype.name()));
+        setCustomNameVisible(true);
     }
 
 
@@ -278,8 +304,8 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
 
         int priority = 0;
 
-        if (worktype != WorkTypes.UNEMPLOYED) {
-            if (worktype == WorkTypes.FARMER) {
+        if (worktype != WorkTypes.Worker) {
+            if (worktype == WorkTypes.Farmer) {
                 this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
             }
         }
@@ -306,6 +332,25 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
         super.tick();
         if (!level().isClientSide) {
             guiHandler.serverTick();
+
+            if(ticksSinceLastRegen<regenerateOneAfterTicks){
+                ticksSinceLastRegen++;
+            }else{
+                if(getHealth() + 0.1 < getAttributeValue(Attributes.MAX_HEALTH)) {
+                    setHealth((float) Math.min(getHealth() + 0.5f, getAttributeValue(Attributes.MAX_HEALTH)));
+                    ticksSinceLastRegen = 0;
+                    hunger -= 0.5;
+                }
+            }
+            lifeBar.setProgressAndSync(super.getHealth() /  super.getAttributeValue(Attributes.MAX_HEALTH));
+            hunger -= 0.0005;
+            hungerBar.setProgressAndSync(hunger / maxHunger);
+
+            if(lastWorksitePosition != null)
+                cachedDistanceManhattanToWorksite = ProgramUtils.distanceManhattan(this,lastWorksitePosition.getCenter());
+            else{
+                cachedDistanceManhattanToWorksite = -1;
+            }
         }
         this.updateSwingTime(); //wtf do i need to call this myself??
     }
@@ -333,6 +378,11 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
             compound.putInt("homePositionY", homePosition.getY());
             compound.putInt("homePositionZ", homePosition.getZ());
         }
+        if(lastWorksitePosition != null) {
+            compound.putInt("worksitePositionX", lastWorksitePosition.getX());
+            compound.putInt("worksitePositionY", lastWorksitePosition.getY());
+            compound.putInt("worksitePositionZ", lastWorksitePosition.getZ());
+        }
     }
 
     @Override
@@ -342,6 +392,9 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
 
         if(compound.contains("homePositionX") && compound.contains("homePositionY") && compound.contains("homePositionZ")){
             homePosition = new BlockPos(compound.getInt("homePositionX"), compound.getInt("homePositionY"), compound.getInt("homePositionZ"));
+        }
+        if(compound.contains("worksitePositionX") && compound.contains("worksitePositionY") && compound.contains("worksitePositionZ")){
+            lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
     }
 

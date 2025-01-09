@@ -106,6 +106,8 @@ public class PlantProgram {
                         else if (parentProgram.worker.getOffhandItem().getItem().equals(stackToPlant.getItem()))
                             parentProgram.worker.swing(InteractionHand.OFF_HAND);
                         parentProgram.currentFarm.positionsToPlant.remove(currentPlantTarget);
+                        recalculateHasWork(parentProgram.currentFarm);
+
                     }
                 } else {
                     workDelay = 0;

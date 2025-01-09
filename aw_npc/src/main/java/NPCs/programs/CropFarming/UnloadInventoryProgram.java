@@ -28,11 +28,15 @@ public class UnloadInventoryProgram {
     public ItemStack unloadOneItem(EntityCropFarm farm, boolean simulate) {
         for (int j = 0; j < parentProgram.worker.combinedInventory.getSlots(); j++) {
             ItemStack canExtract = parentProgram.worker.combinedInventory.extractItem(j, 1, true);
+            ItemStack stackCopyToReturn = parentProgram.worker.combinedInventory.getStackInSlot(j).copy();
             if (!canExtract.isEmpty()) {
+                /*
                 if (canExtract.has(DataComponents.FOOD)) {
                     if (ProgramUtils.countFoodItems(parentProgram.worker) > keepFoodNum) {
                     } else continue;
                 }
+                 */
+
                 // try to insert in any inventory
                 // farm will make sure no wrong items go in the inventories
                 for (int i = 0; i < farm.specialResourcesInventory.getSlots(); i++) {
@@ -42,7 +46,7 @@ public class UnloadInventoryProgram {
                             ItemStack extracted = parentProgram.worker.combinedInventory.extractItem(j, 1, false);
                             farm.specialResourcesInventory.insertItem(i, extracted, false);
                         }
-                        return canExtract.copy();
+                        return stackCopyToReturn;
                     }
                 }
                 for (int i = 0; i < farm.inputsInventory.getSlots(); i++) {
@@ -52,7 +56,7 @@ public class UnloadInventoryProgram {
                             ItemStack extracted = parentProgram.worker.combinedInventory.extractItem(j, 1, false);
                             farm.inputsInventory.insertItem(i, extracted, false);
                         }
-                        return canExtract.copy();
+                        return stackCopyToReturn;
                     }
                 }
                 for (int i = 0; i < farm.mainInventory.getSlots(); i++) {
@@ -62,7 +66,7 @@ public class UnloadInventoryProgram {
                             ItemStack extracted = parentProgram.worker.combinedInventory.extractItem(j, 1, false);
                             farm.mainInventory.insertItem(i, extracted, false);
                         }
-                        return canExtract.copy();
+                        return stackCopyToReturn;
                     }
                 }
             }

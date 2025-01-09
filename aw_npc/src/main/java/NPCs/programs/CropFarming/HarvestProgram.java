@@ -105,6 +105,8 @@ public class HarvestProgram {
                         parentProgram.unloadInventoryProgram.recalculateHasWork(parentProgram.currentFarm);
                     }
                     parentProgram.currentFarm.positionsToHarvest.remove(currentHarvestTarget);
+
+                    recalculateHasWork(parentProgram.currentFarm);
                 }
             } else {
                 workDelay = 0;

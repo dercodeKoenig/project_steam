@@ -1,5 +1,6 @@
 package NPCs.programs;
 
+import ARLib.utils.InventoryUtils;
 import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -7,9 +8,12 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.neoforge.items.IItemHandler;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.TreeSet;
 
 public class ProgramUtils {

@@ -17,8 +17,6 @@ public class MainFarmingProgram extends Goal {
 
     public WorkerNPC worker;
     public EntityCropFarm currentFarm;
-    public BlockPos currentFarmPosition;
-    public double cachedDistanceManhattanToFarm;
     public int timeoutForWorkCheck = 20 * 10;
 
     public TakeSeedsProgram takeSeedsProgram;
@@ -71,6 +69,18 @@ public class MainFarmingProgram extends Goal {
     @Override
     public boolean canUse() {
 
+        // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
+        // except he can switch to this program if the last worksite was of this program (eg after sleep, server restart)
+        if(worker.lastWorksitePosition != null){
+            if(worker.level().isLoaded(worker.lastWorksitePosition)) {
+                BlockEntity worksite = worker.level().getBlockEntity(worker.lastWorksitePosition);
+                if (worksite instanceof EntityWorkSiteBase w) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
         //clean up entries that no longer exist
         for (BlockPos i : workCheckedTracker.keySet()) {
             if (!EntityCropFarm.knownCropFarms.contains(i)) {
@@ -94,7 +104,7 @@ public class MainFarmingProgram extends Goal {
 
                 workCheckedTracker.put(p, gameTime);
                 if (hasWorkAtCropFarm(p)) {
-                    currentFarmPosition = p;
+                    worker.lastWorksitePosition = p;
                     return true;
                 }
             }
@@ -105,11 +115,7 @@ public class MainFarmingProgram extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return currentFarmPosition != null;
-    }
-
-    @Override
-    public void start() {
+        return worker.lastWorksitePosition != null;
     }
 
     @Override
@@ -118,20 +124,18 @@ public class MainFarmingProgram extends Goal {
         ExitCode e = run();
         long t1 = System.nanoTime();
         //System.out.println((double)(t1-t0) / 1000 / 1000);
-        if (e.isEnd()) currentFarmPosition = null;
+        if (e.isEnd()) worker.lastWorksitePosition = null;
     }
 
     public ExitCode run() {
-        if (currentFarmPosition == null) return  ExitCode.EXIT_FAIL;
+        if (worker.lastWorksitePosition == null) return  ExitCode.EXIT_FAIL;
 
-        BlockEntity e = worker.level().getBlockEntity(currentFarmPosition);
+        BlockEntity e = worker.level().getBlockEntity(worker.lastWorksitePosition);
         if (!(e instanceof EntityCropFarm farm)) return ExitCode.EXIT_FAIL;
-        if (farm.workersWorkingHereWithTimeout.size() > farm.maxWorkersAllowed) return  ExitCode.EXIT_FAIL;
+
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
         currentFarm = farm;
-        cachedDistanceManhattanToFarm = ProgramUtils.distanceManhattan(worker,currentFarmPosition.getCenter());
-
 
         // try to harvest
         ExitCode tryHarvestExit = harvestProgram.run();

@@ -57,14 +57,14 @@ public class UseMillStoneProgram {
 
 
     public static ItemStack takeOneValidMillStoneInputFromFarm(EntityCropFarm farm, WorkerNPC worker, boolean simulate) {
-        for (int i = 0; i < farm.inputsInventory.getSlots(); i++) {
-            ItemStack canExtract = farm.inputsInventory.extractItem(i, 1, true);
+        for (int i = 0; i < farm.mainInventory.getSlots(); i++) {
+            ItemStack canExtract = farm.mainInventory.extractItem(i, 1, true);
             if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract)) {
                 for (int j = 0; j < worker.combinedInventory.getSlots(); j++) {
                     ItemStack notInserted = worker.combinedInventory.insertItem(j, canExtract, true);
                     if (notInserted.isEmpty()) {
                         if (!simulate) {
-                            ItemStack extracted = farm.inputsInventory.extractItem(i, 1, false);
+                            ItemStack extracted = farm.mainInventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
                             InteractionHand movedTo = ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
                             worker.swing(movedTo);
@@ -78,19 +78,42 @@ public class UseMillStoneProgram {
     }
 
 
-    public static ItemStack unloadOneItemIntoMillstone(IItemHandler inventory, IItemHandler millstone, boolean simulate, int requiredMinStockInInvventory) {
+    public static ItemStack unloadOneItemIntoMillstone(EntityMillStone millstone, WorkerNPC worker, boolean simulate) {
+        IItemHandler inventory = worker.combinedInventory;
+        for (int j = 0; j < inventory.getSlots(); j++) {
+            ItemStack canExtract = inventory.extractItem(j, 1, true);
+            ItemStack stackCopyToReturn = inventory.getStackInSlot(j).copy();
+            if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract)) {
+
+                for (int i = 0; i < millstone.inventory.getSlots(); i++) {
+                    ItemStack notInserted = millstone.inventory.insertItem(i, canExtract, true);
+                    if (notInserted.isEmpty()) {
+                        if (!simulate) {
+                            if (worker.getMainHandItem().getItem().equals(canExtract. getItem()))
+                                worker.swing(InteractionHand.MAIN_HAND);
+                            else if (worker.getOffhandItem().getItem().equals(canExtract.getItem()))
+                                worker.swing(InteractionHand.OFF_HAND);
+
+                            ItemStack extracted = inventory.extractItem(j, 1, false);
+                            millstone.inventory.insertItem(i, extracted, false);
+                        }
+                        return stackCopyToReturn;
+                    }
+                }
+            }
+        }
+        return ItemStack.EMPTY;
+    }
+
+    public static ItemStack canUnloadOneItemIntoMillstone(IItemHandler inventory, EntityMillStone millstone, int requiredMinStockInInvventory) {
         for (int j = 0; j < inventory.getSlots(); j++) {
             ItemStack canExtract = inventory.extractItem(j, 1, true);
             ItemStack stackCopyToReturn = inventory.getStackInSlot(j).copy();
             if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract) && ProgramUtils.countItems(canExtract.getItem(), inventory) > requiredMinStockInInvventory) {
 
-                for (int i = 0; i < millstone.getSlots(); i++) {
-                    ItemStack notInserted = millstone.insertItem(i, canExtract, true);
+                for (int i = 0; i < millstone.inventory.getSlots(); i++) {
+                    ItemStack notInserted = millstone.inventory.insertItem(i, canExtract, true);
                     if (notInserted.isEmpty()) {
-                        if (!simulate) {
-                            ItemStack extracted = inventory.extractItem(j, 1, false);
-                            millstone.insertItem(i, extracted, false);
-                        }
                         return stackCopyToReturn;
                     }
                 }
@@ -149,9 +172,25 @@ public class UseMillStoneProgram {
         if (currentMillstone != null) {
             canTakeOutputs = takeItemOutOfMillStone(currentMillstone, parentProgram.worker, true);
 
-            canPutInputsFromFarm = unloadOneItemIntoMillstone(farm.mainInventory, currentMillstone.inventory, true, 0);
             // only take from farm if more than 64 are present
-            canPutInputsFromInventory = unloadOneItemIntoMillstone(parentProgram.worker.combinedInventory, currentMillstone.inventory, true, 64);
+            // if we are close to the farm we can reduce the filter because we want the worker to take the entire batch and not just one item
+            int d = 64;
+            if(ProgramUtils.distanceManhattan(parentProgram.worker,farm.getBlockPos().getCenter()) <= requiredDistance+2)
+                d -= stackSizeToTakeFromFarm;
+            canPutInputsFromFarm = canUnloadOneItemIntoMillstone(farm.mainInventory, currentMillstone, d);
+
+            canPutInputsFromInventory = unloadOneItemIntoMillstone(currentMillstone,parentProgram.worker, true);
+
+            // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
+            if (!canPutInputsFromFarm.isEmpty()) {
+                if (takeOneValidMillStoneInputFromFarm(farm, parentProgram.worker, true).isEmpty()) {
+                    canPutInputsFromFarm = ItemStack.EMPTY;
+                }
+            }
+
+            boolean hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
+            if (!hasWork) currentMillstone = null;
+            return hasWork;
 
         } else {
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(EntityMillStone.knownBlockEntities, parentProgram.worker)) {
@@ -168,23 +207,33 @@ public class UseMillStoneProgram {
                 if (be instanceof EntityMillStone millStone) {
                     canTakeOutputs = takeItemOutOfMillStone(millStone, parentProgram.worker, true);
 
-                    canPutInputsFromFarm = unloadOneItemIntoMillstone(farm.mainInventory, millStone.inventory, true, 0);
                     // only take from farm if more than 64 are present
-                    canPutInputsFromInventory = unloadOneItemIntoMillstone(parentProgram.worker.combinedInventory, millStone.inventory, true, 64);
+                    // if we are close to the farm we can reduce the filter because we want the worker to take the entire batch and not just one item
+                    int d = 64;
+                    if(ProgramUtils.distanceManhattan(parentProgram.worker,farm.getBlockPos().getCenter()) <= requiredDistance+2)
+                        d -= stackSizeToTakeFromFarm;
+                    canPutInputsFromFarm = canUnloadOneItemIntoMillstone(farm.mainInventory, millStone, d);
+
+                    canPutInputsFromInventory = unloadOneItemIntoMillstone(millStone,parentProgram.worker, true);
+
+                    // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
+                    if (!canPutInputsFromFarm.isEmpty()) {
+                        if (takeOneValidMillStoneInputFromFarm(farm, parentProgram.worker, true).isEmpty()) {
+                            canPutInputsFromFarm = ItemStack.EMPTY;
+                        }
+                    }
+
+                    boolean hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
+                    if (hasWork) currentMillstone = millStone;
+                    return hasWork;
                 }
             }
         }
-
-        // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
-        if (!canPutInputsFromFarm.isEmpty()) {
-            if (takeOneValidMillStoneInputFromFarm(farm, parentProgram.worker, true).isEmpty()) {
-                canPutInputsFromFarm = ItemStack.EMPTY;
-            }
-        }
-
-        boolean hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
-        if (!hasWork) currentMillstone = null;
-        return hasWork;
+        currentMillstone = null;
+        canPutInputsFromFarm = ItemStack.EMPTY;
+        canPutInputsFromInventory = ItemStack.EMPTY;
+        canTakeOutputs = false;
+        return false;
     }
 
     public ExitCode run() {
@@ -199,12 +248,15 @@ public class UseMillStoneProgram {
 
 
         // first try to take a batch of items from the farm to carry to millstone
-        if (!canPutInputsFromFarm.isEmpty()) {
+        // note that it can cause the worker to deposit one item and run back to farm to restock the batch
+        // because of this, only consider this if we are more than x block away from millstone
+        if (!canPutInputsFromFarm.isEmpty() && ProgramUtils.distanceManhattan(parentProgram.worker, currentMillstone.getBlockPos().getCenter()) > 10) {
             // count how many items of insertable type i have in inventory already do decide if i should take more
             // i may have more items to insert in inventory because both only return the first valid item but this is not a problem
             int itemsToInsertTotal =
                     ProgramUtils.countItems(canPutInputsFromFarm.getItem(), parentProgram.worker.combinedInventory)
                             + ProgramUtils.countItems(canPutInputsFromInventory.getItem(), parentProgram.worker.combinedInventory);
+
             if (itemsToInsertTotal < stackSizeToTakeFromFarm) {
                 // can take more before going to millstone
                 ExitCode moveNearFarm = parentProgram.moveNearFarm(requiredDistance);
@@ -255,7 +307,7 @@ public class UseMillStoneProgram {
 
                 if (workDelay > 10) {
                     workDelay = 0;
-                    unloadOneItemIntoMillstone(parentProgram.worker.combinedInventory, currentMillstone.inventory, false, 0);
+                    unloadOneItemIntoMillstone(currentMillstone, parentProgram.worker, false);
                     recalculateHasWork(parentProgram.currentFarm);
                 }
                 workDelay++;

@@ -331,6 +331,9 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
     public void tick() {
         super.tick();
         if (!level().isClientSide) {
+
+            if(super.isDeadOrDying()) return;
+
             guiHandler.serverTick();
 
             if(ticksSinceLastRegen<regenerateOneAfterTicks){

@@ -7,7 +7,7 @@ import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
 import ARLib.gui.modules.guiModuleProgressBarHorizontal6px;
 import ARLib.network.INetworkTagReceiver;
-import NPCs.programs.MainFarmingProgram;
+import NPCs.programs.CropFarming.MainFarmingProgram;
 import NPCs.programs.ProgramUtils;
 import NPCs.programs.SlowMobNavigation;
 import net.minecraft.client.Minecraft;

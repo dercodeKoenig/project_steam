@@ -1,11 +1,13 @@
 package NPCs.programs;
 
 import ARLib.utils.InventoryUtils;
+import ARLib.utils.ItemUtils;
 import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
@@ -93,11 +95,21 @@ public class ProgramUtils {
         }
     }
 
-    public static int countFoodItems(WorkerNPC worker) {
+    public static int countItemsMatchingId(String id, IItemHandler inventory){
         int count = 0;
-        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
-            ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
-            if (stackInSlot.has(DataComponents.FOOD)) {
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            ItemStack stackInSlot = inventory.getStackInSlot(i);
+            if (ItemUtils.matches(id,stackInSlot)) {
+                count += stackInSlot.getCount();
+            }
+        }
+        return count;
+    }
+    public static int countItems(Item item, IItemHandler inventory){
+        int count = 0;
+        for (int i = 0; i < inventory.getSlots(); i++) {
+            ItemStack stackInSlot = inventory.getStackInSlot(i);
+            if (stackInSlot.getItem().equals(item)) {
                 count += stackInSlot.getCount();
             }
         }

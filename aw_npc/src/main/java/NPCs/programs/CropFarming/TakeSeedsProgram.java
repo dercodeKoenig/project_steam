@@ -1,7 +1,6 @@
 package NPCs.programs.CropFarming;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.MainFarmingProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 
 import NPCs.programs.ExitCode;
@@ -16,7 +15,7 @@ import net.minecraft.world.item.ItemStack;
 public class TakeSeedsProgram {
     MainFarmingProgram parentProgram;
     int workDelay = 0;
-    int scanInterval = 20 * 30;
+    int scanInterval = 20 * 20;
     boolean hasWork = false;
     long lastScan = 0;
     int requiredDistance = 2;

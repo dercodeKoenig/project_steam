@@ -1,7 +1,6 @@
 package NPCs.programs.CropFarming;
 
 import NPCs.programs.ExitCode;
-import NPCs.programs.MainFarmingProgram;
 import NPCs.programs.ProgramUtils;
 import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -20,7 +19,7 @@ public class HarvestProgram {
     MainFarmingProgram parentProgram;
     BlockPos currentHarvestTarget = null;
     int workDelay = 0;
-    int scanInterval = 20 * 10;
+    int scanInterval = 20 * 20;
     long lastScan = 0;
     boolean hasWork = false;
     int requiredFreeSlotsToHarvest = 3;

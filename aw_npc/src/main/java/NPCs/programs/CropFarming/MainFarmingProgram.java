@@ -1,7 +1,8 @@
-package NPCs.programs;
+package NPCs.programs.CropFarming;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.CropFarming.*;
+import NPCs.programs.ExitCode;
+import NPCs.programs.ProgramUtils;
 import WorkSites.CropFarm.EntityCropFarm;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
@@ -25,6 +26,7 @@ public class MainFarmingProgram extends Goal {
     public HarvestProgram harvestProgram;
     public UnloadInventoryProgram unloadInventoryProgram;
     public TakeHoeProgram takeHoeProgram;
+public UseMillStoneProgram useMillStoneProgram;
 
     public MainFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
@@ -35,6 +37,7 @@ public class MainFarmingProgram extends Goal {
         unloadInventoryProgram = new UnloadInventoryProgram(this);
         takeSeedsProgram = new TakeSeedsProgram(this);
         takeHoeProgram = new TakeHoeProgram(this);
+        useMillStoneProgram = new UseMillStoneProgram(this);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -61,6 +64,10 @@ public class MainFarmingProgram extends Goal {
 
         // check if he can unload his inventory there
         if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
+
+
+        // check if he can use millstone
+        if (useMillStoneProgram.recalculateHasWork(farm)) return true;
 
         return false;
     }
@@ -136,6 +143,12 @@ public class MainFarmingProgram extends Goal {
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
         currentFarm = farm;
+
+
+        // try to use millstone
+        ExitCode millStoneExit = useMillStoneProgram.run();
+        if (millStoneExit.isFailed()) return ExitCode.EXIT_FAIL;
+        if (millStoneExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
 
         // try to harvest
         ExitCode tryHarvestExit = harvestProgram.run();

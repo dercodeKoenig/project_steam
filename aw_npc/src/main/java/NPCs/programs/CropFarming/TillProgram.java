@@ -1,6 +1,5 @@
 package NPCs.programs.CropFarming;
 
-import NPCs.programs.MainFarmingProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 
 import NPCs.programs.ExitCode;
@@ -18,7 +17,7 @@ public class TillProgram {
     MainFarmingProgram parentProgram;
     BlockPos currentTillTarget = null;
     int workDelay = 0;
-    int scanInterval = 20 * 10;
+    int scanInterval = 20 * 20;
     long lastScan = 0;
     boolean hasWork = false;
     int requiredDistance = 2;

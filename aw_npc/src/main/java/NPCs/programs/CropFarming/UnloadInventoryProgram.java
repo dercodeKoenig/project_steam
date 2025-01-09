@@ -1,19 +1,16 @@
 package NPCs.programs.CropFarming;
 
-import NPCs.programs.MainFarmingProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 
 import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 
 public class UnloadInventoryProgram {
     MainFarmingProgram parentProgram;
     int scanInterval = 20 * 20;
-    int keepFoodNum = 8;
     int requiredDistance = 2;
 
     int workDelay = 0;

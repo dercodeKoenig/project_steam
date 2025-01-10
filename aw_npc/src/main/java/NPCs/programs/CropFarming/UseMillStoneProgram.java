@@ -163,15 +163,6 @@ public class UseMillStoneProgram {
             return false;
         }
 
-        long gametime = parentProgram.worker.level().getGameTime();
-        // remove blocked millstone entries after some ticks in case worker died or is no longer using it
-        for (BlockPos p : millstonesInUseWithLastUseTime.keySet()) {
-            if (millstonesInUseWithLastUseTime.get(p) > gametime) {
-                millstonesInUseWithLastUseTime.remove(p);
-                break;
-            }
-        }
-
         if (currentMillstone != null) {
             if (!currentMillstone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 currentMillstone = null;
@@ -216,10 +207,13 @@ public class UseMillStoneProgram {
             return hasWork;
 
         } else {
+
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(EntityMillStone.knownBlockEntities, parentProgram.worker)) {
-                if (ProgramUtils.distanceManhattan(parentProgram.worker, p.getCenter()) > 64) {
+                if (ProgramUtils.distanceManhattan(parentProgram.worker, p.getCenter()) > 64)
                     break;
-                }
+
+                if(millstonesInUseWithLastUseTime.containsKey(p) && millstonesInUseWithLastUseTime.get(p) + 5 > parentProgram.worker.level().getGameTime())
+                    continue;
 
                 // check if the millstone is cached as unreachable
                 if (parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(p))
@@ -228,9 +222,8 @@ public class UseMillStoneProgram {
                 // check if items can be taken out of the millstone
                 BlockEntity be = parentProgram.worker.level().getBlockEntity(p);
                 if (be instanceof EntityMillStone millStone) {
-                    if (!millStone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
+                    if (!millStone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
                         continue;
-                    }
 
                     canTakeOutputs = takeItemOutOfMillStone(millStone, parentProgram.worker, true);
 
@@ -257,8 +250,10 @@ public class UseMillStoneProgram {
                     }
 
                     boolean hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
-                    if (hasWork) currentMillstone = millStone;
-                    return hasWork;
+                    if (hasWork) {
+                        currentMillstone = millStone;
+                        return hasWork;
+                    }
                 }
             }
         }
@@ -278,6 +273,9 @@ public class UseMillStoneProgram {
         }
 
         if (currentMillstone == null) return ExitCode.EXIT_SUCCESS;
+
+        // block millstone from beeing used by others
+        millstonesInUseWithLastUseTime.put(currentMillstone.getBlockPos(),parentProgram.worker.level().getGameTime());
 
         // first try to take a batch of items from the farm to carry to millstone
         // note that it can cause the worker to deposit one item in millstone and run back to farm to restock the batch

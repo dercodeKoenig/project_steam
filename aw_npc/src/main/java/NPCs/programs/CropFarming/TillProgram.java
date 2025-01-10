@@ -12,7 +12,12 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
+import java.util.HashMap;
+
 public class TillProgram {
+
+    public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
+
 
     MainFarmingProgram parentProgram;
     BlockPos currentTillTarget = null;
@@ -82,6 +87,10 @@ public class TillProgram {
 
         if (parentProgram.currentFarm.positionsToPlant.contains(currentTillTarget)) {
             if (canTillPosition(parentProgram.currentFarm, currentTillTarget)) {
+
+                positionsInUseWithLastUseTime.put(currentTillTarget,parentProgram.worker.level().getGameTime());
+
+
                 ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
                         currentTillTarget,
                         requiredDistance,
@@ -117,6 +126,8 @@ public class TillProgram {
         }
         currentTillTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
+            if(positionsInUseWithLastUseTime.containsKey(i) &&positionsInUseWithLastUseTime.get(i) + 5 > parentProgram.worker.level().getGameTime())
+                continue;
             if (canTillPosition(parentProgram.currentFarm, i)) {
                 if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                     currentTillTarget = i;

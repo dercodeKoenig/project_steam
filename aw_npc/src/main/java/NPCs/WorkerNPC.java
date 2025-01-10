@@ -304,11 +304,10 @@ public class WorkerNPC extends PathfinderMob implements INetworkTagReceiver {
 
         int priority = 0;
 
-        if (worktype != WorkTypes.Worker) {
             if (worktype == WorkTypes.Farmer) {
                 this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
             }
-        }
+
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));

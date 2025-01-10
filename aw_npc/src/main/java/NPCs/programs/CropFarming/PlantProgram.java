@@ -10,7 +10,12 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.HashMap;
+
 public class PlantProgram {
+
+    public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
+
     MainFarmingProgram parentProgram;
     BlockPos currentPlantTarget = null;
     int workDelay = 0;
@@ -74,6 +79,10 @@ public class PlantProgram {
         if (parentProgram.currentFarm.positionsToPlant.contains(currentPlantTarget)) {
             ItemStack stackToPlant = getStackToPlantAtPosition(parentProgram.currentFarm, currentPlantTarget);
             if (!stackToPlant.isEmpty()) {
+
+                positionsInUseWithLastUseTime.put(currentPlantTarget,parentProgram.worker.level().getGameTime());
+
+
                 ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
                         currentPlantTarget,
                         requiredDistance,
@@ -117,6 +126,9 @@ public class PlantProgram {
         }
         currentPlantTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
+            if(positionsInUseWithLastUseTime.containsKey(i) &&positionsInUseWithLastUseTime.get(i) + 5 > parentProgram.worker.level().getGameTime())
+                continue;
+
             if (getStackToPlantAtPosition(parentProgram.currentFarm, i) != ItemStack.EMPTY) {
                 if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                     currentPlantTarget = i;

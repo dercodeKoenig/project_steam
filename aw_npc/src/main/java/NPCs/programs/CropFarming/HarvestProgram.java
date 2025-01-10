@@ -13,9 +13,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
+import java.util.HashMap;
 import java.util.List;
 
 public class HarvestProgram {
+    public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
+
+
     MainFarmingProgram parentProgram;
     BlockPos currentHarvestTarget = null;
     int workDelay = 0;
@@ -33,7 +37,8 @@ public class HarvestProgram {
         hasWork = true;
         if (!parentProgram.takeHoeProgram.hasHoe() && !parentProgram.takeHoeProgram.canPickupHoeFromFarm(target))
             hasWork = false;
-        if (target.positionsToHarvest.isEmpty()) hasWork = false;
+        if (target.positionsToHarvest.isEmpty())
+            hasWork = false;
 
         if (hasWork) {
             int numEmptySlots = 0;
@@ -65,6 +70,9 @@ public class HarvestProgram {
         parentProgram.takeHoeProgram.takeHoeToMainHand();
 
         if (parentProgram.currentFarm.positionsToHarvest.contains(currentHarvestTarget)) {
+
+            positionsInUseWithLastUseTime.put(currentHarvestTarget,parentProgram.worker.level().getGameTime());
+
             ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
                     currentHarvestTarget,
                     requiredDistance,
@@ -114,6 +122,9 @@ public class HarvestProgram {
         }
         currentHarvestTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToHarvest, parentProgram.worker)) {
+            if(positionsInUseWithLastUseTime.containsKey(i) &&positionsInUseWithLastUseTime.get(i) + 5 > parentProgram.worker.level().getGameTime())
+                continue;
+
             if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                 currentHarvestTarget = i;
                 return ExitCode.SUCCESS_STILL_RUNNING;

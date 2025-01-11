@@ -36,11 +36,9 @@ public class BlockTownHall extends Block implements EntityBlock {
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
     }
-    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable LivingEntity placer, ItemStack stack) {
-        EntityTownHall.ownerNamesStatic.get(DimensionUtils.getLevelId(level)).put(pos, new HashSet<>());
-    }
+
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         super.onRemove(state, level, pos, newState, movedByPiston);
-        EntityTownHall.ownerNamesStatic.get(DimensionUtils.getLevelId(level)).remove(pos);
+        EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level)).remove(pos);
     }
 }

@@ -14,6 +14,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
@@ -242,8 +243,8 @@ public class EntitySpinningWheel extends BlockEntity implements INetworkTagRecei
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
-        myMechanicalBlock.mechanicalReadServer(compoundTag);
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(compoundTag, p);
         guiHandler.readServer(compoundTag);
     }
 

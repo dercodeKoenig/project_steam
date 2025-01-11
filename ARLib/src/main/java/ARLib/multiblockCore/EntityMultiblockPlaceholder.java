@@ -51,7 +51,7 @@ public class EntityMultiblockPlaceholder extends BlockEntity implements INetwork
 
         }else{
             CompoundTag info = new CompoundTag();
-            info.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            info.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
         }
     }
@@ -79,19 +79,15 @@ public class EntityMultiblockPlaceholder extends BlockEntity implements INetwork
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
-        if(tag.contains("client_onload")){
-            UUID pid = tag.getUUID("client_onload");
-            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(pid);
+    public void readServer(CompoundTag tag, ServerPlayer player) {
+        if (tag.contains("ping")) {
 
             CompoundTag response = new CompoundTag();
             DataResult<CompoundTag> encodedBlockState = BlockState.CODEC.encodeStart(NbtOps.INSTANCE, replacedState)
                     .map(nbtTag -> (CompoundTag) nbtTag);
             response.put("BlockState", encodedBlockState.getOrThrow());
             response.putBoolean("renderBlock", renderBlock);
-            if(p!=null) {
-                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, response));
-            }
+            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, response));
         }
     }
 

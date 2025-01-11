@@ -8,6 +8,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -143,8 +144,8 @@ public class EntityWaterWheelGenerator extends BlockEntity implements INetworkTa
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
-        myMechanicalBlock.mechanicalReadServer(compoundTag);
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(compoundTag, p);
     }
 
     @Override

@@ -565,9 +565,9 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
         return connectedBlocks;
     }
 
-    public void readServer(CompoundTag tag) {
-        myMechanicalBlockA.mechanicalReadServer(tag);
-        myMechanicalBlockB.mechanicalReadServer(tag);
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        myMechanicalBlockA.mechanicalReadServer(tag,p);
+        myMechanicalBlockB.mechanicalReadServer(tag,p);
     }
 
     public void readClient(CompoundTag tag) {

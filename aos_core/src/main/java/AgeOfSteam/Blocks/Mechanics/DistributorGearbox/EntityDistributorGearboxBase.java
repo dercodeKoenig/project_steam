@@ -7,6 +7,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -140,8 +141,8 @@ public class EntityDistributorGearboxBase extends BlockEntity implements IMechan
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
-        myMechanicalBlock.mechanicalReadServer(tag);
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(tag,p);
     }
 
     @Override

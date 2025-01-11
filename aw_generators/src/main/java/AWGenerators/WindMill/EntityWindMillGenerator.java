@@ -108,7 +108,7 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
         myMechanicalBlock.mechanicalOnload();
         if (level.isClientSide) {
             CompoundTag request = new CompoundTag();
-            request.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            request.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, request));
         }
         if(!level.isClientSide){
@@ -318,14 +318,10 @@ public class EntityWindMillGenerator extends BlockEntity implements INetworkTagR
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
-        myMechanicalBlock.mechanicalReadServer(compoundTag);
-        if (compoundTag.contains("client_onload")) {
-            UUID from = compoundTag.getUUID("client_onload");
-            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            if(pfrom!=null) {
-                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
-            }
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(compoundTag, p);
+        if (compoundTag.contains("ping")) {
+                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
         }
     }
 

@@ -165,7 +165,6 @@ public class myPlugin implements IModPlugin {
                     if (!data.isEmpty()) {
                         CompoundTag info = new CompoundTag();
                         info.putString("data", data);
-                        info.putUUID("uuid", Minecraft.getInstance().player.getUUID());
                         CompoundTag moveItemsTag = new CompoundTag();
                         moveItemsTag.put("moveItems", info);
                         PacketDistributor.sendToServer(

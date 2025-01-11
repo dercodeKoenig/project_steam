@@ -176,17 +176,13 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
-        myMechanicalBlock.mechanicalReadServer(tag);
-        if (tag.contains("ClientWoodMillOnload")) {
-            UUID from = tag.getUUID("ClientWoodMillOnload");
-            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(tag, p);
+        if (tag.contains("ping")) {
             CompoundTag info = getClientSyncUpdateTag();
-            if(pfrom != null) {
-                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
-            }
+            PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, info));
         }
-        super.readServer(tag);
+        super.readServer(tag, p);
     }
 
     @Override

@@ -29,8 +29,6 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
     public double myFriction;
     public double maxStress;
 
-    int rotationoffset;
-
     public AbstractMechanicalBlock myMechanicalBlock = new AbstractMechanicalBlock(0, this) {
         @Override
         public double getMaxStress() {
@@ -63,15 +61,10 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
                 workedPositions.add(this);
                 Map<Direction, AbstractMechanicalBlock> connections = me.getConnectedParts(me, this);
 
-
-                if (receivingFace != null) {
-                    rotation += rotationoffset * 90;
-                }
-
                 currentRotation = rotation;
 
                 for (Direction i : connections.keySet()) {
-                    double rotationToOutside = (currentRotation - rotationoffset * 90) * getRotationMultiplierToOutside(i);
+                    double rotationToOutside = currentRotation  * getRotationMultiplierToOutside(i);
                     connections.get(i).propagateResetRotation(rotationToOutside, i.getOpposite(), workedPositions);
                 }
             }
@@ -126,38 +119,23 @@ public class EntityFlyWheelBase extends BlockEntity implements IMechanicalBlockP
 
     @Override
     public void readClient(CompoundTag tag) {
-        if (tag.contains("rotationOffset")) {
-            rotationoffset = tag.getInt("rotationOffset");
-            myMechanicalBlock.propagateResetRotation(myMechanicalBlock.currentRotation + 90, null, new HashSet<>());
-        }
         myMechanicalBlock.mechanicalReadClient(tag);
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
-        if (tag.contains("request_rotationOffset")) {
-            UUID from = tag.getUUID("request_rotationOffset");
-            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            CompoundTag res = new CompoundTag();
-            res.putInt("rotationOffset", rotationoffset);
-            if (p != null) {
-                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, res));
-            }
-        }
-        myMechanicalBlock.mechanicalReadServer(tag);
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(tag,p);
     }
 
     @Override
     protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.loadAdditional(tag, registries);
         myMechanicalBlock.mechanicalLoadAdditional(tag, registries);
-        rotationoffset = tag.getInt("rotationOffset");
     }
 
     @Override
     protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         super.saveAdditional(tag, registries);
         myMechanicalBlock.mechanicalSaveAdditional(tag, registries);
-        tag.putInt("rotationOffset", rotationoffset);
     }
 }

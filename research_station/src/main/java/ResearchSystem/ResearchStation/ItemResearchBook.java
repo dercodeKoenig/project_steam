@@ -3,7 +3,7 @@ package ResearchSystem.ResearchStation;
 import ARLib.gui.GuiHandlerMainHandItem;
 import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
-import ARLib.network.INetworkItemStackTagReceiver;
+import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import ARLib.network.PacketPlayerMainHand;
 import ARLib.utils.DimensionUtils;
@@ -18,6 +18,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.*;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -34,7 +35,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class ItemResearchBook extends Item implements INetworkItemStackTagReceiver {
+public class ItemResearchBook extends Item implements INetworkTagReceiver {
 
     ItemStack client_currentBookStackOpen = ItemStack.EMPTY;
 
@@ -497,15 +498,16 @@ if(station instanceof EntityResearchStation r){
             BlockPos pos = new BlockPos(t.getInt("sx"), t.getInt("sy"), t.getInt("sz"));
             p = PacketBlockEntity.getBlockEntityPacket(Minecraft.getInstance().player.level(), pos, info);
         } else {
-            p = PacketPlayerMainHand.packetToServer(Minecraft.getInstance().player.getUUID(), info);
+            p = new PacketPlayerMainHand(info);
         }
         PacketDistributor.sendToServer(p);
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag, ItemStack itemStack, UUID uuid) {
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         if (compoundTag.contains("setPreviewResearch")) {
             String id = compoundTag.getString("setPreviewResearch");
+            ItemStack itemStack = p.getInventory().getSelected();
             setSelectedResearchPreview(itemStack, id);
         }
     }

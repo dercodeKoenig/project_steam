@@ -3,7 +3,7 @@ package ARLib.holoProjector;
 import ARLib.gui.GuiHandlerMainHandItem;
 import ARLib.gui.modules.GuiModuleBase;import ARLib.gui.modules.guiModuleButton;
 import ARLib.gui.modules.guiModuleScrollContainer;
-import ARLib.network.INetworkItemStackTagReceiver;
+import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketPlayerMainHand;
 import ARLib.utils.DimensionUtils;
 import net.minecraft.client.Minecraft;
@@ -12,6 +12,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -29,13 +30,14 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.InputEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
 import static ARLib.ARLibRegistry.BLOCK_STRUCTURE_PREVIEW;
 
 
-public class itemHoloProjector extends Item implements INetworkItemStackTagReceiver {
+public class itemHoloProjector extends Item implements INetworkTagReceiver {
     static GuiHandlerMainHandItem guiHandler;
 
     public static Map<String, List<BlockInfo>> structureBlocks = new HashMap<>();
@@ -98,7 +100,6 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
 
             double scrollDelta = event.getScrollDeltaY();
 
-            UUID id = player.getUUID();
             CompoundTag tag = new CompoundTag();
             if (scrollDelta > 0) {
                 // Scrolled up
@@ -108,7 +109,7 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
                 tag.putBoolean("scroll", false);
             }
 
-            PacketDistributor.sendToServer(PacketPlayerMainHand.packetToServer(id, tag));
+            PacketDistributor.sendToServer(new PacketPlayerMainHand(tag));
             event.setCanceled(true);
         }
     }
@@ -257,7 +258,9 @@ public class itemHoloProjector extends Item implements INetworkItemStackTagRecei
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag, ItemStack stack, UUID sender) {
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
+
+        ItemStack stack = p.getInventory().getSelected();
         CompoundTag itemTag = getStacktagOrEmpty(stack);
 
         if (compoundTag.contains("guiButtonClick")) {

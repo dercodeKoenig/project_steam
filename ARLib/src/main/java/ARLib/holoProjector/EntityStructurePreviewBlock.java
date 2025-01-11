@@ -2,20 +2,18 @@ package ARLib.holoProjector;
 
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ProjectSteam.Blocks.Mechanics.Axle.EntityAxleBase;
 import com.mojang.serialization.DataResult;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.texture.Tickable;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.*;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -37,7 +35,8 @@ public class EntityStructurePreviewBlock extends BlockEntity implements INetwork
     public void setValidBlocks(List<Block> validBlocks) {
         this.validBlocks.addAll(validBlocks);
     }
-int maxLifeTime = 20*60*20;
+
+    int maxLifeTime = 20 * 60 * 20;
 
     long last_sec = 0;
     int i = 0;
@@ -62,12 +61,12 @@ int maxLifeTime = 20*60*20;
 
     @Override
     public void onLoad() {
-        if(!level.isClientSide){
-            ((ServerLevel)level).scheduleTick(getBlockPos(),getBlockState().getBlock(),24000);
+        if (!level.isClientSide) {
+            ((ServerLevel) level).scheduleTick(getBlockPos(), getBlockState().getBlock(), 24000);
         }
         if (level.isClientSide) {
             CompoundTag info = new CompoundTag();
-            info.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            info.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, info));
         }
     }
@@ -102,13 +101,12 @@ int maxLifeTime = 20*60*20;
             }
         }
 
-        ticksExisted= tag.getInt("ticks");
+        ticksExisted = tag.getInt("ticks");
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
-        if (compoundTag.contains("client_onload")) {
-            UUID p = compoundTag.getUUID("client_onload");
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
+        if (compoundTag.contains("ping")) {
             CompoundTag response = new CompoundTag();
             ListTag blockListTag = new ListTag();
             for (Block block : validBlocks) {
@@ -118,11 +116,9 @@ int maxLifeTime = 20*60*20;
                 blockListTag.add(bt);
             }
             response.put("ValidBlocks", blockListTag);
-            ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(p);
-            if(player != null){
-            PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(this, response));
+
+            PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, response));
         }
-    }
     }
 
     @Override

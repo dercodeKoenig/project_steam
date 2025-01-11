@@ -11,6 +11,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -73,8 +74,8 @@ public class PacketEntity implements CustomPacketPayload {
         Level world = DimensionUtils.getDimensionLevelServer(data.entityTag.getString("level"));
         if (world instanceof ServerLevel l) {
             Entity e = l.getEntities().get(data.entityTag.getInt("id"));
-            if (e instanceof INetworkTagReceiver) {
-                ((INetworkTagReceiver) e).readServer(data.getTag());
+            if (e instanceof INetworkTagReceiver && context.player() instanceof ServerPlayer p) {
+                ((INetworkTagReceiver) e).readServer(data.getTag(), p);
             }
         }
     }

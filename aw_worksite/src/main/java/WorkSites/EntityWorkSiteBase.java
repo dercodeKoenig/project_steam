@@ -139,7 +139,7 @@ public abstract class EntityWorkSiteBase extends BlockEntity implements IMechani
     public void onLoad() {
         if (level.isClientSide) {
             CompoundTag t = new CompoundTag();
-            t.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            t.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, t));
         } else {
             updateBoundsBp();
@@ -409,16 +409,12 @@ super.setRemoved();
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         guiHandlerMain.readServer(compoundTag);
-        myMechanicalBlock.mechanicalReadServer(compoundTag);
+        myMechanicalBlock.mechanicalReadServer(compoundTag, p);
 
-        if (compoundTag.contains("client_onload")) {
-            UUID from = compoundTag.getUUID("client_onload");
-            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            if (p != null) {
+        if (compoundTag.contains("ping")) {
                 PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, getUpdateTag()));
-            }
         }
         if (compoundTag.contains("blacklist_add")) {
             CompoundTag i = compoundTag.getCompound("blacklist_add");

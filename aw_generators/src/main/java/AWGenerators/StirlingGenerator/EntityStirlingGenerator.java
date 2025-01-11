@@ -117,7 +117,7 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
         myMechanicalBlock.mechanicalOnload();
         if(level.isClientSide){
             CompoundTag onLoadRequest = new CompoundTag();
-            onLoadRequest.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            onLoadRequest.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this,onLoadRequest));
         }
     }
@@ -147,16 +147,12 @@ public class EntityStirlingGenerator extends BlockEntity implements INetworkTagR
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
-        myMechanicalBlock.mechanicalReadServer(compoundTag);
+    public void readServer(CompoundTag compoundTag,ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(compoundTag,p);
         guiHandler.readServer(compoundTag);
 
-        if(compoundTag.contains("client_onload")){
-            UUID from = compoundTag.getUUID("client_onload");
-            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            if(pfrom != null){
-                PacketDistributor.sendToPlayer(pfrom,PacketBlockEntity.getBlockEntityPacket(this,getUpdateTag()));
-            }
+        if(compoundTag.contains("ping")){
+                PacketDistributor.sendToPlayer(p,PacketBlockEntity.getBlockEntityPacket(this,getUpdateTag()));
         }
     }
 

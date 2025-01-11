@@ -9,6 +9,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -333,7 +334,7 @@ public abstract class EntityMultiblockMaster extends BlockEntity implements INet
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
+    public void readServer(CompoundTag tag, ServerPlayer p) {
 
     }
 

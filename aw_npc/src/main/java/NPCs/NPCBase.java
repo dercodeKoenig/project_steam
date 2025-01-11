@@ -294,7 +294,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
             Set<String> owners = new HashSet<>();
             if(townHall != null) {
-                 owners = EntityTownHall.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).get(townHall);
+                 owners = EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).get(townHall);
             }
 
             // allow gui
@@ -340,7 +340,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                         }
                     }
                 } else {
-                    if (!EntityTownHall.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).containsKey(townHall)) {
+                    if (!EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).containsKey(townHall)) {
                         System.out.println("townhall " + townHall + "is no longer valid");
                         townHall = null;
                     }
@@ -431,7 +431,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         guiHandler.readServer(compoundTag);
     }
 

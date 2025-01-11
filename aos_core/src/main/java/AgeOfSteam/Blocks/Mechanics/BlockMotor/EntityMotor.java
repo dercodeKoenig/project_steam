@@ -14,6 +14,7 @@ import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
@@ -336,9 +337,9 @@ public class EntityMotor extends BlockEntity implements IMechanicalBlockProvider
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
+    public void readServer(CompoundTag tag, ServerPlayer p) {
         //System.out.println("readServer:"+tag);
-        myMechanicalBlock.mechanicalReadServer(tag);
+        myMechanicalBlock.mechanicalReadServer(tag, p);
         guiHandler.readServer(tag);
 
         if (tag.contains("guiButtonClick")) {

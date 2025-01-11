@@ -121,7 +121,7 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
         myMechanicalBlock.mechanicalOnload();
         if (level.isClientSide) {
             CompoundTag myOnloadTag = new CompoundTag();
-            myOnloadTag.putUUID("ClientSieveOnload", Minecraft.getInstance().player.getUUID());
+            myOnloadTag.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, myOnloadTag));
         }
 
@@ -182,30 +182,17 @@ public class EntitySieve extends BlockEntity implements IMechanicalBlockProvider
         if (tag.contains("timeRequired")) {
             client_syncedCurrentRecipeTime = tag.getDouble("timeRequired");
         }
-        if (tag.contains("syncMaxStackSize")) {
-            maxStackSizeForSieve = tag.getInt("syncMaxStackSize");
-        }
-        if (tag.contains("syncMaxHopperStackSize")) {
-            maxStackSizeForSieveHopper = tag.getInt("syncMaxHopperStackSize");
-        }
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
-        myMechanicalBlock.mechanicalReadServer(tag);
-        if (tag.contains("ClientSieveOnload")) {
-            UUID from = tag.getUUID("ClientSieveOnload");
-            ServerPlayer pfrom = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(tag, p);
+        if (tag.contains("ping")) {
             CompoundTag info = getMeshUpdateTag();
-            // this should only be synced once and saved as static variables but I just make it here because it is easy to add it here
-            info.putInt("syncMaxStackSize", maxStackSizeForSieve);
-            info.putInt("syncMaxHopperStackSize", maxStackSizeForSieveHopper);
             if(currentRecipe!=null){
                 info.putDouble("timeRequired", currentRecipe.timeRequired);
             }
-            if(pfrom!=null) {
-                PacketDistributor.sendToPlayer(pfrom, PacketBlockEntity.getBlockEntityPacket(this, info));
-            }
+                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, info));
         }
     }
 

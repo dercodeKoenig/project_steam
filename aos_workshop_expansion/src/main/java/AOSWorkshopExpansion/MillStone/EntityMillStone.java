@@ -112,7 +112,7 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     public void onLoad() {
         if (level.isClientSide) {
             CompoundTag i = new CompoundTag();
-            i.putUUID("client_onload", Minecraft.getInstance().player.getUUID());
+            i.put("ping", new CompoundTag());
             PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(this, i));
         }
 
@@ -342,15 +342,11 @@ public class EntityMillStone extends EntityMultiblockMaster implements IMechanic
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
-        myMechanicalBlock.mechanicalReadServer(tag);
-        if (tag.contains("client_onload")) {
-            UUID from = tag.getUUID("client_onload");
-            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-            if (p instanceof ServerPlayer sp) {
-                sendUpdateTag(sp);
-            }
+    public void readServer(CompoundTag tag, ServerPlayer p) {
+        myMechanicalBlock.mechanicalReadServer(tag, p);
+        if (tag.contains("ping")) {
+                sendUpdateTag(p);
         }
-        super.readServer(tag);
+        super.readServer(tag, p);
     }
 }

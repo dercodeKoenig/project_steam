@@ -259,19 +259,15 @@ onBookContentChanged();
     }
 
     @Override
-    public void readServer(CompoundTag compoundTag) {
+    public void readServer(CompoundTag compoundTag, ServerPlayer p) {
 //System.out.println(compoundTag);
         if (compoundTag.contains("moveItems")) {
             CompoundTag moveItems = compoundTag.getCompound("moveItems");
             String data = moveItems.getString("data");
-            UUID uuid = moveItems.getUUID("uuid");
-            ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(uuid);
-            if (player != null) {
-                Gson gson = new Gson();
-                List<List<String>> recipes = gson.fromJson(data, List.class);
-                if (recipes != null) {
-                    JEItransferResearchRecipe(recipes, player);
-                }
+            Gson gson = new Gson();
+            List<List<String>> recipes = gson.fromJson(data, List.class);
+            if (recipes != null) {
+                JEItransferResearchRecipe(recipes, p);
             }
         }
     }

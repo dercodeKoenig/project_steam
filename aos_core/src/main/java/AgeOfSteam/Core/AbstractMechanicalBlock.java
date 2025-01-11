@@ -385,7 +385,7 @@ public abstract class AbstractMechanicalBlock {
                 if (lastPing > cttam_timeout / 2) {
                     lastPing = 0;
                     CompoundTag tag = new CompoundTag();
-                    tag.putUUID("ping_is_master", Minecraft.getInstance().player.getUUID());
+                    tag.put("masterPing", new CompoundTag());
                     tag.putInt("id", id);
                     PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(myTile, tag));
                 }
@@ -500,20 +500,16 @@ public abstract class AbstractMechanicalBlock {
         }
     }
 
-    public void mechanicalReadServer(CompoundTag tag) {
-        if (tag.contains("ping_is_master") && tag.contains("id")) {
-            UUID from = tag.getUUID("ping_is_master");
+    public void mechanicalReadServer(CompoundTag tag, ServerPlayer p) {
+        if (tag.contains("masterPing") && tag.contains("id")) {
             int id = tag.getInt("id");
             if (id == this.id) {
-                clientsTrackingThisAsMaster.put(from, 0);
+                clientsTrackingThisAsMaster.put(p.getUUID(), 0);
                 CompoundTag updateTag = new CompoundTag();
                 updateTag.putDouble("velocity", internalVelocity);
                 updateTag.putDouble("rotation", currentRotation);
                 updateTag.putInt("id", id);
-                ServerPlayer player = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
-                if (player != null) {
-                    PacketDistributor.sendToPlayer(player, PacketBlockEntity.getBlockEntityPacket(me.getBlockEntity(), updateTag));
-                }
+                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(me.getBlockEntity(), updateTag));
             }
         }
     }

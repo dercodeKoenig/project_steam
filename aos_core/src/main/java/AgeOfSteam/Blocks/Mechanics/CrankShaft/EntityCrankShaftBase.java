@@ -158,17 +158,13 @@ public class EntityCrankShaftBase extends BlockEntity implements IMechanicalBloc
     }
 
     @Override
-    public void readServer(CompoundTag tag) {
+    public void readServer(CompoundTag tag, ServerPlayer p) {
         if (tag.contains("request_rotationOffset")) {
-            UUID from = tag.getUUID("request_rotationOffset");
-            ServerPlayer p = ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayer(from);
             CompoundTag res = new CompoundTag();
             res.putInt("rotationOffset", rotationoffset);
-            if (p != null) {
-                PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, res));
-            }
+            PacketDistributor.sendToPlayer(p, PacketBlockEntity.getBlockEntityPacket(this, res));
         }
-        myMechanicalBlock.mechanicalReadServer(tag);
+        myMechanicalBlock.mechanicalReadServer(tag, p);
     }
 
     @Override

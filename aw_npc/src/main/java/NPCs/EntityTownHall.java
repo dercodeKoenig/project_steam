@@ -1,13 +1,13 @@
 package NPCs;
 
 import ARLib.utils.DimensionUtils;
+import com.electronwill.nightconfig.toml.TomlWriter;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -24,28 +24,77 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static NPCs.EntityTownHall.TownHallOwners.ownerNamesStatic;
 import static NPCs.Registry.ENTITY_TOWNHALL;
 
 public class EntityTownHall extends BlockEntity {
 
     public static HashSet<BlockPos> knownTownHalls = new HashSet<>();
 
-    public static HashMap<String, HashMap<BlockPos, Set<String>>> ownerNamesStatic = new HashMap<>();
-    Set<String> ownerNames;
+    public static class TownHallOwners {
+        //TODO use setchanged and only save on change
+        public static HashMap<String, HashMap<BlockPos, Set<String>>> ownerNamesStatic = new HashMap<>();
 
+        public BlockPos pos;
+        public Set<String> owners;
+
+        public static HashMap<String, List<TownHallOwners>> getFromStaticMap() {
+            HashMap<String, List<TownHallOwners>> map = new HashMap<>();
+            for (String s : ownerNamesStatic.keySet()) {
+                map.put(s, new ArrayList<>());
+                for (BlockPos p : ownerNamesStatic.get(s).keySet()) {
+                    TownHallOwners i = new TownHallOwners();
+                    i.pos = p;
+                    i.owners = ownerNamesStatic.get(s).get(p);
+                    map.get(s).add(i);
+                }
+            }
+            return map;
+        }
+
+        public static void createStaticMap(HashMap<String, List<TownHallOwners>> map) {
+            ownerNamesStatic = new HashMap<>();
+            for (Level l : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
+                if (!ownerNamesStatic.containsKey(DimensionUtils.getLevelId(l))) {
+                    ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
+                }
+                if(map.containsKey(DimensionUtils.getLevelId(l))){
+                    for(TownHallOwners i : map.get(DimensionUtils.getLevelId(l))){
+                        if(i!=null)
+                            ownerNamesStatic.get(DimensionUtils.getLevelId(l)).put(i.pos,i.owners);
+                    }
+                }
+            }
+        }
+
+        public static String toJson() {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            String s = gson.toJson(getFromStaticMap());
+            return s;
+        }
+
+        public static void fromJson(String json) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Type mapType = new TypeToken<HashMap<String, List<TownHallOwners>>>() {
+            }.getType();
+            HashMap<String, List<TownHallOwners>> map = gson.fromJson(json, mapType);
+            createStaticMap(map);
+        }
+    }
+
+    Set<String> ownerNames;
 
     public static void onLevelSave(LevelEvent.Save event) {
         if (event.getLevel().isClientSide()) return;
         Path configDir = Paths.get(FMLPaths.GAMEDIR.get().toString()).resolve(event.getLevel().getServer().getWorldPath(LevelResource.ROOT));
         String filename = "townHallOwners";
         Path filePath = configDir.resolve(filename);
-        Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        String s = gson.toJson(ownerNamesStatic);
+
         try {
             if (!Files.exists(filePath)) {
                 Files.createFile(filePath);
             }
-            Files.writeString(filePath, s);
+            Files.writeString(filePath, TownHallOwners.toJson());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -56,24 +105,14 @@ public class EntityTownHall extends BlockEntity {
         Path configDir = Paths.get(FMLPaths.GAMEDIR.get().toString()).resolve(event.getLevel().getServer().getWorldPath(LevelResource.ROOT));
         String filename = "townHallOwners";
         Path filePath = configDir.resolve(filename);
-        Gson gson = new Gson();
-
         if (Files.exists(filePath)) {
             try {
-                Type mapType = new TypeToken<HashMap<String, HashMap<BlockPos, Set<String>>>>() {
-                }.getType();
                 String s = Files.readString(filePath);
-                ownerNamesStatic = gson.fromJson(s, mapType);
+                TownHallOwners.fromJson(s);
             } catch (IOException e) {
                 throw new RuntimeException(e);
-            } catch (JsonSyntaxException j){
-                System.err.println(j);;
-            }
-        }
-
-        for (Level l : ServerLifecycleHooks.getCurrentServer().getAllLevels()) {
-            if (!ownerNamesStatic.containsKey(DimensionUtils.getLevelId(l))) {
-                ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
+            } catch (JsonSyntaxException j) {
+                System.err.println(j);
             }
         }
     }
@@ -99,10 +138,10 @@ public class EntityTownHall extends BlockEntity {
     public void onLoad() {
         super.onLoad();
         if (!level.isClientSide) {
-            if(ownerNamesStatic.get(DimensionUtils.getLevelId(level)).get(getBlockPos()) == null) {
+            if (ownerNamesStatic.get(DimensionUtils.getLevelId(level)).get(getBlockPos()) == null) {
                 ownerNamesStatic.get(DimensionUtils.getLevelId(level)).put(getBlockPos(), new HashSet<>());
             }
-                ownerNames = ownerNamesStatic.get(DimensionUtils.getLevelId(level)).get(getBlockPos());
+            ownerNames = ownerNamesStatic.get(DimensionUtils.getLevelId(level)).get(getBlockPos());
         }
 
         knownTownHalls.add(getBlockPos());

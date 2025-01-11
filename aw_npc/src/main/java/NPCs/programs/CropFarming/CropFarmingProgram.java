@@ -534,7 +534,7 @@ public class CropFarmingProgram {
         hasWorkTill = canTill(target);
 
         hasWork = hasWorkHarvest || hasWorkPlant || hasWorkTakeSeeds || hasWorkTill;
-        hasWork = hasWork && isPositionWorkable(target.getBlockPos());
+        hasWork = hasWork && isPositionWorkable(target.getBlockPos()) && worker.hunger > worker.maxHunger * 0.25;
         return hasWork;
     }
 

@@ -177,117 +177,103 @@ public class UseMillStoneProgram {
         return false;
     }
 
+
+    static class workinfo{
+        public boolean canTakeOutputs = false;
+        public ItemStack canPutInputsFromFarm = ItemStack.EMPTY;
+        public ItemStack canPutInputsFromInventory = ItemStack.EMPTY;
+    }
+
+    public workinfo recalculateWorkForMillStone(EntityCropFarm farm, EntityMillStone millstone) {
+
+        workinfo w = new workinfo();
+
+        if (worker.hunger < worker.maxHunger * 0.25) {
+            return new workinfo();
+        }
+
+        if (!millstone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
+            return new workinfo();
+        }
+        if (!isPositionWorkable(millstone.getBlockPos())) {
+            return new workinfo();
+        }
+
+        w.canTakeOutputs = takeItemOutOfMillStone(millstone, worker, true);
+
+        // only take from farm if more than 64 are present
+        // if we are close to the farm we can reduce the filter because we want the worker to take the entire batch and not just one item
+        w.canPutInputsFromFarm = getPossibleMillstoneInput(farm.mainInventory, millstone, 64);
+
+        // if the farm is not stocked up with enough inputs, do not put into millstone but into farm first.
+        // so count if the farm has enough stock
+        w.canPutInputsFromInventory = unloadOneItemIntoMillstone(millstone, worker, true);
+        if (ProgramUtils.countItems(w.canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
+            w.canPutInputsFromInventory = ItemStack.EMPTY;
+        }
+
+        // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
+        if (!w.canPutInputsFromFarm.isEmpty()) {
+            if (takeOneValidMillStoneInputFromFarm(farm, worker, true).isEmpty()) {
+                w.canPutInputsFromFarm = ItemStack.EMPTY;
+            }
+        }
+
+        // it is a problem that the farmer unloads one item at the farm and then he notices that he can pick up from millstone
+        // and he will run from farm to millstone and every time only unload 1 item at the farm if he reaches the farm
+        // if the distance is longer sometimes he will not even reach the farm and turn back half way because more items are processed and can be picked up
+        // so i make it like this:
+        // if the worker already HAS output items and is NOT near the millstone, assume he is on its way to bring the items to the farm
+        // in this case, ignore that he can pick up items from the millstone
+        if (ProgramUtils.distanceManhattan(worker, millstone.getBlockPos().getCenter()) > 5) {
+            for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
+                if (isItemValidRecipeOutput(worker.combinedInventory.getStackInSlot(i))) {
+                    w.canTakeOutputs = false;
+                    break;
+                }
+            }
+        }
+        return w;
+    }
+
+
     public boolean recalculateHasWork(EntityCropFarm farm) {
 
         canTakeOutputs = false;
         canPutInputsFromFarm = ItemStack.EMPTY;
         canPutInputsFromInventory = ItemStack.EMPTY;
+        hasWork = false;
 
-        if (currentMillstone != null) {
-            if (!currentMillstone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
-                currentMillstone = null;
-                return false;
-            }
-            if(!isPositionWorkable(currentMillstone.getBlockPos())){
-                currentMillstone = null;
-                return false;
-            }
-
-            canTakeOutputs = takeItemOutOfMillStone(currentMillstone, worker, true);
-
-            // only take from farm if more than 64 are present
-            // if we are close to the farm we can reduce the filter because we want the worker to take the entire batch and not just one item
-            canPutInputsFromFarm = getPossibleMillstoneInput(farm.mainInventory, currentMillstone, 64);
-
-            // if the farm is not stocked up with enough inputs, do not put into millstone but into farm first.
-            // so count if the farm has enough stock
-            canPutInputsFromInventory = unloadOneItemIntoMillstone(currentMillstone, worker, true);
-            if (ProgramUtils.countItems(canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
-                canPutInputsFromInventory = ItemStack.EMPTY;
-            }
-
-            // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
-            if (!canPutInputsFromFarm.isEmpty()) {
-                if (takeOneValidMillStoneInputFromFarm(farm, worker, true).isEmpty()) {
-                    canPutInputsFromFarm = ItemStack.EMPTY;
-                }
-            }
-
-            // it is a problem that the farmer unloads one item at the farm and then he notices that he can pick up from millstone
-            // and he will run from farm to millstone and every time only unload 1 item at the farm if he reaches the farm
-            // if the distance is longer sometimes he will not even reach the farm and turn back half way because more items are processed and can be picked up
-            // so i make it like this:
-            // if the worker already HAS output items and is NOT near the millstone, assume he is on its way to bring the items to the farm
-            // in this case, ignore that he can pick up items from the millstone
-            if (ProgramUtils.distanceManhattan(worker, currentMillstone.getBlockPos().getCenter()) > 5) {
-                for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
-                    if (isItemValidRecipeOutput(worker.combinedInventory.getStackInSlot(i))) {
-                        canTakeOutputs = false;
-                        break;
-                    }
-                }
-            }
-
-            hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
+        if(currentMillstone != null) {
+            workinfo w = recalculateWorkForMillStone(farm, currentMillstone);
+            hasWork = !w.canPutInputsFromFarm.isEmpty() || w.canTakeOutputs || !w.canPutInputsFromInventory.isEmpty();
             if (!hasWork) currentMillstone = null;
+            else {
+                canTakeOutputs = w.canTakeOutputs;
+                canPutInputsFromFarm = w.canPutInputsFromFarm;
+                canPutInputsFromInventory = w.canPutInputsFromInventory;
+            }
             return hasWork;
-
         } else {
-
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityMillStone.knownBlockEntities, worker)) {
                 if (ProgramUtils.distanceManhattan(worker, p.getCenter()) > farm.useMillStonesInRadius)
                     break;
-
-                if (!isPositionWorkable(p))
-                    continue;
-
-                if (!isPositionWorkable(p))
-                    continue;
-
-                // check if items can be taken out of the millstone
                 BlockEntity be = worker.level().getBlockEntity(p);
                 if (be instanceof EntityMillStone millStone) {
-                    if (!millStone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED))
-                        continue;
-
-                    canTakeOutputs = takeItemOutOfMillStone(millStone, worker, true);
-
-                    canPutInputsFromFarm = getPossibleMillstoneInput(farm.mainInventory, millStone, 64);
-
-                    canPutInputsFromInventory = unloadOneItemIntoMillstone(millStone, worker, true);
-                    if (ProgramUtils.countItems(canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
-                        canPutInputsFromInventory = ItemStack.EMPTY;
-                    }
-
-                    if (!canPutInputsFromFarm.isEmpty()) {
-                        if (takeOneValidMillStoneInputFromFarm(farm, worker, true).isEmpty()) {
-                            canPutInputsFromFarm = ItemStack.EMPTY;
-                        }
-                    }
-
-                    if (ProgramUtils.distanceManhattan(worker, millStone.getBlockPos().getCenter()) > 5) {
-                        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
-                            if (isItemValidRecipeOutput(worker.combinedInventory.getStackInSlot(i))) {
-                                canTakeOutputs = false;
-                                break;
-                            }
-                        }
-                    }
-
-                    hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
-                    if (hasWork) {
+                    workinfo w = recalculateWorkForMillStone(farm, millStone);
+                    boolean _hasWork = !w.canPutInputsFromFarm.isEmpty() || w.canTakeOutputs || !w.canPutInputsFromInventory.isEmpty();
+                    if (_hasWork){
+                        hasWork = true;
                         currentMillstone = millStone;
+                        canTakeOutputs = w.canTakeOutputs;
+                        canPutInputsFromFarm = w.canPutInputsFromFarm;
+                        canPutInputsFromInventory = w.canPutInputsFromInventory;
                         lockTargetPosition();
-                        return hasWork;
+                        return true;
                     }
                 }
             }
         }
-        currentMillstone = null;
-        canPutInputsFromFarm = ItemStack.EMPTY;
-        canPutInputsFromInventory = ItemStack.EMPTY;
-        canTakeOutputs = false;
-        hasWork = false;
         return false;
     }
 

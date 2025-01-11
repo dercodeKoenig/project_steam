@@ -41,7 +41,7 @@ public class FoodProgramWorker extends Goal {
                     if (worker.combinedInventory.insertItem(i, stackInSlot.copyWithCount(1), true).isEmpty()) {
                         if (!simulate) {
                             worker.combinedInventory.insertItem(i, target.extractItem(j, 1, false), false);
-                            worker.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, worker));
+                            worker.swing(ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(i), worker));
                         }
                         return true;
                     }

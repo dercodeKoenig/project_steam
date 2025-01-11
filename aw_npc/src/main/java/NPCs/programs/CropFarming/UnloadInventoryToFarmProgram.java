@@ -32,7 +32,7 @@ public class UnloadInventoryToFarmProgram {
         if(!unloadSR.isEmpty())
             canUnloadToSpecialResources = true;
 
-        ItemStack unloadR= UnloadInventoryProgram.getAnyItemToUnload(farm.specialResourcesInventory, worker);
+        ItemStack unloadR= UnloadInventoryProgram.getAnyItemToUnload(farm.inputsInventory, worker);
         if(!unloadR.isEmpty())
             canUnloadToResources = true;
 

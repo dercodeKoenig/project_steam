@@ -414,7 +414,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         }
 
         if (compound.contains("townHallX") && compound.contains("townHallY") && compound.contains("townHallZ")) {
-            townHall = new BlockPos(compound.getInt("townHallX"), compound.getInt("townHallY"), compound.getInt("homePositionZ"));
+            townHall = new BlockPos(compound.getInt("townHallX"), compound.getInt("townHallY"), compound.getInt("townHallZ"));
             System.out.println(getUUID()+" has townhall "+townHall);
         }
 

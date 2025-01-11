@@ -31,16 +31,18 @@ public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<Work
     @Override
     public void render(WorkerNPC entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
         model.attackTime = entity.getAttackAnim(partialTicks);
-        if(entity.getMainHandItem().isEmpty())
+
+
+        if (entity.getMainHandItem().isEmpty())
             model.rightArmPose = HumanoidModel.ArmPose.EMPTY;
-        else{
+        else
             model.rightArmPose = HumanoidModel.ArmPose.ITEM;
-        }
-        if(entity.getOffhandItem().isEmpty())
+
+        if (entity.getOffhandItem().isEmpty())
             model.leftArmPose = HumanoidModel.ArmPose.EMPTY;
-        else{
+        else
             model.leftArmPose = HumanoidModel.ArmPose.ITEM;
-        }
+
         super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
 }

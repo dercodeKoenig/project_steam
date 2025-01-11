@@ -1,8 +1,8 @@
 package NPCs.programs.CropFarming;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ExitCode;
 import NPCs.programs.ProgramUtils;
+import NPCs.programs.UnloadInventoryProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
@@ -12,6 +12,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.EnumSet;
 import java.util.HashMap;
 
+import static NPCs.programs.ProgramUtils.*;
+
 public class MainFarmingProgram extends Goal {
 
     public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
@@ -20,24 +22,17 @@ public class MainFarmingProgram extends Goal {
     public EntityCropFarm currentFarm;
     public int timeoutForWorkCheck = 20 * 10;
 
-    public TakeSeedsProgram takeSeedsProgram;
-    public PlantProgram plantProgram;
-    public TillProgram tillProgram;
-    public HarvestProgram harvestProgram;
-    public UnloadInventoryProgram unloadInventoryProgram;
-    public TakeHoeProgram takeHoeProgram;
-public UseMillStoneProgram useMillStoneProgram;
+    public CropFarmingProgram cropFarmingProgram;
+    public UnloadInventoryToFarmProgram unloadInventoryProgram;
+    public UseMillStoneProgram useMillStoneProgram;
 
     public MainFarmingProgram(WorkerNPC worker) {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
-        plantProgram = new PlantProgram(this);
-        tillProgram = new TillProgram(this);
-        harvestProgram = new HarvestProgram(this);
-        unloadInventoryProgram = new UnloadInventoryProgram(this);
-        takeSeedsProgram = new TakeSeedsProgram(this);
-        takeHoeProgram = new TakeHoeProgram(this);
-        useMillStoneProgram = new UseMillStoneProgram(this);
+
+        unloadInventoryProgram = new UnloadInventoryToFarmProgram(worker);
+        cropFarmingProgram = new CropFarmingProgram(worker);
+        useMillStoneProgram = new UseMillStoneProgram(worker);
     }
 
     public boolean requiresUpdateEveryTick() {
@@ -50,38 +45,15 @@ public UseMillStoneProgram useMillStoneProgram;
         BlockEntity e = worker.level().getBlockEntity(p);
         if (!(e instanceof EntityCropFarm farm)) return false;
 
-        // if the worker can plant any seeds on the farm it has work
-        if (plantProgram.recalculateHasWork(farm)) return true;
-
-        // if the worker can take any seeds that can be planted on the farm after taking it has work
-        if (takeSeedsProgram.recalculateHasWork(farm)) return true;
-
-        // if something can be tilled....
-        if (tillProgram.recalculateHasWork(farm)) return true;
-
-        // check if he can harvest anything
-        if (harvestProgram.recalculateHasWork(farm)) return true;
+        if (cropFarmingProgram.recalculateHasWork(farm)) return true;
 
         // check if he can unload his inventory there
         if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
 
-
-        // check if he can use millstone
+        // check if he can use millstone from this farm
         if (useMillStoneProgram.recalculateHasWork(farm)) return true;
 
         return false;
-    }
-
-    // after inventory changes programs can call this to make them recompute if they have work
-    public void recalculateHasWorkForAll(){
-        plantProgram.recalculateHasWork(currentFarm);
-        takeSeedsProgram.recalculateHasWork(currentFarm);
-        tillProgram.recalculateHasWork(currentFarm);
-        harvestProgram.recalculateHasWork(currentFarm);
-        unloadInventoryProgram.recalculateHasWork(currentFarm);
-
-        // this one last because it needs all others except unload to have no work
-        useMillStoneProgram.recalculateHasWork(currentFarm);
     }
 
     @Override
@@ -89,8 +61,8 @@ public UseMillStoneProgram useMillStoneProgram;
 
         // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
         // except he can switch to this program if the last worksite was of this program (eg after sleep, server restart)
-        if(worker.lastWorksitePosition != null){
-            if(worker.level().isLoaded(worker.lastWorksitePosition)) {
+        if (worker.lastWorksitePosition != null) {
+            if (worker.level().isLoaded(worker.lastWorksitePosition)) {
                 BlockEntity worksite = worker.level().getBlockEntity(worker.lastWorksitePosition);
                 if (worksite instanceof EntityWorkSiteBase w) {
                     return true;
@@ -108,12 +80,12 @@ public UseMillStoneProgram useMillStoneProgram;
         }
 
         long gameTime = worker.level().getGameTime();
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(EntityCropFarm.knownCropFarms, worker)) {
+        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
             BlockEntity worksite = worker.level().getBlockEntity(p);
-            if(worksite instanceof EntityWorkSiteBase w) {
+            if (worksite instanceof EntityWorkSiteBase w) {
 
                 if (w.workersWorkingHereWithTimeout.size() >= w.maxWorkersAllowed)
-                //if (w.workersWorkingHereWithTimeout.size() >= 6)
+                    //if (w.workersWorkingHereWithTimeout.size() >= 6)
                     continue;
 
                 if (workCheckedTracker.containsKey(p)) {
@@ -140,64 +112,39 @@ public UseMillStoneProgram useMillStoneProgram;
     @Override
     public void tick() {
         long t0 = System.nanoTime();
-        ExitCode e = run();
+        int e = run();
         long t1 = System.nanoTime();
         //System.out.println((double)(t1-t0) / 1000 / 1000);
-        if (e.isEnd()) worker.lastWorksitePosition = null;
+        if (e == EXIT_SUCCESS || e == EXIT_FAIL) worker.lastWorksitePosition = null;
     }
 
-    public ExitCode run() {
-        if (worker.lastWorksitePosition == null) return  ExitCode.EXIT_FAIL;
+    public int run() {
+        if (worker.lastWorksitePosition == null) return EXIT_FAIL;
 
         BlockEntity e = worker.level().getBlockEntity(worker.lastWorksitePosition);
-        if (!(e instanceof EntityCropFarm farm)) return ExitCode.EXIT_FAIL;
+        if (!(e instanceof EntityCropFarm farm)) return EXIT_FAIL;
 
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
-        currentFarm = farm;
+        // try to use millstone only if the farming program has no work so we do not interrupt
+        if(!cropFarmingProgram.hasWork) {
+            int millStoneExit = useMillStoneProgram.run(farm);
+            if (millStoneExit == EXIT_FAIL) return EXIT_FAIL;
+            if (millStoneExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+        }
 
-
-        // try to use millstone
-        ExitCode millStoneExit = useMillStoneProgram.run();
-        if (millStoneExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (millStoneExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-
-        // try to harvest
-        ExitCode tryHarvestExit = harvestProgram.run();
-        if (tryHarvestExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (tryHarvestExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-
-        // try to take seeds if required
-        ExitCode takeSeedExit = takeSeedsProgram.run();
-        if(takeSeedExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-        if(takeSeedExit.isFailed()) return ExitCode.EXIT_SUCCESS;
-
-        // try to plant
-        ExitCode tryPlantExit = plantProgram.run();
-        if (tryPlantExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (tryPlantExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-
-        // try to till
-        ExitCode tryTillExit = tillProgram.run();
-        if (tryTillExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (tryTillExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        // try to farm
+        if(!useMillStoneProgram.hasWork) {
+            int cropFarmingExit = cropFarmingProgram.run(farm);
+            if (cropFarmingExit == EXIT_FAIL) return EXIT_FAIL;
+            if (cropFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+        }
 
         // try to unload Inventory
-        ExitCode tryUnloadExit = unloadInventoryProgram.run();
-        if (tryUnloadExit.isFailed()) return ExitCode.EXIT_FAIL;
-        if (tryUnloadExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+        int tryUnloadExit = unloadInventoryProgram.run(farm);
+        if (tryUnloadExit == EXIT_FAIL) return EXIT_FAIL;
+        if (tryUnloadExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
 
-        return ExitCode.EXIT_SUCCESS;
-    }
-
-
-    public ExitCode moveNearFarm(int precision) {
-        return worker.slowMobNavigation.moveToPosition(
-                currentFarm.getBlockPos(),
-                precision,
-                worker.slowNavigationMaxDistance,
-                worker.slowNavigationMaxNodes,
-                worker.slowNavigationStepPerTick
-        );
+        return EXIT_SUCCESS;
     }
 }

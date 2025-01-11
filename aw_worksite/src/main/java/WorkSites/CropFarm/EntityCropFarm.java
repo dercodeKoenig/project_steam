@@ -31,6 +31,8 @@ public class EntityCropFarm extends EntityWorkSiteBase {
     public int energy_harvest = 3000;
     public int energy_boneMeal = 2000;
 
+    public int useMillStonesInRadius = 32;
+
     public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
         public void onContentsChanged(int i) {

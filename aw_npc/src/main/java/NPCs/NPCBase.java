@@ -406,6 +406,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         if(owner != null){
             compound.putString("owner", owner);
+            //System.out.println(getUUID()+" put owner "+owner);
         }
     }
 
@@ -424,6 +425,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         if(compound.contains("owner")){
             owner = compound.getString("owner");
+            //System.out.println(getUUID()+" is owned by "+owner);
         }
     }
 

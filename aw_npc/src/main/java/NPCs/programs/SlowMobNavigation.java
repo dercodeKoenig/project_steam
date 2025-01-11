@@ -7,6 +7,8 @@ import net.minecraft.world.level.pathfinder.Path;
 import java.util.HashMap;
 import java.util.Objects;
 
+import static NPCs.programs.ProgramUtils.*;
+
 public class SlowMobNavigation {
     public NPCBase npc;
     int failTimeOut = 0;
@@ -31,14 +33,14 @@ public class SlowMobNavigation {
         return false;
     }
 
-    public ExitCode moveToPosition(BlockPos target, int precision, int maxDistace, int maxNodesVisit, int steps) {
+    public int moveToPosition(BlockPos target, int precision, int maxDistace, int maxNodesVisit, int steps) {
         //System.out.println("move to "+target+":"+precision);
 
-        if (target == null) return ExitCode.EXIT_FAIL;
+        if (target == null) return EXIT_FAIL;
 
         double distToTarget = ProgramUtils.distanceManhattan(npc, target.getCenter());
         if (distToTarget <= precision +2) {
-            return ExitCode.EXIT_SUCCESS;
+            return EXIT_SUCCESS;
         }
         if(isPositionCachedAsInvalid(target)){
 //            return ExitCode.EXIT_FAIL;
@@ -54,17 +56,17 @@ public class SlowMobNavigation {
             //long t1 = System.nanoTime();
             //System.out.println("navigator exit code: "+exit.exitCode+":"+(double)(t1-t0) / 1000 / 1000);
 
-            if(exit.exitCode.isFailed()) {
+            if(exit.exitCode == EXIT_FAIL) {
                 // target can not be reached
                 unreachableBlocks.put(target, npc.level().getGameTime());
-                return ExitCode.EXIT_FAIL;
+                return EXIT_FAIL;
             }
-            if(exit.exitCode.isStillRunning()) {
-                return ExitCode.SUCCESS_STILL_RUNNING;
+            if(exit.exitCode == SUCCESS_STILL_RUNNING) {
+                return SUCCESS_STILL_RUNNING;
             }
-            if(exit.exitCode.isCompleted()) {
+            if(exit.exitCode == EXIT_SUCCESS) {
                 npc.getNavigation().moveTo(exit.path,1);
-                return ExitCode.SUCCESS_STILL_RUNNING;
+                return SUCCESS_STILL_RUNNING;
             }
         }
 
@@ -78,11 +80,11 @@ public class SlowMobNavigation {
             if (failTimeOut > 10) {
                 npc.getNavigation().moveTo((Path)null, 1);
                 unreachableBlocks.put(target, npc.level().getGameTime());
-                return ExitCode.EXIT_FAIL;
+                return EXIT_FAIL;
             }
         } else {
             failTimeOut = 0;
         }
-        return ExitCode.SUCCESS_STILL_RUNNING;
+        return SUCCESS_STILL_RUNNING;
     }
 }

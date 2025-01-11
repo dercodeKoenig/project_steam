@@ -8,13 +8,15 @@ import net.minecraft.world.level.pathfinder.*;
 
 import java.util.*;
 
+import static NPCs.programs.ProgramUtils.*;
+
 public class SlowPathFinder {
 
     public static class PathFindExit {
-        ExitCode exitCode;
+        int exitCode;
         Path path;
 
-        public PathFindExit(ExitCode code, Path path) {
+        public PathFindExit(int code, Path path) {
             this.exitCode = code;
             this.path = path;
         }
@@ -80,13 +82,13 @@ public class SlowPathFinder {
             if (openSet.isEmpty()) {
                 startNode = null; // makes it reset on next run
                 nodeEvaluator.done();
-                return new PathFindExit(ExitCode.EXIT_FAIL, null);
+                return new PathFindExit(EXIT_FAIL, null);
             }
 
             if (i >= maxNodes) {
                 startNode = null; // makes it reset on next run
                 nodeEvaluator.done();
-                return new PathFindExit(ExitCode.EXIT_FAIL, null);
+                return new PathFindExit(EXIT_FAIL, null);
             }
 
             Node node = this.openSet.pop();
@@ -99,7 +101,7 @@ public class SlowPathFinder {
                 Path p = reconstructPath(node, targetPos);
                 startNode = null; // makes it reset on next run
                 nodeEvaluator.done();
-                return new PathFindExit(ExitCode.EXIT_SUCCESS, p);
+                return new PathFindExit(EXIT_SUCCESS, p);
             }
 
             if (node.distanceTo(startNode) < maxRange) {
@@ -128,7 +130,7 @@ public class SlowPathFinder {
             }
         }
 
-        return new PathFindExit(ExitCode.SUCCESS_STILL_RUNNING, null);
+        return new PathFindExit(SUCCESS_STILL_RUNNING, null);
     }
 
     protected float distance(Node first, Node second) {

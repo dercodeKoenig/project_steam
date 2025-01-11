@@ -79,7 +79,6 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
                     CompoundTag tag = new CompoundTag();
                     tag.put("openGui", new CompoundTag());
                     PacketDistributor.sendToPlayer((ServerPlayer) p, PacketBlockEntity.getBlockEntityPacket(this, tag));
-                    guiHandler.openGui(180, 200, true);
                 }
             }
         }

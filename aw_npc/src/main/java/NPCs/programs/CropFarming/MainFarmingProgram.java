@@ -34,6 +34,7 @@ public class MainFarmingProgram extends Goal {
         useMillStoneProgram = new UseMillStoneProgram(worker);
     }
 
+    @Override
     public boolean requiresUpdateEveryTick() {
         return true;
     }

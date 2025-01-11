@@ -30,6 +30,7 @@ import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -44,13 +45,13 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public int slowNavigationStepPerTick = 512;
 
     public int regenerateOneAfterTicks = 20 * 30;
-    public double hunger = 20;
+    public double hunger = 1;
     public double maxHunger = 20;
 
     public BlockPos homePosition;
 
-    BlockPos townHall;
-    String owner;
+    public BlockPos townHall;
+    public String owner;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
     public ItemStackHandler combinedInventory = new ItemStackHandler(0) {
@@ -151,9 +152,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public ItemStackHandler armorInventory;
     public SlowMobNavigation slowMobNavigation;
 
-    GuiHandlerEntity guiHandler;
-    guiModuleProgressBarHorizontal6px lifeBar;
-    guiModuleProgressBarHorizontal6px hungerBar;
+    public GuiHandlerEntity guiHandler;
+    public guiModuleProgressBarHorizontal6px lifeBar;
+    public guiModuleProgressBarHorizontal6px hungerBar;
 
     int ticksSinceLastRegen = 0;
 
@@ -268,7 +269,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(lifeBar);
         guiHandler.getModules().add(hungerBar);
 
-        hungerBar.setProgressAndSync(hunger / maxHunger);
     }
 
 
@@ -368,8 +368,14 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         super.dropCustomDeathLoot(level, damageSource, recentlyHit);
     }
 
+@Override
+    public ItemStack eat(Level level, ItemStack food, FoodProperties foodProperties) {
+    hunger += foodProperties.nutrition();
+    return super.eat(level, food, foodProperties);
+}
 
-    @Override
+
+        @Override
     public void addAdditionalSaveData(CompoundTag compound) {
         super.addAdditionalSaveData(compound);
         compound.put("inventory1", inventory.serializeNBT(this.registryAccess()));
@@ -416,11 +422,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         // verify server side that the player is friend or owner before allow anything to go to the gui
-        if (townHall != null) {
-            Set<String> owners = TownHallOwners.getOwners(level(), townHall);
-            if (owners.contains(p.getName().getString()) || p.getName().getString().equals(owner)) {
-                guiHandler.readServer(compoundTag);
-            }
+        Set<String> owners = TownHallOwners.getOwners(level(), townHall);
+        if (owners.contains(p.getName().getString()) || p.getName().getString().equals(owner)) {
+            guiHandler.readServer(compoundTag);
         }
     }
 

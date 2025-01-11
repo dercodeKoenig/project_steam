@@ -5,6 +5,8 @@ import NPCs.TownHall.TownHallOwners;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.capabilities.Capabilities;
+import net.neoforged.neoforge.capabilities.RegisterCapabilitiesEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
@@ -14,8 +16,8 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
-import static NPCs.Registry.ENTITY_WORKER;
-import static NPCs.Registry.TOWNHALL;
+import static AgeOfSteam.Registry.ENTITY_MOTOR;
+import static NPCs.Registry.*;
 
 
 @Mod(Main.MODID)
@@ -30,6 +32,7 @@ public class Main {
         modEventBus.addListener(this::registerEntityRenderers);
         modEventBus.addListener(this::registerNetworkStuff);
         modEventBus.addListener(this::entityAttributeCreation);
+        modEventBus.addListener(this::registerCapabilities);
 
         NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelSave);
         NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelLoad);
@@ -38,6 +41,9 @@ public class Main {
 
     }
 
+    private void registerCapabilities(RegisterCapabilitiesEvent e) {
+        e.registerBlockEntity(Capabilities.ItemHandler.BLOCK, ENTITY_TOWNHALL.get(), (x, y) -> (x.inventory));
+    }
 
     public void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         event.registerEntityRenderer(ENTITY_WORKER.get(), WorkerNPCRenderer::new);

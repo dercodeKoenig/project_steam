@@ -7,6 +7,7 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.HoeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
@@ -15,10 +16,11 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class HarvestProgram {
-    public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
 
+    public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
 
     MainFarmingProgram parentProgram;
     BlockPos currentHarvestTarget = null;
@@ -37,15 +39,30 @@ public class HarvestProgram {
         hasWork = true;
         if (!parentProgram.takeHoeProgram.hasHoe() && !parentProgram.takeHoeProgram.canPickupHoeFromFarm(target))
             hasWork = false;
-        if (target.positionsToHarvest.isEmpty())
+
+        boolean hasHarvestTarget = false;
+        for(BlockPos p : target.positionsToHarvest){
+            if(parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(p))
+                continue;
+            if( Objects.equals(p,currentHarvestTarget) || !positionsInUseWithLastUseTime.containsKey(p) || positionsInUseWithLastUseTime.get(p) + 5 < parentProgram.worker.level().getGameTime()){
+                hasHarvestTarget = true;
+                break;
+            }
+        }
+        if (!hasHarvestTarget)
             hasWork = false;
 
         if (hasWork) {
             int numEmptySlots = 0;
             for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); i++) {
-                if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty()) numEmptySlots++;
+                if (parentProgram.worker.combinedInventory.getStackInSlot(i).isEmpty() || parentProgram.worker.combinedInventory.getStackInSlot(i).getItem() instanceof HoeItem) numEmptySlots++;
             }
-            if (numEmptySlots < requiredFreeSlotsToHarvest) hasWork = false;
+            if(ProgramUtils.distanceManhattan(parentProgram.worker, target.getBlockPos().getCenter()) > 5) {
+                if (numEmptySlots < requiredFreeSlotsToHarvest) hasWork = false;
+            }else{
+                if (numEmptySlots < requiredFreeSlotsToHarvest-2) hasWork = false;
+            }
+
         }
 
         return hasWork;
@@ -63,15 +80,16 @@ public class HarvestProgram {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
-        if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-        if (takeHoeExit.isFailed()) return ExitCode.EXIT_SUCCESS; // nothing to do because no hoe available
-
-        parentProgram.takeHoeProgram.takeHoeToMainHand();
 
         if (parentProgram.currentFarm.positionsToHarvest.contains(currentHarvestTarget)) {
 
             positionsInUseWithLastUseTime.put(currentHarvestTarget,parentProgram.worker.level().getGameTime());
+
+            ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
+            if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+            if (takeHoeExit.isFailed()) return ExitCode.EXIT_SUCCESS; // nothing to do because no hoe available
+
+            parentProgram.takeHoeProgram.takeHoeToMainHand();
 
             ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(
                     currentHarvestTarget,
@@ -127,6 +145,7 @@ public class HarvestProgram {
 
             if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                 currentHarvestTarget = i;
+                positionsInUseWithLastUseTime.put(currentHarvestTarget,parentProgram.worker.level().getGameTime());
                 return ExitCode.SUCCESS_STILL_RUNNING;
             }
         }

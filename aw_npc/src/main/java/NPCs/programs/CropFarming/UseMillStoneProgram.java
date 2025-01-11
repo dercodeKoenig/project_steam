@@ -17,7 +17,6 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.HashMap;
 
-import static AWGenerators.WindMill.BlockWindMillGenerator.STATE_MULTIBLOCK_FORMED;
 
 public class UseMillStoneProgram {
 
@@ -108,7 +107,7 @@ public class UseMillStoneProgram {
         return ItemStack.EMPTY;
     }
 
-    public static ItemStack canUnloadOneItemIntoMillstone(IItemHandler inventory, EntityMillStone millstone, int requiredMinStockInInvventory) {
+    public static ItemStack getPossibleMillstoneInput(IItemHandler inventory, EntityMillStone millstone, int requiredMinStockInInvventory) {
         for (int j = 0; j < inventory.getSlots(); j++) {
             ItemStack canExtract = inventory.extractItem(j, 1, true);
             ItemStack stackCopyToReturn = inventory.getStackInSlot(j).copy();
@@ -163,6 +162,10 @@ public class UseMillStoneProgram {
             return false;
         }
 
+        canTakeOutputs = false;
+        canPutInputsFromFarm = ItemStack.EMPTY;
+        canPutInputsFromInventory = ItemStack.EMPTY;
+
         if (currentMillstone != null) {
             if (!currentMillstone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)) {
                 currentMillstone = null;
@@ -173,12 +176,14 @@ public class UseMillStoneProgram {
 
             // only take from farm if more than 64 are present
             // if we are close to the farm we can reduce the filter because we want the worker to take the entire batch and not just one item
-            int d = 64;
-            if (ProgramUtils.distanceManhattan(parentProgram.worker, farm.getBlockPos().getCenter()) <= requiredDistance + 2)
-                d -= stackSizeToTakeFromFarm;
-            canPutInputsFromFarm = canUnloadOneItemIntoMillstone(farm.mainInventory, currentMillstone, d);
+            canPutInputsFromFarm = getPossibleMillstoneInput(farm.mainInventory, currentMillstone, 64);
 
+            // if the farm is not stocked up with enough inputs, do not put into millstone but into farm first.
+            // so count if the farm has enough stock
             canPutInputsFromInventory = unloadOneItemIntoMillstone(currentMillstone, parentProgram.worker, true);
+            if(ProgramUtils.countItems(canPutInputsFromInventory.getItem(),farm.mainInventory) < 64){
+                canPutInputsFromInventory = ItemStack.EMPTY;
+            }
 
             // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
             if (!canPutInputsFromFarm.isEmpty()) {
@@ -212,6 +217,9 @@ public class UseMillStoneProgram {
                 if (ProgramUtils.distanceManhattan(parentProgram.worker, p.getCenter()) > 64)
                     break;
 
+                if(parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(p))
+                    continue;
+
                 if(millstonesInUseWithLastUseTime.containsKey(p) && millstonesInUseWithLastUseTime.get(p) + 5 > parentProgram.worker.level().getGameTime())
                     continue;
 
@@ -227,12 +235,12 @@ public class UseMillStoneProgram {
 
                     canTakeOutputs = takeItemOutOfMillStone(millStone, parentProgram.worker, true);
 
-                    int d = 64;
-                    if (ProgramUtils.distanceManhattan(parentProgram.worker, farm.getBlockPos().getCenter()) <= requiredDistance + 2)
-                        d -= stackSizeToTakeFromFarm;
+                    canPutInputsFromFarm = getPossibleMillstoneInput(farm.mainInventory, millStone, 64);
 
-                    canPutInputsFromFarm = canUnloadOneItemIntoMillstone(farm.mainInventory, millStone, d);
-                    canPutInputsFromInventory = unloadOneItemIntoMillstone(millStone, parentProgram.worker, true);
+                        canPutInputsFromInventory = unloadOneItemIntoMillstone(millStone, parentProgram.worker, true);
+                    if(ProgramUtils.countItems(canPutInputsFromInventory.getItem(),farm.mainInventory) < 64){
+                        canPutInputsFromInventory = ItemStack.EMPTY;
+                    }
 
                     if (!canPutInputsFromFarm.isEmpty()) {
                         if (takeOneValidMillStoneInputFromFarm(farm, parentProgram.worker, true).isEmpty()) {
@@ -252,6 +260,7 @@ public class UseMillStoneProgram {
                     boolean hasWork = !canPutInputsFromFarm.isEmpty() || canTakeOutputs || !canPutInputsFromInventory.isEmpty();
                     if (hasWork) {
                         currentMillstone = millStone;
+                        millstonesInUseWithLastUseTime.put(currentMillstone.getBlockPos(),parentProgram.worker.level().getGameTime());
                         return hasWork;
                     }
                 }
@@ -273,14 +282,18 @@ public class UseMillStoneProgram {
         }
 
         if (currentMillstone == null) return ExitCode.EXIT_SUCCESS;
+        if(!currentMillstone.getBlockState().getValue(BlockMultiblockMaster.STATE_MULTIBLOCK_FORMED)){
+            currentMillstone = null;
+            return ExitCode.EXIT_SUCCESS;
+        }
 
         // block millstone from beeing used by others
         millstonesInUseWithLastUseTime.put(currentMillstone.getBlockPos(),parentProgram.worker.level().getGameTime());
 
         // first try to take a batch of items from the farm to carry to millstone
         // note that it can cause the worker to deposit one item in millstone and run back to farm to restock the batch
-        // because of this, only consider this if we are more than x block away from millstone
-        if (!canPutInputsFromFarm.isEmpty() && ProgramUtils.distanceManhattan(parentProgram.worker, currentMillstone.getBlockPos().getCenter()) > 10) {
+        // because of this, only consider this if we are more than x block away from millstone or when we do not have any input in inventory
+        if (!canPutInputsFromFarm.isEmpty() && (ProgramUtils.distanceManhattan(parentProgram.worker, currentMillstone.getBlockPos().getCenter()) > 10 || canPutInputsFromInventory.isEmpty())) {
             // count how many items of insertable type i have in inventory already do decide if i should take more
             // i may have more items to insert in inventory because both only return the first valid item but this is not a problem
             int itemsToInsertTotal =

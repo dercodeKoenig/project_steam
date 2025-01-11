@@ -1,6 +1,6 @@
 package NPCs.programs;
 
-import NPCs.WorkerNPC;
+import NPCs.NPCBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.pathfinder.Path;
 
@@ -8,21 +8,21 @@ import java.util.HashMap;
 import java.util.Objects;
 
 public class SlowMobNavigation {
-    public WorkerNPC worker;
+    public NPCBase npc;
     int failTimeOut = 0;
     int removeInvalidTargetsTime = 20 * 120;
     HashMap<BlockPos, Long> unreachableBlocks = new HashMap<>();
 
     SlowPathFinder pathFinder;
 
-    public SlowMobNavigation(WorkerNPC worker) {
-        this.worker = worker;
-        this.pathFinder = new SlowPathFinder(this.worker);
+    public SlowMobNavigation(NPCBase npc) {
+        this.npc = npc;
+        this.pathFinder = new SlowPathFinder(this.npc);
     }
 
     public boolean isPositionCachedAsInvalid(BlockPos target){
         if (unreachableBlocks.containsKey(target)) {
-            if(unreachableBlocks.get(target) + removeInvalidTargetsTime < worker.level().getGameTime()){
+            if(unreachableBlocks.get(target) + removeInvalidTargetsTime < npc.level().getGameTime()){
                 unreachableBlocks.remove(target);
             }else {
                 return true;
@@ -36,17 +36,17 @@ public class SlowMobNavigation {
 
         if (target == null) return ExitCode.EXIT_FAIL;
 
-        double distToTarget = ProgramUtils.distanceManhattan(worker, target.getCenter());
+        double distToTarget = ProgramUtils.distanceManhattan(npc, target.getCenter());
         if (distToTarget <= precision +2) {
             return ExitCode.EXIT_SUCCESS;
         }
         if(isPositionCachedAsInvalid(target)){
-            return ExitCode.EXIT_FAIL;
+//            return ExitCode.EXIT_FAIL;
         }
 
-        if (worker.getNavigation().getPath() == null ||
-                !Objects.equals(worker.getNavigation().getPath().getTarget(), target)||
-                worker.getNavigation().isDone()
+        if (npc.getNavigation().getPath() == null ||
+                !Objects.equals(npc.getNavigation().getPath().getTarget(), target)||
+                npc.getNavigation().isDone()
         ) {
             failTimeOut = 0;
             //long t0 = System.nanoTime();
@@ -56,28 +56,28 @@ public class SlowMobNavigation {
 
             if(exit.exitCode.isFailed()) {
                 // target can not be reached
-                unreachableBlocks.put(target,worker.level().getGameTime());
+                unreachableBlocks.put(target, npc.level().getGameTime());
                 return ExitCode.EXIT_FAIL;
             }
             if(exit.exitCode.isStillRunning()) {
                 return ExitCode.SUCCESS_STILL_RUNNING;
             }
             if(exit.exitCode.isCompleted()) {
-                worker.getNavigation().moveTo(exit.path,1);
+                npc.getNavigation().moveTo(exit.path,1);
                 return ExitCode.SUCCESS_STILL_RUNNING;
             }
         }
 
 
-        if (worker.getNavigation().isStuck() || worker.getNavigation().isDone()) {
+        if (npc.getNavigation().isStuck() || npc.getNavigation().isDone()) {
             failTimeOut++;
-            if (failTimeOut > 5 && worker.getNavigation().isStuck()) {
+            if (failTimeOut > 5 && npc.getNavigation().isStuck()) {
                 // try to jump if we are stuck
-                worker.getJumpControl().jump();
+                npc.getJumpControl().jump();
             }
             if (failTimeOut > 10) {
-                worker.getNavigation().moveTo((Path)null, 1);
-                unreachableBlocks.put(target, worker.level().getGameTime());
+                npc.getNavigation().moveTo((Path)null, 1);
+                unreachableBlocks.put(target, npc.level().getGameTime());
                 return ExitCode.EXIT_FAIL;
             }
         } else {

@@ -78,6 +78,7 @@ public class UnloadInventoryProgram {
     }
 
     public ExitCode run() {
+
         long gameTime = parentProgram.worker.level().getGameTime();
         if (gameTime > lastScan + scanInterval) {
             lastScan = gameTime;
@@ -94,8 +95,9 @@ public class UnloadInventoryProgram {
         }
 
         ExitCode pathFindExit = parentProgram.moveNearFarm(requiredDistance);
-        if (pathFindExit.isFailed())
+        if (pathFindExit.isFailed()) {
             return ExitCode.EXIT_FAIL;
+        }
         else if (pathFindExit.isStillRunning()) {
             workDelay = 0;
             return ExitCode.SUCCESS_STILL_RUNNING;
@@ -104,7 +106,7 @@ public class UnloadInventoryProgram {
         parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.EYES, parentProgram.currentFarm.getBlockPos().getCenter());
         parentProgram.worker.lookAt(EntityAnchorArgument.Anchor.FEET, parentProgram.currentFarm.getBlockPos().getCenter());
 
-        if (workDelay > 10) {
+        if (workDelay > 5) {
             workDelay = 0;
             if (ItemStack.isSameItemSameComponents(parentProgram.worker.getMainHandItem(), nextStackToUnload)) {
                 parentProgram.worker.swing(InteractionHand.MAIN_HAND);

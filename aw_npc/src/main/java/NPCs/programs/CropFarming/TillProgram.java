@@ -37,12 +37,16 @@ public class TillProgram {
         // this is required because getStackToPlantAtPosition will return EMPTY if the position is completely invalid for planting
         if (!farm.canPlant(p)) return false;
 
+        //check if another worker already uses this
+        if(p != currentTillTarget)
+            if(positionsInUseWithLastUseTime.containsKey(p) && positionsInUseWithLastUseTime.get(p) + 5 > farm.getLevel().getGameTime())
+                return false;
+
         // check if he can not plant anything there
         if (parentProgram.plantProgram.getStackToPlantAtPosition(farm, p) != ItemStack.EMPTY)
             return false;
 
         // if the position is valid for planting but he can currently not plant there, this position is valid for till
-
         BlockState s = parentProgram.worker.level().getBlockState(p.below());
         Block b = s.getBlock();
         if (b.equals(Blocks.DIRT) || b.equals(Blocks.DIRT_PATH) || b.equals(Blocks.GRASS_BLOCK)) {
@@ -80,15 +84,16 @@ public class TillProgram {
             return ExitCode.EXIT_SUCCESS;
         }
 
-        ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
-        if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
-        if (takeHoeExit.isFailed()) return ExitCode.EXIT_SUCCESS; // nothing to do because no hoe available
-
-
         if (parentProgram.currentFarm.positionsToPlant.contains(currentTillTarget)) {
             if (canTillPosition(parentProgram.currentFarm, currentTillTarget)) {
 
                 positionsInUseWithLastUseTime.put(currentTillTarget,parentProgram.worker.level().getGameTime());
+
+                ExitCode takeHoeExit = parentProgram.takeHoeProgram.run();
+                if (takeHoeExit.isStillRunning()) return ExitCode.SUCCESS_STILL_RUNNING;
+                if (takeHoeExit.isFailed()) return ExitCode.EXIT_SUCCESS; // nothing to do because no hoe available
+
+                if(!parentProgram.takeHoeProgram.takeHoeToMainHand())return ExitCode.EXIT_SUCCESS;
 
 
                 ExitCode pathFindExit = parentProgram.worker.slowMobNavigation.moveToPosition(

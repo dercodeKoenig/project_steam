@@ -113,6 +113,7 @@ public UseMillStoneProgram useMillStoneProgram;
             if(worksite instanceof EntityWorkSiteBase w) {
 
                 if (w.workersWorkingHereWithTimeout.size() >= w.maxWorkersAllowed)
+                //if (w.workersWorkingHereWithTimeout.size() >= 6)
                     continue;
 
                 if (workCheckedTracker.containsKey(p)) {

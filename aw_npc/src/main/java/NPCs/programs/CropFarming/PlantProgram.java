@@ -11,6 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.HashMap;
+import java.util.Objects;
 
 public class PlantProgram {
 
@@ -38,7 +39,7 @@ public class PlantProgram {
 
         for (int i = 0; i < parentProgram.worker.combinedInventory.getSlots(); ++i) {
             ItemStack s = parentProgram.worker.combinedInventory.getStackInSlot(i);
-            if (!s.isEmpty() && TakeSeedsProgram.isValidSeedItem(farm,s)) {
+            if (!s.isEmpty() && TakeSeedsProgram.isValidSeedItem(farm,s, parentProgram.worker)) {
                 Item var5 = s.getItem();
                 if (var5 instanceof BlockItem bi) {
                     if (bi.getBlock().defaultBlockState().canSurvive(parentProgram.worker.level(), p)) {
@@ -55,6 +56,14 @@ public class PlantProgram {
 
         if (TakeSeedsProgram.workerHasAnyValidSeedItem(farm, parentProgram.worker)) {
             for (BlockPos p : farm.positionsToPlant) {
+
+                if(parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(p))
+                    continue;
+
+                // skip this position if another worker already locks it
+                if(!Objects.equals(p,currentPlantTarget))
+                    if(positionsInUseWithLastUseTime.containsKey(p) && positionsInUseWithLastUseTime.get(p)+5>parentProgram.worker.level().getGameTime())
+                        continue;
                 if (getStackToPlantAtPosition(farm, p) != ItemStack.EMPTY) {
                     hasWork = true;
                 }
@@ -126,13 +135,16 @@ public class PlantProgram {
         }
         currentPlantTarget = null;
         for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToWorkerNPC(parentProgram.currentFarm.positionsToPlant, parentProgram.worker)) {
-            if(positionsInUseWithLastUseTime.containsKey(i) &&positionsInUseWithLastUseTime.get(i) + 5 > parentProgram.worker.level().getGameTime())
+            if(positionsInUseWithLastUseTime.containsKey(i) && positionsInUseWithLastUseTime.get(i) + 5 > parentProgram.worker.level().getGameTime())
                 continue;
 
             if (getStackToPlantAtPosition(parentProgram.currentFarm, i) != ItemStack.EMPTY) {
                 if (!parentProgram.worker.slowMobNavigation.isPositionCachedAsInvalid(i)) {
                     currentPlantTarget = i;
+                    positionsInUseWithLastUseTime.put(currentPlantTarget,parentProgram.worker.level().getGameTime());
                     return ExitCode.SUCCESS_STILL_RUNNING;
+                }else{
+
                 }
             }
         }

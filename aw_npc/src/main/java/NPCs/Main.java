@@ -1,5 +1,7 @@
 package NPCs;
 
+import NPCs.TownHall.EntityTownHall;
+import NPCs.TownHall.TownHallOwners;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
@@ -29,8 +31,8 @@ public class Main {
         modEventBus.addListener(this::registerNetworkStuff);
         modEventBus.addListener(this::entityAttributeCreation);
 
-        NeoForge.EVENT_BUS.addListener(EntityTownHall::onLevelSave);
-        NeoForge.EVENT_BUS.addListener(EntityTownHall::onLevelLoad);
+        NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelSave);
+        NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelLoad);
 
         Registry.register(modEventBus);
 

@@ -1,5 +1,7 @@
 package NPCs;
 
+import NPCs.TownHall.BlockTownHall;
+import NPCs.TownHall.EntityTownHall;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.item.BlockItem;

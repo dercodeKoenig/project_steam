@@ -9,18 +9,15 @@ import ARLib.gui.modules.guiModuleProgressBarHorizontal6px;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
 import ARLib.utils.DimensionUtils;
-import NPCs.programs.ProgramUtils;
+import NPCs.TownHall.EntityTownHall;
+import NPCs.TownHall.TownHallOwners;
 import NPCs.programs.SlowMobNavigation;
-import com.google.common.collect.BoundType;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.ChatType;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.OutgoingChatMessage;
-import net.minecraft.network.chat.PlayerChatMessage;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -34,10 +31,8 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.chunk.status.ChunkStatus;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -290,11 +285,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         if (level().isClientSide) {
 
         }else{
-            Set<String> owners = new HashSet<>();
-            if(townHall != null) {
-                 owners = EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).get(townHall);
-            }
-
+            Set<String> owners = TownHallOwners.getOwners(level(), townHall);
             if (owners.contains(player.getName().getString()) || player.getName().getString().equals(owner)) {
                 CompoundTag tag = new CompoundTag();
                 tag.put("openGui", new CompoundTag());
@@ -324,17 +315,14 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 if (townHall == null) {
                     // scan for townhall, use anyone where owner is registered as an owner of the townhall
                     for (BlockPos p : EntityTownHall.knownTownHalls) {
-                        BlockEntity e = level().getBlockEntity(p);
-                        if (e instanceof EntityTownHall t) {
-                            if (t.ownerNames.contains(owner)) {
-                                townHall = p;
-                                System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
-                                break;
-                            }
+                        if (TownHallOwners.getOwners(level(), p).contains(owner)) {
+                            townHall = p;
+                            System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
+                            break;
                         }
                     }
                 } else {
-                    if (!EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).containsKey(townHall)) {
+                    if (!TownHallOwners.hasEntry(level(), townHall)) {
                         System.out.println("townhall " + townHall + "is no longer valid");
                         townHall = null;
                     }
@@ -429,7 +417,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         // verify server side that the player is friend or owner before allow anything to go to the gui
         if (townHall != null) {
-            Set<String> owners = EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).get(townHall);
+            Set<String> owners = TownHallOwners.getOwners(level(), townHall);
             if (owners.contains(p.getName().getString()) || p.getName().getString().equals(owner)) {
                 guiHandler.readServer(compoundTag);
             }

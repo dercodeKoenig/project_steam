@@ -28,7 +28,7 @@ public class TakeToolProgram {
         if (!hasTool(itemClass)) return false;
 
         ItemStack hoeStack = npc.combinedInventory.getStackInSlot(cachedToolIndex);
-        if (itemClass.isInstance(stackInHand.getItem())) {
+        if (itemClass.isInstance(hoeStack.getItem())) {
             ProgramUtils.moveItemStackToMainHand(hoeStack, npc);
             return true;
         }

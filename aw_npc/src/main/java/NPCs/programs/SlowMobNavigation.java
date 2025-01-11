@@ -27,6 +27,7 @@ public class SlowMobNavigation {
             if(unreachableBlocks.get(target) + removeInvalidTargetsTime < npc.level().getGameTime()){
                 unreachableBlocks.remove(target);
             }else {
+                //System.out.println(target);
                 return true;
             }
         }
@@ -43,7 +44,7 @@ public class SlowMobNavigation {
             return EXIT_SUCCESS;
         }
         if(isPositionCachedAsInvalid(target)){
-//            return ExitCode.EXIT_FAIL;
+            return EXIT_FAIL;
         }
 
         if (npc.getNavigation().getPath() == null ||
@@ -78,7 +79,7 @@ public class SlowMobNavigation {
                 npc.getJumpControl().jump();
             }
             if (failTimeOut > 10) {
-                npc.getNavigation().moveTo((Path)null, 1);
+                npc.getNavigation().stop();
                 unreachableBlocks.put(target, npc.level().getGameTime());
                 return EXIT_FAIL;
             }

@@ -290,22 +290,16 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         if (level().isClientSide) {
 
         }else{
-
-
             Set<String> owners = new HashSet<>();
             if(townHall != null) {
                  owners = EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).get(townHall);
             }
 
-            // allow gui
             if (owners.contains(player.getName().getString()) || player.getName().getString().equals(owner)) {
-                // the gui system does not support allowing a gui only for one player
-                // but as long as players do not modify this code clientside, only the owner can open gui
                 CompoundTag tag = new CompoundTag();
                 tag.put("openGui", new CompoundTag());
                 PacketDistributor.sendToPlayer((ServerPlayer) player, PacketEntity.getEntityPacket(this, tag));
             }
-
 
             if(owner == null){
                 owner = player.getName().getString();
@@ -421,6 +415,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         if (compound.contains("townHallX") && compound.contains("townHallY") && compound.contains("townHallZ")) {
             townHall = new BlockPos(compound.getInt("townHallX"), compound.getInt("townHallY"), compound.getInt("homePositionZ"));
+            System.out.println(getUUID()+" has townhall "+townHall);
         }
 
         if(compound.contains("owner")){
@@ -432,7 +427,13 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
-        guiHandler.readServer(compoundTag);
+        // verify server side that the player is friend or owner before allow anything to go to the gui
+        if (townHall != null) {
+            Set<String> owners = EntityTownHall.TownHallOwners.ownerNamesStatic.get(DimensionUtils.getLevelId(level())).get(townHall);
+            if (owners.contains(p.getName().getString()) || p.getName().getString().equals(owner)) {
+                guiHandler.readServer(compoundTag);
+            }
+        }
     }
 
     @Override

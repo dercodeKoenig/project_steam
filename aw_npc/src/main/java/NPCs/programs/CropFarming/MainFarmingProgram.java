@@ -19,7 +19,6 @@ public class MainFarmingProgram extends Goal {
     public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
 
     public WorkerNPC worker;
-    public EntityCropFarm currentFarm;
     public int timeoutForWorkCheck = 20 * 10;
 
     public CropFarmingProgram cropFarmingProgram;

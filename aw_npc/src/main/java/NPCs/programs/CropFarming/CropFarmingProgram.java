@@ -133,7 +133,9 @@ public class CropFarmingProgram {
 
             // make sure I have a hoe in inventory
             int takeHoeExit = runTakeHoeFromFarmAnyInventory(farm);
-            if (takeHoeExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+            if (takeHoeExit == SUCCESS_STILL_RUNNING){
+                return SUCCESS_STILL_RUNNING;
+            }
             if (takeHoeExit == EXIT_FAIL) {
                 recalculateHasWork(farm);
                 return EXIT_FAIL;
@@ -223,7 +225,7 @@ public class CropFarmingProgram {
     }
 
     public BlockPos getNextPlantTarget(EntityCropFarm farm) {
-        for (BlockPos p : farm.positionsToPlant) {
+        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
             if(!isPositionWorkable(p)) continue;
             ItemStack s = getStackToPlantAtPosition(farm, p);
             if(!s.isEmpty()){
@@ -303,8 +305,8 @@ public class CropFarmingProgram {
                     farm.positionsToPlant.remove(currentTargetPos);
                     recalculateHasWork(farm);
                 }
+                return SUCCESS_STILL_RUNNING;
             }
-            return SUCCESS_STILL_RUNNING;
         }
         currentTargetPos = getNextPlantTarget(farm);
         recalculateHasWork(farm);
@@ -432,7 +434,7 @@ public class CropFarmingProgram {
     }
 
     public BlockPos getNextTillTarget(EntityCropFarm farm){
-        for (BlockPos p : farm.positionsToPlant) {
+        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)) {
             if (canTillPosition(farm, p)) {
                 return p;
             }
@@ -454,10 +456,11 @@ public class CropFarmingProgram {
             return false;
         }
 
-        if(getNextTillTarget(target) == null )
+        if(getNextTillTarget(target) == null ) {
             return false;
+        }
 
-        return false;
+        return true;
     }
 
 
@@ -524,12 +527,14 @@ public class CropFarmingProgram {
 
 
     public boolean recalculateHasWork(EntityCropFarm target) {
+
         hasWorkHarvest = canHarvestFarm(target);
         hasWorkPlant = canPlantAtFarm(target);
         hasWorkTakeSeeds = shouldTakeSeedsFromFarm(target);
-hasWorkTill = canTill(target);
+        hasWorkTill = canTill(target);
 
         hasWork = hasWorkHarvest || hasWorkPlant || hasWorkTakeSeeds || hasWorkTill;
+        hasWork = hasWork && isPositionWorkable(target.getBlockPos());
         return hasWork;
     }
 
@@ -544,7 +549,7 @@ hasWorkTill = canTill(target);
         if (!hasWork) {
             return EXIT_SUCCESS;
         }
-
+//System.out.println(hasWorkTakeSeeds+":"+hasWorkHarvest+":"+hasWorkTill+":"+hasWorkPlant);
         if(hasWorkTakeSeeds)
             return runTakeSeedProgram(farm);
 

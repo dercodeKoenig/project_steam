@@ -188,6 +188,10 @@ public class UseMillStoneProgram {
                 currentMillstone = null;
                 return false;
             }
+            if(!isPositionWorkable(currentMillstone.getBlockPos())){
+                currentMillstone = null;
+                return false;
+            }
 
             canTakeOutputs = takeItemOutOfMillStone(currentMillstone, worker, true);
 
@@ -234,14 +238,10 @@ public class UseMillStoneProgram {
                 if (ProgramUtils.distanceManhattan(worker, p.getCenter()) > farm.useMillStonesInRadius)
                     break;
 
-                if (worker.slowMobNavigation.isPositionCachedAsInvalid(p))
-                    continue;
-
                 if (!isPositionWorkable(p))
                     continue;
 
-                // check if the millstone is cached as unreachable
-                if (worker.slowMobNavigation.isPositionCachedAsInvalid(p))
+                if (!isPositionWorkable(p))
                     continue;
 
                 // check if items can be taken out of the millstone

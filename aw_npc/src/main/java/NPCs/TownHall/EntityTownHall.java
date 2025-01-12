@@ -71,16 +71,11 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
 
     public void useWithoutItem(Player p) {
         if (!level.isClientSide) {
-            if (getOwners().isEmpty()) {
-                TownHallOwners.addOwner(level, getBlockPos(), p.getName().getString());
-                p.sendSystemMessage(Component.literal("you are now owner of this townhall"));
-            } else {
                 if (getOwners().contains(p.getName().getString())) {
                     CompoundTag tag = new CompoundTag();
                     tag.put("openGui", new CompoundTag());
                     PacketDistributor.sendToPlayer((ServerPlayer) p, PacketBlockEntity.getBlockEntityPacket(this, tag));
                 }
-            }
         }
     }
 

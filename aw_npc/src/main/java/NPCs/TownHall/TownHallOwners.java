@@ -20,7 +20,6 @@ import java.nio.file.Paths;
 import java.util.*;
 
 public class TownHallOwners {
-    //TODO use setchanged and only save on change
     private static HashMap<String, HashMap<BlockPos, Set<String>>> ownerNamesStatic = new HashMap<>();
     private static boolean hasChanges = false;
 
@@ -34,40 +33,45 @@ public class TownHallOwners {
 
     public static void setChanged(){hasChanges = true;}
 
-    public static void setOwners(Level l, BlockPos p, Set<String> owners) {
+    public static void verifyExist(Level l , BlockPos p){
         if (ownerNamesStatic.get(DimensionUtils.getLevelId(l)) == null) {
             ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
         }
+        if(p != null){
+            if (ownerNamesStatic.get(DimensionUtils.getLevelId(l)).get(p) == null) {
+                ownerNamesStatic.get(DimensionUtils.getLevelId(l)).put(p, new HashSet<>());
+            }
+        }
+    }
+
+    public static void setOwners(Level l, BlockPos p, Set<String> owners) {
+        verifyExist(l,null);
         ownerNamesStatic.get(DimensionUtils.getLevelId(l)).put(p, owners);
         setChanged();
     }
     public static void addOwner(Level l, BlockPos p, String owner) {
-        if (ownerNamesStatic.get(DimensionUtils.getLevelId(l)) == null) {
-            ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
-        }
+        verifyExist(l,p);
         ownerNamesStatic.get(DimensionUtils.getLevelId(l)).get(p).add(owner);
         setChanged();
     }
     public static void removeOwner(Level l, BlockPos p, String owner) {
-        if (ownerNamesStatic.get(DimensionUtils.getLevelId(l)) == null) {
-            ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
-        }
+        verifyExist(l,p);
         ownerNamesStatic.get(DimensionUtils.getLevelId(l)).get(p).remove(owner);
         setChanged();
     }
 
     public static void removeEntry(Level l, BlockPos p) {
-        if (ownerNamesStatic.get(DimensionUtils.getLevelId(l)) == null) {
-            ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
-        }
+        verifyExist(l,null);
         ownerNamesStatic.get(DimensionUtils.getLevelId(l)).remove(p);
         setChanged();
     }
-    public static boolean hasEntry(Level l, BlockPos p) {
-        if (ownerNamesStatic.get(DimensionUtils.getLevelId(l)) == null) {
-            ownerNamesStatic.put(DimensionUtils.getLevelId(l), new HashMap<>());
-        }
-        return ownerNamesStatic.get(DimensionUtils.getLevelId(l)).get(p) != null;
+    public static Set<String> getEntry(Level l, BlockPos p) {
+        verifyExist(l,p);
+        return ownerNamesStatic.get(DimensionUtils.getLevelId(l)).get(p);
+    }
+    public static HashMap<BlockPos,Set<String>> getEntries(Level l) {
+        verifyExist(l,null);
+        return ownerNamesStatic.get(DimensionUtils.getLevelId(l));
     }
 
     public BlockPos pos;

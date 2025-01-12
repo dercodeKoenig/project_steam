@@ -2,15 +2,11 @@ package NPCs;
 
 import ARLib.gui.GuiHandlerEntity;
 import ARLib.gui.ModularScreen;
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.gui.modules.guiModuleProgressBarHorizontal6px;
+import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
-import ARLib.utils.DimensionUtils;
-import NPCs.TownHall.EntityTownHall;
 import NPCs.TownHall.TownHallOwners;
+import NPCs.programs.ProgramUtils;
 import NPCs.programs.SlowMobNavigation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -24,6 +20,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PathfinderMob;
@@ -33,9 +30,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
@@ -155,6 +152,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public GuiHandlerEntity guiHandler;
     public guiModuleProgressBarHorizontal6px lifeBar;
     public guiModuleProgressBarHorizontal6px hungerBar;
+    public guiModuleText ownerText;
+    public guiModuleText townHallText;
 
     int ticksSinceLastRegen = 0;
 
@@ -269,16 +268,71 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(lifeBar);
         guiHandler.getModules().add(hungerBar);
 
+        ownerText = new guiModuleText(2001, "owner",guiHandler, 50,50,0xffffffff,true);
+        townHallText = new guiModuleText(2002, "townhallpos",guiHandler, 50,60,0xffffffff,true);
+        guiHandler.getModules().add(ownerText);
+        guiHandler.getModules().add(townHallText);
+
     }
 
 
-
+    public static void updateAllTownHalls(){
+        for (ServerLevel  l :ServerLifecycleHooks.getCurrentServer().getAllLevels()){
+            for (Entity e : l.getEntities().getAll()){
+                if( e instanceof NPCBase npc){
+                    npc.updateTownHall();
+                }
+            }
+        }
+    }
+    public void updateTownHall() {
+        // assign to townhall
+        System.out.println(townHall);
+        if (townHall == null) {
+            // scan for townhall, use anyone where owner is registered as an owner of the townhall
+            for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(),this)) {
+                System.out.println(p+":"+TownHallOwners.getOwners(level(), p));
+                if (TownHallOwners.getOwners(level(), p).contains(owner)) {
+                    townHall = p;
+                    System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
+                    break;
+                }
+            }
+        } else {
+            if (TownHallOwners.getEntry(level(), townHall) == null) {
+                System.out.println("townhall " + townHall + "is no longer valid");
+                townHall = null;
+                updateTownHall();
+            }
+        }
+    }
 
     @Override
     public void checkDespawn() {
     }
 
-
+    @Override
+    public void onAddedToLevel() {
+        super.onAddedToLevel();
+        if(!level().isClientSide) {
+            if (owner == null) {
+                Player closestPlayer = null;
+                double closestDistance = 999;
+                for (Player p : ServerLifecycleHooks.getCurrentServer().getPlayerList().getPlayers()) {
+                    if(getPosition(0).distanceTo(p.getPosition(0)) < closestDistance){
+                        closestDistance =getPosition(0).distanceTo(p.getPosition(0));
+                        closestPlayer = p;
+                    }
+                }
+                if(closestPlayer != null){
+                    owner = closestPlayer.getName().getString();
+                    System.out.println("npc " + getUUID() + " id now owned by " + owner);
+                    closestPlayer.sendSystemMessage(Component.literal("you are now owner of NPC "+getName()));
+                }
+            }
+            updateTownHall();
+        }
+    }
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
@@ -290,12 +344,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 CompoundTag tag = new CompoundTag();
                 tag.put("openGui", new CompoundTag());
                 PacketDistributor.sendToPlayer((ServerPlayer) player, PacketEntity.getEntityPacket(this, tag));
-            }
-
-            if(owner == null){
-                owner = player.getName().getString();
-                System.out.println("npc "+getUUID()+" id now owned by "+owner);
-                player.sendSystemMessage(Component.literal("you are now owner of this NPC"));
             }
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
@@ -310,24 +358,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
             if (super.isDeadOrDying()) return;
 
-            // assign to townhall
-            if (level().getGameTime() % 201 == 3) {
-                if (townHall == null) {
-                    // scan for townhall, use anyone where owner is registered as an owner of the townhall
-                    for (BlockPos p : EntityTownHall.knownTownHalls) {
-                        if (TownHallOwners.getOwners(level(), p).contains(owner)) {
-                            townHall = p;
-                            System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
-                            break;
-                        }
-                    }
-                } else {
-                    if (!TownHallOwners.hasEntry(level(), townHall)) {
-                        System.out.println("townhall " + townHall + "is no longer valid");
-                        townHall = null;
-                    }
-                }
-            }
 
             guiHandler.serverTick();
 

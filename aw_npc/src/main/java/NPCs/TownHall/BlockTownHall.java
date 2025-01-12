@@ -2,8 +2,10 @@ package NPCs.TownHall;
 
 import ARLib.utils.DimensionUtils;
 import AgeOfSteam.Blocks.Mechanics.Clutch.EntityClutchBase;
+import NPCs.NPCBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -39,6 +41,7 @@ public class BlockTownHall extends Block implements EntityBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if(!level.isClientSide) {
             TownHallOwners.removeEntry(level, pos);
+            NPCBase.updateAllTownHalls();
             BlockEntity e = level.getBlockEntity(pos);
             if(e instanceof EntityTownHall t){
                 for (int i = 0; i < t.inventory.getSlots(); i++) {
@@ -50,6 +53,14 @@ public class BlockTownHall extends Block implements EntityBlock {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
+    public void setPlacedBy(Level level, BlockPos pos, BlockState state, @javax.annotation.Nullable LivingEntity placer, ItemStack stack) {
+        if (!level.isClientSide) {
+            if (placer instanceof Player player) {
+                TownHallOwners.addOwner(level, pos, player.getName().getString());
+                NPCBase.updateAllTownHalls();
+            }
+        }
+    }
 
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {

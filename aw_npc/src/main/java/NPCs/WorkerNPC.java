@@ -9,6 +9,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.behavior.SleepInBed;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
@@ -65,8 +66,6 @@ public class WorkerNPC extends NPCBase {
         }
 
         int priority = 0;
-
-        this.goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
         foodProgram = new FoodProgramWorker(this);
         this.goalSelector.addGoal(priority++, foodProgram);

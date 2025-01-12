@@ -194,7 +194,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
 
         guiHandler = new GuiHandlerEntity(this);
-        guiModuleItemHandlerSlot head = new guiModuleItemHandlerSlot(0, armorInventory, EquipmentSlot.HEAD.getIndex(), 1, 0, guiHandler, 10, 10) {
+        guiModuleItemHandlerSlot head = new guiModuleItemHandlerSlot(0, armorInventory, EquipmentSlot.HEAD.getIndex(), 1, 0, guiHandler, 10, 50) {
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
                 if (this.client_getItemStackToRender().isEmpty())
@@ -206,7 +206,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 }
             }
         };
-        guiModuleItemHandlerSlot chest = new guiModuleItemHandlerSlot(1, armorInventory, EquipmentSlot.CHEST.getIndex(), 1, 0, guiHandler, 10, 30) {
+        guiModuleItemHandlerSlot chest = new guiModuleItemHandlerSlot(1, armorInventory, EquipmentSlot.CHEST.getIndex(), 1, 0, guiHandler, 10, 70) {
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
                 if (this.client_getItemStackToRender().isEmpty())
@@ -218,7 +218,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 }
             }
         };
-        guiModuleItemHandlerSlot leg = new guiModuleItemHandlerSlot(2, armorInventory, EquipmentSlot.LEGS.getIndex(), 1, 0, guiHandler, 10, 50) {
+        guiModuleItemHandlerSlot leg = new guiModuleItemHandlerSlot(2, armorInventory, EquipmentSlot.LEGS.getIndex(), 1, 0, guiHandler, 10, 90) {
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
                 if (this.client_getItemStackToRender().isEmpty())
@@ -230,7 +230,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 }
             }
         };
-        guiModuleItemHandlerSlot feet = new guiModuleItemHandlerSlot(3, armorInventory, EquipmentSlot.FEET.getIndex(), 1, 0, guiHandler, 10, 70) {
+        guiModuleItemHandlerSlot feet = new guiModuleItemHandlerSlot(3, armorInventory, EquipmentSlot.FEET.getIndex(), 1, 0, guiHandler, 10, 110) {
             public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
                 guiGraphics.blit(this.slot_background, this.onGuiX, this.onGuiY, 0.0F, 0.0F, this.w, this.h, this.slot_bg_w, this.slot_bg_h);
                 if (this.client_getItemStackToRender().isEmpty())
@@ -250,28 +250,36 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         int w = 5;
         for (int i = 0; i < combinedInventory.getSlots(); i++) {
             int x = i % w * 18 + 40;
-            int y = i / w * 18 + 10;
+            int y = i / w * 18 + 50;
             guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(i + 100, combinedInventory, i, 1, 0, guiHandler, x, y);
             guiHandler.getModules().add(m);
         }
 
-        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 150, 200, 0, 1, guiHandler)) {
+        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 190, 200, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
-        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 90, 300, 0, 1, guiHandler)) {
+        for (GuiModuleBase m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 130, 300, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
 
-        lifeBar = new guiModuleProgressBarHorizontal6px(1000, 0xffBE0204, guiHandler, 40, 50);
-        hungerBar = new guiModuleProgressBarHorizontal6px(1001, 0xff563225, guiHandler, 40, 60);
+        lifeBar = new guiModuleProgressBarHorizontal6px(1000, 0xffBE0204, guiHandler, 40, 90);
+        hungerBar = new guiModuleProgressBarHorizontal6px(1001, 0xff563225, guiHandler, 40, 100);
 
         guiHandler.getModules().add(lifeBar);
         guiHandler.getModules().add(hungerBar);
 
-        ownerText = new guiModuleText(2001, "owner",guiHandler, 50,50,0xffffffff,true);
-        townHallText = new guiModuleText(2002, "townhallpos",guiHandler, 50,60,0xffffffff,true);
+        ownerText = new guiModuleText(2001, "owner",guiHandler, 10,9,0xff000000,false);
+        townHallText = new guiModuleText(2002, "townhallpos",guiHandler, 10,21,0xff000000,false);
+        guiModuleText nameText = new guiModuleText(2003, "Name: ",guiHandler, 10,33,0xff000000,false);
         guiHandler.getModules().add(ownerText);
         guiHandler.getModules().add(townHallText);
+        guiHandler.getModules().add(nameText);
+
+        guiModuleButton setHomeButton = new guiModuleButton(3000,"set home",guiHandler,110,90,60,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
+        setHomeButton.color = 0xffffffff;
+        setHomeButton.makeShadow = true;
+        guiHandler.getModules().add(setHomeButton);
+
 
     }
 
@@ -289,7 +297,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
-            for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(),this)) {
+            for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(), this)) {
                 if (TownHallOwners.getOwners(level(), p).contains(owner)) {
                     townHall = p;
                     System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
@@ -302,6 +310,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 townHall = null;
                 updateTownHall();
             }
+        }
+        if (townHall != null) {
+            townHallText.setTextAndSync("Town: " + townHall);
         }
     }
 
@@ -327,6 +338,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                     System.out.println("npc " + getUUID() + " id now owned by " + owner);
                     closestPlayer.sendSystemMessage(Component.literal("you are now owner of NPC "+getName().toString()));
                 }
+            }
+            if(owner != null){
+                ownerText.setTextAndSync("Owner: "+owner);
             }
             updateTownHall();
         }
@@ -461,7 +475,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.readClient(compoundTag);
 
         if(compoundTag.contains("openGui")){
-            guiHandler.openGui(180, 180, true);
+            guiHandler.openGui(180, 220, true);
         }
     }
 }

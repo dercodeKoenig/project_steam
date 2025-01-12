@@ -287,11 +287,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     }
     public void updateTownHall() {
         // assign to townhall
-        System.out.println(townHall);
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(),this)) {
-                System.out.println(p+":"+TownHallOwners.getOwners(level(), p));
                 if (TownHallOwners.getOwners(level(), p).contains(owner)) {
                     townHall = p;
                     System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
@@ -327,7 +325,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 if(closestPlayer != null){
                     owner = closestPlayer.getName().getString();
                     System.out.println("npc " + getUUID() + " id now owned by " + owner);
-                    closestPlayer.sendSystemMessage(Component.literal("you are now owner of NPC "+getName()));
+                    closestPlayer.sendSystemMessage(Component.literal("you are now owner of NPC "+getName().toString()));
                 }
             }
             updateTownHall();
@@ -340,7 +338,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         }else{
             Set<String> owners = TownHallOwners.getOwners(level(), townHall);
-            if (owners.contains(player.getName().getString()) || player.getName().getString().equals(owner)) {
+            if ((owners != null && owners.contains(player.getName().getString())) || player.getName().getString().equals(owner)) {
                 CompoundTag tag = new CompoundTag();
                 tag.put("openGui", new CompoundTag());
                 PacketDistributor.sendToPlayer((ServerPlayer) player, PacketEntity.getEntityPacket(this, tag));
@@ -453,7 +451,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         // verify server side that the player is friend or owner before allow anything to go to the gui
         Set<String> owners = TownHallOwners.getOwners(level(), townHall);
-        if (owners.contains(p.getName().getString()) || p.getName().getString().equals(owner)) {
+        if ((owners != null && owners.contains(p.getName().getString())) || p.getName().getString().equals(owner)) {
             guiHandler.readServer(compoundTag);
         }
     }

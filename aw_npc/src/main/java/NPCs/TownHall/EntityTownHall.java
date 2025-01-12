@@ -52,7 +52,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
 
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 2; y++) {
-                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 2 + x, inventory, y * 2 + x, 1, 0, guiHandler, x * 18 + 10, y * 18 + 10);
+                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, inventory, y * 9 + x, 1, 0, guiHandler, x * 18 + 10, y * 18 + 10);
                 guiHandler.getModules().add(m);
             }
         }

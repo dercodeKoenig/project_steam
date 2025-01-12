@@ -2,6 +2,7 @@ package NPCs.programs;
 
 import NPCs.NPCBase;
 import NPCs.TownHall.EntityTownHall;
+import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.tags.ItemTags;
@@ -160,6 +161,9 @@ public class FoodProgramWorker extends Goal {
             workDelay = 0;
             return;
         }
+
+        worker.lookAt(EntityAnchorArgument.Anchor.EYES, target.getCenter());
+        worker.lookAt(EntityAnchorArgument.Anchor.FEET, target.getCenter());
 
         if (workDelay >= 20) {
             workDelay = 0;

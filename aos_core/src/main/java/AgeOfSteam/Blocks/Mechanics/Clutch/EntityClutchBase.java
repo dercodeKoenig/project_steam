@@ -101,7 +101,7 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
                         CompoundTag tag = new CompoundTag();
-                        tag.putUUID("ping_is_master", Minecraft.getInstance().player.getUUID());
+                        tag.put("masterPing", new CompoundTag());
                         tag.putInt("id", id);
                         PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(myTile, tag));
                     }
@@ -272,7 +272,7 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
                     if (lastPing > cttam_timeout / 2) {
                         lastPing = 0;
                         CompoundTag tag = new CompoundTag();
-                        tag.putUUID("ping_is_master", Minecraft.getInstance().player.getUUID());
+                        tag.put("masterPing", new CompoundTag());
                         tag.putInt("id", id);
                         PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(myTile, tag));
                     }
@@ -580,7 +580,6 @@ public abstract class EntityClutchBase extends BlockEntity implements IMechanica
         myMechanicalBlockB.mechanicalLoadAdditional(tag, registries);
         super.loadAdditional(tag, registries);
     }
-
 
     public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
         myMechanicalBlockA.mechanicalSaveAdditional(tag, registries);

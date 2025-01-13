@@ -5,6 +5,7 @@ import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
+import NPCs.TownHall.TownHallNames;
 import NPCs.TownHall.TownHallOwners;
 import NPCs.programs.ProgramUtils;
 import NPCs.programs.SlowMobNavigation;
@@ -30,23 +31,26 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.*;
 
+import static NPCs.Registry.ITEM_SET_HOME_TOOL;
+
 public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiver {
+
     public int slowNavigationMaxDistance = 12 * 16;
     public int slowNavigationMaxNodes = 4096 * 16;
     public int slowNavigationStepPerTick = 512;
+    public SlowMobNavigation slowMobNavigation;
 
     public int regenerateOneAfterTicks = 20 * 30;
     public double hunger = 1;
     public double maxHunger = 20;
-
     public BlockPos homePosition;
-
     public BlockPos townHall;
     public String owner;
 
@@ -147,7 +151,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         }
     };
     public ItemStackHandler armorInventory;
-    public SlowMobNavigation slowMobNavigation;
 
     public GuiHandlerEntity guiHandler;
     public guiModuleProgressBarHorizontal6px lifeBar;
@@ -156,6 +159,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public guiModuleText townHallText;
 
     int ticksSinceLastRegen = 0;
+    public UUID followOwner = null;
 
 
     protected NPCBase(EntityType<WorkerNPC> entityType, Level level) {
@@ -298,6 +302,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(), this)) {
+                if(ProgramUtils.distanceManhattan(this, p.getCenter()) > 256)
+                    break;
+
                 if (TownHallOwners.getOwners(level(), p).contains(owner)) {
                     townHall = p;
                     System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
@@ -312,7 +319,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             }
         }
         if (townHall != null) {
-            townHallText.setTextAndSync("Town: " + townHall);
+            townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(),townHall));
         }
     }
 
@@ -348,14 +355,22 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if (level().isClientSide) {
-
-        }else{
+        if (!level().isClientSide) {
             Set<String> owners = TownHallOwners.getOwners(level(), townHall);
             if ((owners != null && owners.contains(player.getName().getString())) || player.getName().getString().equals(owner)) {
-                CompoundTag tag = new CompoundTag();
-                tag.put("openGui", new CompoundTag());
-                PacketDistributor.sendToPlayer((ServerPlayer) player, PacketEntity.getEntityPacket(this, tag));
+                if(!player.isShiftKeyDown()) {
+                    if (!guiHandler.playersTrackingGui.containsKey(player.getUUID())) {
+                        CompoundTag tag = new CompoundTag();
+                        tag.put("openGui", new CompoundTag());
+                        PacketDistributor.sendToPlayer((ServerPlayer) player, PacketEntity.getEntityPacket(this, tag));
+                    }
+                }else{
+                    if(followOwner == null) {
+                        followOwner = player.getUUID();
+                    }else{
+                        followOwner = null;
+                    }
+                }
             }
         }
         return InteractionResult.SUCCESS_NO_ITEM_USED;
@@ -438,6 +453,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             compound.putString("owner", owner);
             //System.out.println(getUUID()+" put owner "+owner);
         }
+
+        compound.putDouble("hunger", hunger);
     }
 
     @Override
@@ -458,6 +475,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             owner = compound.getString("owner");
             //System.out.println(getUUID()+" is owned by "+owner);
         }
+
+        hunger = compound.getDouble("hunger");
     }
 
 
@@ -467,6 +486,21 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         Set<String> owners = TownHallOwners.getOwners(level(), townHall);
         if ((owners != null && owners.contains(p.getName().getString())) || p.getName().getString().equals(owner)) {
             guiHandler.readServer(compoundTag);
+
+            if (compoundTag.contains("guiButtonClick")) {
+                if (compoundTag.getInt("guiButtonClick") == 3000) {
+                    ItemStack setHomeTool = new ItemStack(ITEM_SET_HOME_TOOL.get());
+                    CompoundTag info = new CompoundTag();
+                    info.putUUID("uuid", getUUID());
+                    ProgramUtils.setStackTag(setHomeTool,info);
+                    level().addFreshEntity(new ItemEntity(level(),p.position().x, p.position().y, p.position().z,setHomeTool));
+
+                    CompoundTag response = new CompoundTag();
+                    response.put("closeGui", new CompoundTag());
+                    PacketDistributor.sendToPlayer(p, PacketEntity.getEntityPacket(this, response));
+                    p.sendSystemMessage(Component.literal("Shift click the Set-Home-Tool on a bed!"));
+                }
+            }
         }
     }
 
@@ -476,6 +510,11 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         if(compoundTag.contains("openGui")){
             guiHandler.openGui(180, 220, true);
+        }
+        if(compoundTag.contains("closeGui")){
+            if(NPCBase.this.guiHandler.screen instanceof ModularScreen m){
+                m.onClose();
+            }
         }
     }
 }

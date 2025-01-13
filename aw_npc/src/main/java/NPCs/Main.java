@@ -1,6 +1,6 @@
 package NPCs;
 
-import NPCs.TownHall.EntityTownHall;
+import NPCs.TownHall.TownHallNames;
 import NPCs.TownHall.TownHallOwners;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -16,7 +16,6 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 import java.io.IOException;
 
-import static AgeOfSteam.Registry.ENTITY_MOTOR;
 import static NPCs.Registry.*;
 
 
@@ -36,6 +35,8 @@ public class Main {
 
         NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelSave);
         NeoForge.EVENT_BUS.addListener(TownHallOwners::onLevelLoad);
+        NeoForge.EVENT_BUS.addListener(TownHallNames::onLevelSave);
+        NeoForge.EVENT_BUS.addListener(TownHallNames::onLevelLoad);
 
         Registry.register(modEventBus);
 

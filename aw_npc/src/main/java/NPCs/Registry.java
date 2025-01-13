@@ -42,6 +42,11 @@ public class Registry {
             "worker",
             () -> EntityType.Builder.of(WorkerNPC::new, MobCategory.CREATURE).build(Main.MODID+":worker")
     );
+
+    public static final Supplier<Item> ITEM_SET_HOME_TOOL = ITEMS.register(
+            "set_home_tool",
+            () -> new ItemSetHomeTool()
+    );
     static {
         registerBlockItem("townhall", TOWNHALL);
     }

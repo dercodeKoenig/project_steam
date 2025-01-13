@@ -4,10 +4,16 @@ import ARLib.utils.ItemUtils;
 import NPCs.NPCBase;
 import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.items.IItemHandler;
 
@@ -132,6 +138,20 @@ public class ProgramUtils {
         return Math.abs(e.position().x - p2.x) +
                 Math.abs(e.position().y - p2.y) +
                 Math.abs(e.position().z - p2.z);
+    }
+
+
+    public static CompoundTag getStackTagOrEmpty(ItemStack stack) {
+        try {
+            return stack.get(DataComponents.CUSTOM_DATA).copyTag();
+        } catch (Exception e) {
+            CompoundTag itemTag = new CompoundTag();
+            return itemTag;
+        }
+    }
+
+    public static void setStackTag(ItemStack stack, CompoundTag tag) {
+        stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
 }

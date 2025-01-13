@@ -1,8 +1,10 @@
 package NPCs;
 
 import NPCs.programs.CropFarming.MainFarmingProgram;
+import NPCs.programs.FollowOwnerProgram;
 import NPCs.programs.FoodProgramWorker;
 import NPCs.programs.ProgramUtils;
+import NPCs.programs.SleepProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -10,10 +12,7 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.SleepInBed;
-import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
-import net.minecraft.world.entity.ai.goal.OpenDoorGoal;
-import net.minecraft.world.entity.ai.goal.RandomStrollGoal;
+import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 
@@ -67,8 +66,14 @@ public class WorkerNPC extends NPCBase {
 
         int priority = 0;
 
+        goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
+
+        goalSelector.addGoal(priority++, new SleepProgram(this));
+
         foodProgram = new FoodProgramWorker(this);
         this.goalSelector.addGoal(priority++, foodProgram);
+
+        goalSelector.addGoal(priority++ ,new OpenDoorGoal(this, true));
 
         if (worktype == WorkTypes.Farmer) {
             farmingProgram = new MainFarmingProgram(this);

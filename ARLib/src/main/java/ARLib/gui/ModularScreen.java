@@ -9,7 +9,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ListIterator;
 import java.util.UUID;
 
 public class ModularScreen extends Screen {
@@ -86,7 +85,17 @@ public class ModularScreen extends Screen {
         return super.mouseClicked(x, y, button);
     }
 
-    public void calculateGuiOffsetAndNotifyModules() {
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
+            m.client_onKeyClick(keyCode,scanCode,modifiers);
+        }
+        return super.keyPressed(keyCode,scanCode,modifiers);
+    }
+
+
+        public void calculateGuiOffsetAndNotifyModules() {
         leftOffset = (this.width - guiW) / 2;
         topOffset = (this.height - guiH) / 2;
         for (int i = 0; i < c.getModules().size(); i++) {

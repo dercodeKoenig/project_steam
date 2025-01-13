@@ -3,34 +3,21 @@ package NPCs.TownHall;
 import ARLib.gui.GuiHandlerBlockEntity;
 import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import ARLib.gui.modules.guiModulePlayerInventorySlot;
+import ARLib.gui.modules.guiModuleText;
+import ARLib.gui.modules.guiModuleTextInput;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
-import ARLib.utils.DimensionUtils;
-import AgeOfSteam.Blocks.Mechanics.Clutch.EntityClutchBase;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
+import NPCs.NPCBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.LevelResource;
-import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
 import static NPCs.Registry.ENTITY_TOWNHALL;
@@ -44,7 +31,9 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             setChanged();
         }
     };
+
     GuiHandlerBlockEntity guiHandler;
+    guiModuleTextInput townNameInput;
 
     public EntityTownHall(BlockPos pos, BlockState blockState) {
         super(ENTITY_TOWNHALL.get(), pos, blockState);
@@ -63,6 +52,18 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 80, 1100, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
+
+        guiHandler.getModules().add(new guiModuleText(5001, "Name:", guiHandler, 10, 60, 0xff000000, false));
+        townNameInput = new guiModuleTextInput(5000, guiHandler, 50, 60, 100, 10){
+            @Override
+            public void server_readNetworkData(CompoundTag tag){
+                super.server_readNetworkData(tag);
+                NPCBase.updateAllTownHalls(); // update if the name changes
+                TownHallNames.setName(level,getBlockPos(),text);
+            }
+        };
+
+        guiHandler.getModules().add(townNameInput);
     }
 
     public Set<String> getOwners() {
@@ -83,6 +84,12 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
     public void onLoad() {
         super.onLoad();
         knownTownHalls.add(getBlockPos());
+        String name = TownHallNames.getName(level,getBlockPos());
+        if(name != null)
+            townNameInput.text =name;
+        else{
+            System.out.println("for some reason, the town at "+getBlockPos()+" does not have a name entry");
+        }
     }
 
     @Override

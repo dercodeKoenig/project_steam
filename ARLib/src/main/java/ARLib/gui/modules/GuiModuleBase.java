@@ -3,6 +3,7 @@ package ARLib.gui.modules;
 import ARLib.gui.IGuiHandler;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerPlayer;
 
 public class GuiModuleBase {
 
@@ -57,6 +58,10 @@ public class GuiModuleBase {
     }
 
     public void client_onMouseCLick(double x, double y, int button) {
+
+    }
+
+    public void client_onKeyClick(int keyCode, int scanCode, int modifiers) {
 
     }
 

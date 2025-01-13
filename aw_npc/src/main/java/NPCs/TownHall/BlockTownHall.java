@@ -41,6 +41,7 @@ public class BlockTownHall extends Block implements EntityBlock {
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if(!level.isClientSide) {
             TownHallOwners.removeEntry(level, pos);
+            TownHallNames.removeEntry(level, pos);
             NPCBase.updateAllTownHalls();
             BlockEntity e = level.getBlockEntity(pos);
             if(e instanceof EntityTownHall t){
@@ -57,6 +58,7 @@ public class BlockTownHall extends Block implements EntityBlock {
         if (!level.isClientSide) {
             if (placer instanceof Player player) {
                 TownHallOwners.addOwner(level, pos, player.getName().getString());
+                TownHallNames.setName(level, pos, "Town of " + player.getName().getString());
                 NPCBase.updateAllTownHalls();
             }
         }

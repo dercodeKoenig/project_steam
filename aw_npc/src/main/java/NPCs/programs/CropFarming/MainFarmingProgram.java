@@ -71,6 +71,8 @@ public class MainFarmingProgram extends Goal {
             return false;
         }
 
+        if(worker.level().isNight())return false;
+
         //clean up entries that no longer exist
         for (BlockPos i : workCheckedTracker.keySet()) {
             if (!EntityCropFarm.knownCropFarms.contains(i)) {
@@ -81,6 +83,9 @@ public class MainFarmingProgram extends Goal {
 
         long gameTime = worker.level().getGameTime();
         for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
+
+            if(ProgramUtils.distanceManhattan(worker, p.getCenter()) > 256) break;
+
             BlockEntity worksite = worker.level().getBlockEntity(p);
             if (worksite instanceof EntityWorkSiteBase w) {
 
@@ -106,7 +111,7 @@ public class MainFarmingProgram extends Goal {
 
     @Override
     public boolean canContinueToUse() {
-        return worker.lastWorksitePosition != null;
+        return worker.lastWorksitePosition != null && !worker.level().isNight();
     }
 
     @Override

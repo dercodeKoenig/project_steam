@@ -117,7 +117,7 @@ public class CropFarmingProgram {
         if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
             if (numEmptySlotsIgnoreHoe < requiredFreeSlotsToHarvest) return false;
         } else {
-            if (numEmptySlotsIgnoreHoe < requiredFreeSlotsToHarvest - 2) return false;
+            if (numEmptySlotsIgnoreHoe < requiredFreeSlotsToHarvest + 3) return false;
         }
 
         // if he has / can take hoe, has positions to work on and has free space in inventory, he can work

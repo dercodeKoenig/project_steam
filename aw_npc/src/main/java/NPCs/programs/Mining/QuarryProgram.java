@@ -71,7 +71,7 @@ public class QuarryProgram {
 
 
     public static TreeSet<BlockPos> sortPositionsToMine(TreeSet<BlockPos> list, Entity e) {
-        Vec3 position = e.getPosition(0);
+        Vec3 position = e.getPosition(0).add(0,1,0);
 
         TreeSet<BlockPos> sorted = new TreeSet<>(new Comparator<BlockPos>() {
             @Override
@@ -129,10 +129,10 @@ boolean canQuarry(EntityQuarry target){
                 worker.combinedInventory.getStackInSlot(i).getItem() instanceof PickaxeItem)
             numEmptySlotsIgnorePickAxe++;
     }
-    if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
+    if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 7) {
         if (numEmptySlotsIgnorePickAxe < requiredFreeSlotsToHarvest) return false;
     } else {
-        if (numEmptySlotsIgnorePickAxe < requiredFreeSlotsToHarvest - 5) return false;
+        if (numEmptySlotsIgnorePickAxe < requiredFreeSlotsToHarvest + 5) return false;
     }
 
     return true;

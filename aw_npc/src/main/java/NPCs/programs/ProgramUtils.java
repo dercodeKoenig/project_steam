@@ -30,8 +30,7 @@ public class ProgramUtils {
 
 
 
-    public static TreeSet<BlockPos> sortBlockPosByDistanceToNPC(Collection<BlockPos> list, NPCBase npc) {
-        Vec3 position = npc.getPosition(0);
+    public static TreeSet<BlockPos> sortBlockPosByDistanceToNPC(Collection<BlockPos> list, Vec3 position) {
         TreeSet<BlockPos> sorted = new TreeSet<>(new Comparator<BlockPos>() {
             @Override
             public int compare(BlockPos o1, BlockPos o2) {
@@ -49,6 +48,10 @@ public class ProgramUtils {
         });
         sorted.addAll(list);
         return sorted;
+    }
+    public static TreeSet<BlockPos> sortBlockPosByDistanceToNPC(Collection<BlockPos> list, Entity e) {
+        Vec3 position = e.getPosition(0);
+        return sortBlockPosByDistanceToNPC(list,position);
     }
 
     public static boolean itemStacksEqual(ItemStack s1, ItemStack s2){

@@ -9,6 +9,7 @@ import ARLib.network.PacketEntity;
 import NPCs.NPCBase;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -67,21 +68,21 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         }
 
         guiHandler.getModules().add(new guiModuleText(5001, "Name:", guiHandler, 10, 10, 0xff000000, false));
-        townNameInput = new guiModuleTextInput(5000, guiHandler, 40, 10, 120, 10){
-                @Override
-            public void server_readNetworkData(CompoundTag tag){
+        townNameInput = new guiModuleTextInput(5000, guiHandler, 40, 10, 120, 10) {
+            @Override
+            public void server_readNetworkData(CompoundTag tag) {
                 super.server_readNetworkData(tag);
                 NPCBase.updateAllTownHalls(); // update if the name changes
-                TownHallNames.setName(level,getBlockPos(),text);
+                TownHallNames.setName(level, getBlockPos(), text);
             }
         };
 
         guiHandler.getModules().add(townNameInput);
 
-        guiModuleButton openOwnersMenuButton =new guiModuleButton(6110, "owners", guiHandler, 10,30,40,15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20){
+        guiModuleButton openOwnersMenuButton = new guiModuleButton(6110, "owners", guiHandler, 10, 30, 40, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
             @Override
-            public void onButtonClicked(){
-                ownersMenu.openGui(180,180,true);
+            public void onButtonClicked() {
+                ownersMenu.openGui(180, 180, true);
                 CompoundTag getOwnersTag = new CompoundTag();
                 getOwnersTag.put("getOwners", new CompoundTag());
                 PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, getOwnersTag));
@@ -90,9 +91,9 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         openOwnersMenuButton.color = 0xffffffff;
         guiHandler.getModules().add(openOwnersMenuButton);
 
-        guiModuleButton callWorkersButton =new guiModuleButton(6111, "call all", guiHandler, 60,30,40,15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20){
+        guiModuleButton callWorkersButton = new guiModuleButton(6111, "call all", guiHandler, 60, 30, 40, 15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
             @Override
-            public void onButtonClicked(){
+            public void onButtonClicked() {
                 CompoundTag callWorkersTag = new CompoundTag();
                 callWorkersTag.put("callWorkers", new CompoundTag());
                 PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, callWorkersTag));
@@ -102,33 +103,33 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         guiHandler.getModules().add(callWorkersButton);
 
 
-        ownersMenu = new GuiHandlerBlockEntity(this){
+        ownersMenu = new GuiHandlerBlockEntity(this) {
             @Override
             public void onGuiClose() {
                 super.onGuiClose();
-                EntityTownHall.this. guiHandler.openGui(180, 200, true);
+                EntityTownHall.this.guiHandler.openGui(180, 200, true);
             }
         };
 
-        ownersList = new guiModuleScrollContainer(new ArrayList<>(),0x00000000,ownersMenu,10,40,160,110);
+        ownersList = new guiModuleScrollContainer(new ArrayList<>(), 0x00000000, ownersMenu, 10, 40, 160, 110);
         ownersMenu.getModules().add(ownersList);
 
-        guiModuleButton b = new guiModuleButton(10909,"+",ownersMenu,10,9,12,12,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
+        guiModuleButton b = new guiModuleButton(10909, "+", ownersMenu, 10, 9, 12, 12, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20);
         b.color = 0xffffffff;
         ownersMenu.getModules().add(b);
         addOwner = new guiModuleTextInput(9990, ownersMenu, 30, 10, 120, 10);
         ownersMenu.getModules().add(addOwner);
     }
 
-    public void updateOwnerMenu(List<String> owners){
+    public void updateOwnerMenu(List<String> owners) {
         ownersList.modules.clear();
 
         int y = 0;
-        for(String i : owners){
-            guiModuleText t = new guiModuleText(-1,i,ownersMenu,20,y+2,0xff000000,false);
-            guiModuleButton b = new guiModuleButton(-1,"X",ownersMenu,0,y,10,10,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20){
+        for (String i : owners) {
+            guiModuleText t = new guiModuleText(-1, i, ownersMenu, 20, y + 2, 0xff000000, false);
+            guiModuleButton b = new guiModuleButton(-1, "X", ownersMenu, 0, y, 10, 10, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"), 64, 20) {
                 @Override
-                public void onButtonClicked(){
+                public void onButtonClicked() {
                     CompoundTag request = new CompoundTag();
                     request.putString("removeOwner", i);
                     PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, request));
@@ -137,10 +138,10 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
             b.color = 0xffffffff;
             ownersList.modules.add(t);
             ownersList.modules.add(b);
-            y+= 20;
+            y += 20;
         }
 
-        if(ownersMenu.screen instanceof ModularScreen m){
+        if (ownersMenu.screen instanceof ModularScreen m) {
             m.calculateGuiOffsetAndNotifyModules();
         }
     }
@@ -193,9 +194,9 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
     }
 
 
-    public ListTag ownersTag(){
+    public ListTag ownersTag() {
         ListTag l = new ListTag();
-        for(String i : getOwners()){
+        for (String i : getOwners()) {
             l.add(StringTag.valueOf(i));
         }
         return l;
@@ -257,7 +258,7 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         ownersMenu.readClient(compoundTag);
 
         if (compoundTag.contains("owners")) {
-            ListTag ownersTag =compoundTag.getList("owners", Tag.TAG_STRING);
+            ListTag ownersTag = compoundTag.getList("owners", Tag.TAG_STRING);
             List<String> owners = new ArrayList<>();
             for (int i = 0; i < ownersTag.size(); i++) {
                 String owner = ownersTag.get(i).getAsString();
@@ -269,13 +270,23 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         if (compoundTag.contains("openGui")) {
             guiHandler.openGui(180, 200, true);
         }
-        if(compoundTag.contains("closeGui")){
-            if(guiHandler.screen instanceof ModularScreen m){
+        if (compoundTag.contains("closeGui")) {
+            if (guiHandler.screen instanceof ModularScreen m) {
                 m.onClose();
             }
-            if(ownersMenu.screen instanceof ModularScreen m){
+            if (ownersMenu.screen instanceof ModularScreen m) {
                 m.onClose();
             }
         }
+    }
+
+    protected void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.saveAdditional(tag, registries);
+        tag.put("inventory", inventory.serializeNBT(registries));
+    }
+
+    protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+        super.loadAdditional(tag, registries);
+        inventory.deserializeNBT(registries, tag.getCompound("inventory"));
     }
 }

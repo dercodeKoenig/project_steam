@@ -352,8 +352,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 }
                 if(closestPlayer != null){
                     owner = closestPlayer.getName().getString();
-                    System.out.println("npc " + getUUID() + " id now owned by " + owner);
-                    closestPlayer.sendSystemMessage(Component.literal("you are now owner of NPC "+getName().toString()));
                 }
             }
             if(owner != null){

@@ -3,6 +3,7 @@ package NPCs;
 import NPCs.programs.CropFarming.MainFarmingProgram;
 import NPCs.programs.FollowOwnerProgram;
 import NPCs.programs.FoodProgramWorker;
+import NPCs.programs.Mining.MainMiningProgram;
 import NPCs.programs.ProgramUtils;
 import NPCs.programs.SleepProgram;
 import net.minecraft.core.BlockPos;
@@ -27,11 +28,13 @@ import java.util.List;
 public class WorkerNPC extends NPCBase {
 
     public static EntityDataAccessor<Integer> DATA_WORKTYPE = SynchedEntityData.defineId(WorkerNPC.class,EntityDataSerializers.INT);
+    public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(WorkerNPC.class,EntityDataSerializers.STRING);
+
 
     public enum WorkTypes {
         Farmer,
         FISHER,
-        MINER,
+        Miner,
         HUNTER,
         LUMBERJACK,
         Worker
@@ -56,15 +59,22 @@ public class WorkerNPC extends NPCBase {
     @Override
     public void onAddedToLevel() {
         super.onAddedToLevel();
-        registerGoals();
+        if (!level().isClientSide) {
+            registerGoals();
+            if (getEntityData().get(WorkerNPC.DATA_TEXTURE).isEmpty()) {
+                getEntityData().set(WorkerNPC.DATA_TEXTURE, "worker.png");
+            }
+        }
     }
 
     @Override
     protected void registerGoals() {
-        List<Goal> activeGoals = new ArrayList<>(goalSelector.getAvailableGoals());
-        for (Goal i : activeGoals) {
-            goalSelector.removeGoal(i);
+        List<WrappedGoal> activeGoals = new ArrayList<>(goalSelector.getAvailableGoals());
+        for (WrappedGoal i : activeGoals) {
+            if(i.isRunning())
+                i.stop();
         }
+        goalSelector.getAvailableGoals().clear();
 
         int priority = 0;
 
@@ -79,6 +89,9 @@ public class WorkerNPC extends NPCBase {
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Farmer.ordinal()) {
             this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
         }
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Miner.ordinal()) {
+            this.goalSelector.addGoal(priority++, new MainMiningProgram(this));
+        }
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -88,6 +101,7 @@ public class WorkerNPC extends NPCBase {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(DATA_WORKTYPE, WorkTypes.Worker.ordinal());
+        builder.define(DATA_TEXTURE, "");
     }
 
     @Override
@@ -95,6 +109,17 @@ public class WorkerNPC extends NPCBase {
         if(!level().isClientSide) {
             if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_HOE)) {
                 getEntityData().set(DATA_WORKTYPE,WorkTypes.Farmer.ordinal());
+                int randomNumber = Math.abs(level().random.nextInt()) % 7 + 1;
+                getEntityData().set(DATA_TEXTURE,"po_worker_farmer_"+randomNumber+".png");
+                player.setItemInHand(hand, ItemStack.EMPTY);
+                registerGoals();
+                return InteractionResult.SUCCESS;
+            }
+
+            if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_PICKAXE)) {
+                getEntityData().set(DATA_WORKTYPE,WorkTypes.Miner.ordinal());
+                int randomNumber = Math.abs(level().random.nextInt()) % 5 + 1;
+                getEntityData().set(DATA_TEXTURE,"po_worker_miner_"+randomNumber+".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 return InteractionResult.SUCCESS;
@@ -106,7 +131,6 @@ public class WorkerNPC extends NPCBase {
     @Override
     public void tick() {
         super.tick();
-
         if (!level().isClientSide) {
             if (lastWorksitePosition != null)
                 cachedDistanceManhattanToWorksite = ProgramUtils.distanceManhattan(this, lastWorksitePosition.getCenter());
@@ -126,6 +150,7 @@ public class WorkerNPC extends NPCBase {
         }
 
         compound.putInt("worktyoe", getEntityData().get(DATA_WORKTYPE));
+        compound.putString("texture", getEntityData().get(DATA_TEXTURE));
     }
 
     @Override
@@ -135,5 +160,7 @@ public class WorkerNPC extends NPCBase {
             lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
         getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
+        getEntityData().set(DATA_TEXTURE, compound.getString("texture"));
+        registerGoals();
     }
 }

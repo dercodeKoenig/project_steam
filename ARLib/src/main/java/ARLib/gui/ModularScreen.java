@@ -85,13 +85,23 @@ public class ModularScreen extends Screen {
         return super.mouseClicked(x, y, button);
     }
 
+
+    public boolean charTyped(char codePoint, int modifiers) {
+        for (int i = 0; i < c.getModules().size(); i++) {
+            if (!(i < c.getModules().size())) break;
+            GuiModuleBase m = c.getModules().get(i);
+            m.client_charTyped(codePoint,modifiers);
+        }
+        return super.charTyped(codePoint,modifiers);
+    }
+
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         for (int i = 0; i < c.getModules().size(); i++) {
             if (!(i < c.getModules().size())) break;
             GuiModuleBase m = c.getModules().get(i);
-            m.client_onKeyClick(keyCode,scanCode,modifiers);
+            m.client_onKeyClick(keyCode, scanCode, modifiers);
         }
-        return super.keyPressed(keyCode,scanCode,modifiers);
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
 

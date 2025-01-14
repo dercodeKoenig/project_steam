@@ -60,6 +60,14 @@ public class guiModuleScrollContainer extends GuiModuleBase {
         }
     }
 
+    public void client_charTyped(char codePoint, int modifiers) {
+        for (int n = 0; n <modules.size(); n++) {
+            if (!(n < modules.size())) break;
+            GuiModuleBase i = modules.get(n);
+            i.client_charTyped(codePoint, modifiers);
+        }
+    }
+
         public void client_onMouseCLick(double x, double y, int button) {
         for (int n = 0; n <modules.size(); n++) {
             if (!(n < modules.size())) break;

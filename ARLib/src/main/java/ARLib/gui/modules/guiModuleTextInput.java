@@ -2,18 +2,12 @@ package ARLib.gui.modules;
 
 
 import ARLib.gui.IGuiHandler;
-import ARLib.gui.modules.GuiModuleBase;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import org.lwjgl.glfw.GLFW;
-
-import java.util.Objects;
 
 public class guiModuleTextInput extends GuiModuleBase {
     public     boolean isSelected = false;
@@ -64,20 +58,22 @@ public class guiModuleTextInput extends GuiModuleBase {
         super.client_handleDataSyncedToClient(tag);
     }
 
-    @Override
+@Override
+    public void client_charTyped(char codePoint, int modifiers) {
+
+        text += codePoint;
+
+    CompoundTag info = new CompoundTag();
+    CompoundTag myTag = new CompoundTag();
+    myTag.putString("text", text);
+    info.put(this.getMyTagKey(), myTag);
+    guiHandler.sendToServer(info);
+    }
+
+        @Override
     public void client_onKeyClick(int keyCode, int scanCode, int modifiers) {
         if(!isSelected) return;
-
-        // Check if the keyCode is for printable characters
-        if (isPrintableCharacter(keyCode)) {
-            // Determine if Shift is pressed for uppercase letters
-            boolean shiftPressed = (modifiers & GLFW.GLFW_MOD_SHIFT) != 0;
-            char character = getCharacterFromKey(keyCode, shiftPressed);
-
-            if (character != '\0') { // '\0' indicates no valid character
-                text += character; // Add the character to the text string
-            }
-        } else if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+        if (keyCode == GLFW.GLFW_KEY_BACKSPACE) {
             // Handle backspace for deleting characters
             if (!text.isEmpty()) {
                 text = text.substring(0, text.length() - 1);
@@ -89,49 +85,6 @@ public class guiModuleTextInput extends GuiModuleBase {
         myTag.putString("text", text);
         info.put(this.getMyTagKey(), myTag);
         guiHandler.sendToServer(info);
-    }
-
-    // Helper method to determine if a key code corresponds to a printable character
-    private boolean isPrintableCharacter(int keyCode) {
-        return (keyCode >= GLFW.GLFW_KEY_SPACE && keyCode <= GLFW.GLFW_KEY_GRAVE_ACCENT) ||
-                (keyCode >= GLFW.GLFW_KEY_A && keyCode <= GLFW.GLFW_KEY_Z) ||
-                (keyCode >= GLFW.GLFW_KEY_0 && keyCode <= GLFW.GLFW_KEY_9);
-    }
-
-    // Helper method to map a key code to a character, handling shift for uppercase
-    private char getCharacterFromKey(int keyCode, boolean shiftPressed) {
-        // Handle letters
-        if (keyCode >= GLFW.GLFW_KEY_A && keyCode <= GLFW.GLFW_KEY_Z) {
-            char base = shiftPressed ? 'A' : 'a';
-            return (char) (base + (keyCode - GLFW.GLFW_KEY_A));
-        }
-
-        // Handle numbers and symbols
-        switch (keyCode) {
-            case GLFW.GLFW_KEY_0: return shiftPressed ? ')' : '0';
-            case GLFW.GLFW_KEY_1: return shiftPressed ? '!' : '1';
-            case GLFW.GLFW_KEY_2: return shiftPressed ? '@' : '2';
-            case GLFW.GLFW_KEY_3: return shiftPressed ? '#' : '3';
-            case GLFW.GLFW_KEY_4: return shiftPressed ? '$' : '4';
-            case GLFW.GLFW_KEY_5: return shiftPressed ? '%' : '5';
-            case GLFW.GLFW_KEY_6: return shiftPressed ? '^' : '6';
-            case GLFW.GLFW_KEY_7: return shiftPressed ? '&' : '7';
-            case GLFW.GLFW_KEY_8: return shiftPressed ? '*' : '8';
-            case GLFW.GLFW_KEY_9: return shiftPressed ? '(' : '9';
-            case GLFW.GLFW_KEY_SPACE: return ' '; // Space key
-            case GLFW.GLFW_KEY_MINUS: return shiftPressed ? '_' : '-';
-            case GLFW.GLFW_KEY_EQUAL: return shiftPressed ? '+' : '=';
-            case GLFW.GLFW_KEY_LEFT_BRACKET: return shiftPressed ? '{' : '[';
-            case GLFW.GLFW_KEY_RIGHT_BRACKET: return shiftPressed ? '}' : ']';
-            case GLFW.GLFW_KEY_SEMICOLON: return shiftPressed ? ':' : ';';
-            case GLFW.GLFW_KEY_APOSTROPHE: return shiftPressed ? '"' : '\'';
-            case GLFW.GLFW_KEY_COMMA: return shiftPressed ? '<' : ',';
-            case GLFW.GLFW_KEY_PERIOD: return shiftPressed ? '>' : '.';
-            case GLFW.GLFW_KEY_SLASH: return shiftPressed ? '?' : '/';
-            case GLFW.GLFW_KEY_BACKSLASH: return shiftPressed ? '|' : '\\';
-            case GLFW.GLFW_KEY_GRAVE_ACCENT: return shiftPressed ? '~' : '`';
-            default: return '\0'; // No valid character for this key
-        }
     }
 
 

@@ -1,10 +1,9 @@
-package NPCs.programs.CropFarming;
+package NPCs.programs.Mining;
 
 import NPCs.WorkerNPC;
 import NPCs.programs.ProgramUtils;
-import NPCs.programs.UnloadInventoryProgram;
-import WorkSites.CropFarm.EntityCropFarm;
 import WorkSites.EntityWorkSiteBase;
+import WorkSites.Quarry.EntityQuarry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -14,24 +13,23 @@ import java.util.HashMap;
 
 import static NPCs.programs.ProgramUtils.*;
 
-public class MainFarmingProgram extends Goal {
+public class MainMiningProgram extends Goal {
 
     public HashMap<BlockPos, Long> workCheckedTracker = new HashMap<>();
 
     public WorkerNPC worker;
     public int timeoutForWorkCheck = 20 * 10;
 
-    public CropFarmingProgram cropFarmingProgram;
-    public UnloadInventoryToFarmProgram unloadInventoryProgram;
-    public UseMillStoneProgram useMillStoneProgram;
 
-    public MainFarmingProgram(WorkerNPC worker) {
+    public UnloadInventoryToFarmProgram unloadInventoryProgram;
+    QuarryProgram quarryProgram;
+
+    public MainMiningProgram(WorkerNPC worker) {
         this.worker = worker;
         setFlags(EnumSet.of(Flag.MOVE, Flag.LOOK));
 
         unloadInventoryProgram = new UnloadInventoryToFarmProgram(worker);
-        cropFarmingProgram = new CropFarmingProgram(worker);
-        useMillStoneProgram = new UseMillStoneProgram(worker);
+        quarryProgram = new QuarryProgram(worker);
     }
 
     @Override
@@ -40,18 +38,15 @@ public class MainFarmingProgram extends Goal {
     }
 
 
-    public boolean hasWorkAtCropFarm(BlockPos p) {
+    public boolean hasWorkAtQuarry(BlockPos p) {
 
         BlockEntity e = worker.level().getBlockEntity(p);
-        if (!(e instanceof EntityCropFarm farm)) return false;
+        if (!(e instanceof EntityQuarry farm)) return false;
 
-        if (cropFarmingProgram.recalculateHasWork(farm)) return true;
+        if (quarryProgram.recalculateHasWork(farm)) return true;
 
         // check if he can unload his inventory there
         if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
-
-        // check if he can use millstone from this farm
-        if (useMillStoneProgram.recalculateHasWork(farm)) return true;
 
         return false;
     }
@@ -60,7 +55,6 @@ public class MainFarmingProgram extends Goal {
     public boolean canUse() {
 
         if(worker.level().isNight())return false;
-
 
         // make sure he does not just switch to this worksite while another worksite is active (if last position != null)
         // except he can switch to this program if the last worksite was of this program (eg after sleep, server restart)
@@ -76,19 +70,19 @@ public class MainFarmingProgram extends Goal {
 
         //clean up entries that no longer exist
         for (BlockPos i : workCheckedTracker.keySet()) {
-            if (!EntityCropFarm.knownCropFarms.contains(i)) {
+            if (!EntityQuarry.knownQuarries.contains(i)) {
                 workCheckedTracker.remove(i);
                 break;
             }
         }
 
         long gameTime = worker.level().getGameTime();
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
+        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityQuarry.knownQuarries, worker)) {
 
             if(ProgramUtils.distanceManhattan(worker, p.getCenter()) > 256) break;
 
             BlockEntity worksite = worker.level().getBlockEntity(p);
-            if (worksite instanceof EntityWorkSiteBase w) {
+            if (worksite instanceof EntityQuarry w) {
 
                 if (w.workersWorkingHereWithTimeout.size() >= w.maxWorkersAllowed)
                     //if (w.workersWorkingHereWithTimeout.size() >= 6)
@@ -100,7 +94,7 @@ public class MainFarmingProgram extends Goal {
                 }
 
                 workCheckedTracker.put(p, gameTime);
-                if (hasWorkAtCropFarm(p)) {
+                if (hasWorkAtQuarry(p)) {
                     worker.lastWorksitePosition = p;
                     return true;
                 }
@@ -128,23 +122,13 @@ public class MainFarmingProgram extends Goal {
         if (worker.lastWorksitePosition == null) return EXIT_FAIL;
 
         BlockEntity e = worker.level().getBlockEntity(worker.lastWorksitePosition);
-        if (!(e instanceof EntityCropFarm farm)) return EXIT_FAIL;
+        if (!(e instanceof EntityQuarry farm)) return EXIT_FAIL;
 
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
-        // try to use millstone only if the farming program has no work so we do not interrupt
-        if(!cropFarmingProgram.hasWork) {
-            int millStoneExit = useMillStoneProgram.run(farm);
-            if (millStoneExit == EXIT_FAIL) return EXIT_FAIL;
-            if (millStoneExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
-        }
-
-        // try to farm
-        if(!useMillStoneProgram.hasWork) {
-            int cropFarmingExit = cropFarmingProgram.run(farm);
-            if (cropFarmingExit == EXIT_FAIL) return EXIT_FAIL;
-            if (cropFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
-        }
+        int tryQuarryExit = quarryProgram.run(farm);
+        if (tryQuarryExit == EXIT_FAIL) return EXIT_FAIL;
+        if (tryQuarryExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
 
         // try to unload Inventory
         int tryUnloadExit = unloadInventoryProgram.run(farm);

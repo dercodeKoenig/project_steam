@@ -64,6 +64,9 @@ public class GuiModuleBase {
     public void client_onKeyClick(int keyCode, int scanCode, int modifiers) {
 
     }
+    public void client_charTyped(char codePoint, int modifiers) {
+
+    }
 
     public void server_readNetworkData(CompoundTag tag) {
 

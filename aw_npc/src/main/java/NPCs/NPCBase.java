@@ -157,6 +157,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public guiModuleProgressBarHorizontal6px hungerBar;
     public guiModuleText ownerText;
     public guiModuleText townHallText;
+    public guiModuleTextInput        nameTextInput;
 
     int ticksSinceLastRegen = 0;
     public UUID followOwner = null;
@@ -275,7 +276,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         ownerText = new guiModuleText(2001, "owner",guiHandler, 10,9,0xff000000,false);
         townHallText = new guiModuleText(2002, "townhallpos",guiHandler, 10,21,0xff000000,false);
         guiModuleText nameText = new guiModuleText(2003, "Name: ",guiHandler, 10,33,0xff000000,false);
-        guiModuleTextInput        nameTextInput = new guiModuleTextInput(2004,guiHandler, 40,33,100,10){
+        nameTextInput = new guiModuleTextInput(2004,guiHandler, 40,33,100,10){
             @Override
             public void server_readNetworkData(CompoundTag tag){
                 super.server_readNetworkData(tag);
@@ -292,6 +293,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         setHomeButton.makeShadow = true;
         guiHandler.getModules().add(setHomeButton);
 
+        setCustomName(Component.literal("NPC"));
         setCustomNameVisible(true);
     }
 
@@ -358,6 +360,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 ownerText.setTextAndSync("Owner: "+owner);
             }
             updateTownHall();
+            nameTextInput.text = getCustomName().getString();
         }
     }
 

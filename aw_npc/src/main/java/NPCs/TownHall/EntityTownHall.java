@@ -1,15 +1,17 @@
 package NPCs.TownHall;
 
 import ARLib.gui.GuiHandlerBlockEntity;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.gui.modules.guiModuleText;
-import ARLib.gui.modules.guiModuleTextInput;
+import ARLib.gui.ModularScreen;
+import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketBlockEntity;
 import NPCs.NPCBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
@@ -18,7 +20,10 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import static NPCs.Registry.ENTITY_TOWNHALL;
 
@@ -33,7 +38,11 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
     };
 
     GuiHandlerBlockEntity guiHandler;
+    GuiHandlerBlockEntity ownersMenu;
+    guiModuleScrollContainer ownersList;
+    guiModuleTextInput addOwner;
     guiModuleTextInput townNameInput;
+
 
     public EntityTownHall(BlockPos pos, BlockState blockState) {
         super(ENTITY_TOWNHALL.get(), pos, blockState);
@@ -41,20 +50,20 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
 
         for (int x = 0; x < 9; x++) {
             for (int y = 0; y < 2; y++) {
-                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, inventory, y * 9 + x, 1, 0, guiHandler, x * 18 + 10, y * 18 + 10);
+                guiModuleItemHandlerSlot m = new guiModuleItemHandlerSlot(y * 9 + x, inventory, y * 9 + x, 1, 0, guiHandler, x * 18 + 10, y * 18 + 50);
                 guiHandler.getModules().add(m);
             }
         }
 
-        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 150, 1000, 0, 1, guiHandler)) {
+        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerHotbarModules(10, 170, 1000, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
-        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 80, 1100, 0, 1, guiHandler)) {
+        for (guiModulePlayerInventorySlot m : guiModulePlayerInventorySlot.makePlayerInventoryModules(10, 100, 1100, 0, 1, guiHandler)) {
             guiHandler.getModules().add(m);
         }
 
-        guiHandler.getModules().add(new guiModuleText(5001, "Name:", guiHandler, 10, 60, 0xff000000, false));
-        townNameInput = new guiModuleTextInput(5000, guiHandler, 50, 60, 100, 10){
+        guiHandler.getModules().add(new guiModuleText(5001, "Name:", guiHandler, 10, 10, 0xff000000, false));
+        townNameInput = new guiModuleTextInput(5000, guiHandler, 40, 10, 120, 10){
             @Override
             public void server_readNetworkData(CompoundTag tag){
                 super.server_readNetworkData(tag);
@@ -64,6 +73,63 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
         };
 
         guiHandler.getModules().add(townNameInput);
+
+        guiModuleButton openOwnersMenuButton =new guiModuleButton(6110, "owners", guiHandler, 10,30,40,15, ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20){
+            @Override
+            public void onButtonClicked(){
+                ownersMenu.openGui(180,180,true);
+                CompoundTag getOwnersTag = new CompoundTag();
+                getOwnersTag.put("getOwners", new CompoundTag());
+                PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, getOwnersTag));
+            }
+        };
+        openOwnersMenuButton.color = 0xffffffff;
+        guiHandler.getModules().add(openOwnersMenuButton);
+
+
+        ownersMenu = new GuiHandlerBlockEntity(this){
+            @Override
+            public void onGuiClose() {
+                super.onGuiClose();
+                EntityTownHall.this. guiHandler.openGui(180, 200, true);
+            }
+        };
+
+        ownersList = new guiModuleScrollContainer(new ArrayList<>(),0x00000000,ownersMenu,10,40,160,110);
+        ownersMenu.getModules().add(ownersList);
+
+        guiModuleButton b = new guiModuleButton(10909,"+",ownersMenu,10,9,12,12,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
+        b.color = 0xffffffff;
+        ownersMenu.getModules().add(b);
+        addOwner = new guiModuleTextInput(9990, ownersMenu, 30, 10, 120, 10);
+        ownersMenu.getModules().add(addOwner);
+
+        guiHandler.getModules().add(townNameInput);
+    }
+
+    public void updateOwnerMenu(List<String> owners){
+        ownersList.modules.clear();
+
+        int y = 0;
+        for(String i : owners){
+            guiModuleText t = new guiModuleText(-1,i,ownersMenu,20,y+2,0xff000000,false);
+            guiModuleButton b = new guiModuleButton(-1,"X",ownersMenu,0,y,10,10,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20){
+                @Override
+                public void onButtonClicked(){
+                    CompoundTag request = new CompoundTag();
+                    request.putString("removeOwner", i);
+                    PacketDistributor.sendToServer(PacketBlockEntity.getBlockEntityPacket(EntityTownHall.this, request));
+                }
+            };
+            b.color = 0xffffffff;
+            ownersList.modules.add(t);
+            ownersList.modules.add(b);
+            y+= 20;
+        }
+
+        if(ownersMenu.screen instanceof ModularScreen m){
+            m.calculateGuiOffsetAndNotifyModules();
+        }
     }
 
     public Set<String> getOwners() {
@@ -83,12 +149,14 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
     @Override
     public void onLoad() {
         super.onLoad();
-        knownTownHalls.add(getBlockPos());
-        String name = TownHallNames.getName(level,getBlockPos());
-        if(name != null)
-            townNameInput.text =name;
-        else{
-            System.out.println("for some reason, the town at "+getBlockPos()+" does not have a name entry");
+        if (!level.isClientSide) {
+            knownTownHalls.add(getBlockPos());
+            String name = TownHallNames.getName(level, getBlockPos());
+            if (name != null)
+                townNameInput.text = name;
+            else {
+                System.out.println("for some reason, the town at " + getBlockPos() + " does not have a name entry");
+            }
         }
     }
 
@@ -110,17 +178,62 @@ public class EntityTownHall extends BlockEntity implements INetworkTagReceiver {
     }
 
 
+    public ListTag ownersTag(){
+        ListTag l = new ListTag();
+        for(String i : getOwners()){
+            l.add(StringTag.valueOf(i));
+        }
+        return l;
+    }
+
     @Override
     public void readServer(CompoundTag compoundTag, ServerPlayer p) {
         // verify server side that the player is friend or owner before allow anything to go to the gui
         if (getOwners().contains(p.getName().getString())) {
             guiHandler.readServer(compoundTag);
+            ownersMenu.readServer(compoundTag);
+
+            if(compoundTag.contains("getOwners")){
+                CompoundTag ret = new CompoundTag();
+                ret.put("owners", ownersTag());
+                PacketDistributor.sendToPlayer(p,PacketBlockEntity.getBlockEntityPacket(this, ret));
+            }
+
+            if(compoundTag.contains("guiButtonClick")){
+                int btn = compoundTag.getInt("guiButtonClick");
+                if(btn == 10909){
+                    TownHallOwners.addOwner(level,getBlockPos(),addOwner.text);
+                    addOwner.text = "";
+                    addOwner.broadcastModuleUpdate();
+                    CompoundTag ret = new CompoundTag();
+                    ret.put("owners", ownersTag());
+                    PacketDistributor.sendToPlayer(p,PacketBlockEntity.getBlockEntityPacket(this, ret));
+                }
+            }
+            if(compoundTag.contains("removeOwner")){
+                String toRemove = compoundTag.getString("removeOwner");
+                TownHallOwners.removeOwner(level,getBlockPos(),toRemove);
+                CompoundTag ret = new CompoundTag();
+                ret.put("owners", ownersTag());
+                PacketDistributor.sendToPlayer(p,PacketBlockEntity.getBlockEntityPacket(this, ret));
+            }
         }
     }
 
     @Override
     public void readClient(CompoundTag compoundTag) {
         guiHandler.readClient(compoundTag);
+        ownersMenu.readClient(compoundTag);
+
+        if (compoundTag.contains("owners")) {
+            ListTag ownersTag =compoundTag.getList("owners", Tag.TAG_STRING);
+            List<String> owners = new ArrayList<>();
+            for (int i = 0; i < ownersTag.size(); i++) {
+                String owner = ownersTag.get(i).getAsString();
+                owners.add(owner);
+            }
+            updateOwnerMenu(owners);
+        }
 
         if (compoundTag.contains("openGui")) {
             guiHandler.openGui(180, 200, true);

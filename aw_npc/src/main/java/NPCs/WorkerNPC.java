@@ -44,7 +44,6 @@ public class WorkerNPC extends NPCBase {
         worktype = WorkTypes.Farmer;
         registerGoals();
 
-        setCustomName(Component.literal(worktype.name()));
         setCustomNameVisible(true);
 
     }

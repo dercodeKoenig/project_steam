@@ -275,9 +275,17 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         ownerText = new guiModuleText(2001, "owner",guiHandler, 10,9,0xff000000,false);
         townHallText = new guiModuleText(2002, "townhallpos",guiHandler, 10,21,0xff000000,false);
         guiModuleText nameText = new guiModuleText(2003, "Name: ",guiHandler, 10,33,0xff000000,false);
+        guiModuleTextInput        nameTextInput = new guiModuleTextInput(2004,guiHandler, 40,33,100,10){
+            @Override
+            public void server_readNetworkData(CompoundTag tag){
+                super.server_readNetworkData(tag);
+                setCustomName(Component.literal(text));
+            }
+        };
         guiHandler.getModules().add(ownerText);
         guiHandler.getModules().add(townHallText);
         guiHandler.getModules().add(nameText);
+        guiHandler.getModules().add(nameTextInput);
 
         guiModuleButton setHomeButton = new guiModuleButton(3000,"set home",guiHandler,110,90,60,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
         setHomeButton.color = 0xffffffff;
@@ -307,13 +315,13 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
                 if (TownHallOwners.getOwners(level(), p).contains(owner)) {
                     townHall = p;
-                    System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
+                    //System.out.println("npc " + getUUID() + " now belongs to townhall" + p);
                     break;
                 }
             }
         } else {
             if (TownHallOwners.getEntry(level(), townHall) == null) {
-                System.out.println("townhall " + townHall + "is no longer valid");
+                //System.out.println("townhall " + townHall + "is no longer valid");
                 townHall = null;
                 updateTownHall();
             }

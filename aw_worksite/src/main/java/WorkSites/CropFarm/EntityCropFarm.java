@@ -1,15 +1,13 @@
 package WorkSites.CropFarm;
 
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.gui.modules.guiModuleText;
+import ARLib.gui.modules.*;
 import ARLib.utils.InventoryUtils;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
@@ -32,6 +30,7 @@ public class EntityCropFarm extends EntityWorkSiteBase {
     public int energy_boneMeal = 2000;
 
     public int useMillStonesInRadius = 32;
+    guiModuleTextInput useMillStonesInRadiusTextInput;
 
     public ItemStackHandler mainInventory = new ItemStackHandler(18) {
         @Override
@@ -113,6 +112,23 @@ public class EntityCropFarm extends EntityWorkSiteBase {
             guiModuleItemHandlerSlot s = new guiModuleItemHandlerSlot(800 + i, mainInventory, i, 1, 0, guiHandlerMain, x, y);
             guiHandlerMain.getModules().add(s);
         }
+
+        guiModuleText useMillStonesInRadiusText = new guiModuleText(-1, "use millstones: r=", guiHandlerMain, 60, 13, 0xff000000, false);
+        guiHandlerMain.getModules().add(useMillStonesInRadiusText);
+        useMillStonesInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
+            @Override
+            public void server_readNetworkData(CompoundTag tag) {
+                super.server_readNetworkData(tag);
+                try {
+                    useMillStonesInRadius = Integer.parseInt(text);
+                } catch (NumberFormatException e) {
+                    text = "";
+                    broadcastModuleUpdate();
+                }
+            }
+        };
+        guiHandlerMain.getModules().add(useMillStonesInRadiusTextInput);
+        useMillStonesInRadiusTextInput.text = String.valueOf(useMillStonesInRadius);
     }
 
     @Override
@@ -384,6 +400,8 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         tag.put("inv1", mainInventory.serializeNBT(registries));
         tag.put("inv2", inputsInventory.serializeNBT(registries));
         tag.put("inv3", specialResourcesInventory.serializeNBT(registries));
+
+        tag.putInt("useMillStonesRadius", useMillStonesInRadius);
     }
 
     @Override
@@ -392,5 +410,8 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         mainInventory.deserializeNBT(registries, tag.getCompound("inv1"));
         inputsInventory.deserializeNBT(registries, tag.getCompound("inv2"));
         specialResourcesInventory.deserializeNBT(registries, tag.getCompound("inv3"));
+
+        useMillStonesInRadius = tag.getInt("useMillStonesRadius");
+        useMillStonesInRadiusTextInput.text = String.valueOf(useMillStonesInRadius);
     }
 }

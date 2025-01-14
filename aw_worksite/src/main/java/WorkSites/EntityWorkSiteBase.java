@@ -440,7 +440,7 @@ super.setRemoved();
             }
             if (button == 102) {
                 //dec h
-                if (h > minSize+1) h--;
+                if (h > minSize) h--;
             }
             if (button == 103) {
                 //inc w
@@ -448,7 +448,7 @@ super.setRemoved();
             }
             if (button == 104) {
                 //dec w
-                if (w > minSize+1) w--;
+                if (w > minSize) w--;
             }
 
             if (button == 105) {

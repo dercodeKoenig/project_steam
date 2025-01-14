@@ -39,7 +39,12 @@ public class ProgramUtils {
                 double d2 = o2.getCenter().distanceTo(position);
                 if (d1 > d2) return 1;
                 if (d1 < d2) return -1;
-                else return 0;
+                else {
+                    if(o1.getY() != o2.getY()) return (int) Math.signum(o1.getY() - o2.getY());
+                    else if(o1.getX() != o2.getX()) return (int) Math.signum(o1.getX() - o2.getX());
+                    else if(o1.getZ() != o2.getZ()) return (int) Math.signum(o1.getZ() - o2.getZ());
+                }
+                return 0;
             }
         });
         sorted.addAll(list);

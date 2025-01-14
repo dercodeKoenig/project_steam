@@ -292,7 +292,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         setHomeButton.makeShadow = true;
         guiHandler.getModules().add(setHomeButton);
 
-
+        setCustomNameVisible(true);
     }
 
 
@@ -320,7 +320,7 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
                 }
             }
         } else {
-            if (TownHallOwners.getEntry(level(), townHall) == null) {
+            if (TownHallOwners.getEntry(level(), townHall) == null || !TownHallOwners.getOwners(level(), townHall).contains(owner)) {
                 //System.out.println("townhall " + townHall + "is no longer valid");
                 townHall = null;
                 updateTownHall();
@@ -328,6 +328,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         }
         if (townHall != null) {
             townHallText.setTextAndSync("Town: " + TownHallNames.getName(level(),townHall));
+        }else{
+            townHallText.setTextAndSync("Town: none");
         }
     }
 
@@ -459,7 +461,6 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         if(owner != null){
             compound.putString("owner", owner);
-            //System.out.println(getUUID()+" put owner "+owner);
         }
 
         compound.putDouble("hunger", hunger);
@@ -476,12 +477,10 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
         if (compound.contains("townHallX") && compound.contains("townHallY") && compound.contains("townHallZ")) {
             townHall = new BlockPos(compound.getInt("townHallX"), compound.getInt("townHallY"), compound.getInt("townHallZ"));
-            System.out.println(getUUID()+" has townhall "+townHall);
         }
 
         if(compound.contains("owner")){
             owner = compound.getString("owner");
-            //System.out.println(getUUID()+" is owned by "+owner);
         }
 
         hunger = compound.getDouble("hunger");

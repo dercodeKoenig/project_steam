@@ -8,12 +8,16 @@ import NPCs.programs.SleepProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.behavior.SleepInBed;
 import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 
 import java.util.ArrayList;
@@ -35,17 +39,10 @@ public class WorkerNPC extends NPCBase {
 
     public double cachedDistanceManhattanToWorksite;
 
-    public MainFarmingProgram farmingProgram;
-    public FoodProgramWorker foodProgram;
-
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
-
-        worktype = WorkTypes.Farmer;
+        worktype = WorkTypes.Worker;
         registerGoals();
-
-        setCustomNameVisible(true);
-
     }
 
 
@@ -69,20 +66,28 @@ public class WorkerNPC extends NPCBase {
 
         goalSelector.addGoal(priority++, new SleepProgram(this));
 
-        foodProgram = new FoodProgramWorker(this);
-        this.goalSelector.addGoal(priority++, foodProgram);
+        this.goalSelector.addGoal(priority++, new FoodProgramWorker(this));
 
         goalSelector.addGoal(priority++ ,new OpenDoorGoal(this, true));
 
         if (worktype == WorkTypes.Farmer) {
-            farmingProgram = new MainFarmingProgram(this);
-            this.goalSelector.addGoal(priority++, farmingProgram);
+            this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
         }
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
     }
 
+    @Override
+    protected InteractionResult mobInteract(Player player, InteractionHand hand) {
+        if(player.getItemInHand(hand).getItem().equals(Items.WOODEN_HOE)){
+            worktype = WorkTypes.Farmer;
+            player.setItemInHand(hand, ItemStack.EMPTY);
+            registerGoals();
+            return InteractionResult.SUCCESS;
+        }
+        return super.mobInteract(player,hand);
+    }
 
     @Override
     public void tick() {
@@ -105,6 +110,8 @@ public class WorkerNPC extends NPCBase {
             compound.putInt("worksitePositionY", lastWorksitePosition.getY());
             compound.putInt("worksitePositionZ", lastWorksitePosition.getZ());
         }
+
+        compound.putInt("workType",worktype.ordinal());
     }
 
     @Override
@@ -113,5 +120,6 @@ public class WorkerNPC extends NPCBase {
         if (compound.contains("worksitePositionX") && compound.contains("worksitePositionY") && compound.contains("worksitePositionZ")) {
             lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
+        worktype = WorkTypes.values() [compound.getInt("workType")];
     }
 }

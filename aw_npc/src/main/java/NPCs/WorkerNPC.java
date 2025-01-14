@@ -121,5 +121,6 @@ public class WorkerNPC extends NPCBase {
             lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
         worktype = WorkTypes.values() [compound.getInt("workType")];
+        registerGoals();
     }
 }

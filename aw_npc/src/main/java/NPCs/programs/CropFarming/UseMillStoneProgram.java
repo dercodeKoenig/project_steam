@@ -256,7 +256,7 @@ public class UseMillStoneProgram {
             return hasWork;
         } else {
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityMillStone.knownBlockEntities, farm.getBlockPos().getCenter())) {
-                if (ProgramUtils.distanceManhattan(worker, p.getCenter()) > farm.useMillStonesInRadius)
+                if (ProgramUtils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useMillStonesInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);
                 if (be instanceof EntityMillStone millStone) {

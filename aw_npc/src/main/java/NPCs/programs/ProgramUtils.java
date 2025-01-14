@@ -147,6 +147,11 @@ public class ProgramUtils {
                 Math.abs(e.position().y - p2.y) +
                 Math.abs(e.position().z - p2.z);
     }
+    public static double distanceManhattan(Vec3 p1, Vec3 p2) {
+        return Math.abs(p1.x - p2.x) +
+                Math.abs(p1.y - p2.y) +
+                Math.abs(p1.z - p2.z);
+    }
 
 
     public static CompoundTag getStackTagOrEmpty(ItemStack stack) {

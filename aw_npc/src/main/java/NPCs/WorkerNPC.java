@@ -124,6 +124,8 @@ public class WorkerNPC extends NPCBase {
             compound.putInt("worksitePositionY", lastWorksitePosition.getY());
             compound.putInt("worksitePositionZ", lastWorksitePosition.getZ());
         }
+
+        compound.putInt("worktyoe", getEntityData().get(DATA_WORKTYPE));
     }
 
     @Override
@@ -132,5 +134,6 @@ public class WorkerNPC extends NPCBase {
         if (compound.contains("worksitePositionX") && compound.contains("worksitePositionY") && compound.contains("worksitePositionZ")) {
             lastWorksitePosition = new BlockPos(compound.getInt("worksitePositionX"), compound.getInt("worksitePositionY"), compound.getInt("worksitePositionZ"));
         }
+        getEntityData().set(DATA_WORKTYPE, compound.getInt("worktyoe"));
     }
 }

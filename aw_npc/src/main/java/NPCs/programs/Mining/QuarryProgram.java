@@ -25,6 +25,10 @@ import static NPCs.programs.ProgramUtils.*;
 public class QuarryProgram {
     public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
 
+    // destroy progress seems to go from 0 to 10 and -1 is remove block
+    float blockDestroyProgress;
+    int lastDestroyProgressUpdated;
+
     public WorkerNPC worker;
     int scanInterval = 20 * 20;
     int requiredDistanceToPositionToWork = 3;
@@ -99,26 +103,29 @@ public class QuarryProgram {
     }
 
     public BlockPos getNextHarvestTargetFromFarm(EntityQuarry farm) {
-        if(farm.blocksToMine.isEmpty()) return null;
+
+        if (farm.blocksToMine.isEmpty()) return null;
         for (BlockPos i : sortPositionsToMine(farm.blocksToMine, worker)) {
-        //for (BlockPos i : farm.blocksToMine) {
             if (isPositionWorkable(i)) {
-                return i;
+                BlockState state = farm.getLevel().getBlockState(i);
+                if (state.requiresCorrectToolForDrops()) {
+                    if (
+                            takePickAxeProgram.hasToolForDrops(state) ||
+                                    (takePickAxeProgram.pickupCorrectToolForDrops(state, farm.mainInventory, true) ||
+                                            takePickAxeProgram.pickupCorrectToolForDrops(state, farm.inputsInventory, true) ||
+                                            takePickAxeProgram.pickupCorrectToolForDrops(state, farm.specialResourcesInventory, true)
+                                    )
+                    ) {
+                        return i;
+                    }
+                } else
+                    return i;
             }
         }
         return null;
     }
 
 boolean canQuarry(EntityQuarry target){
-    if (!takePickAxeProgram.hasTool(PickaxeItem.class) &&
-            (
-                    !takePickAxeProgram.pickupToolFromTarget(PickaxeItem.class, target.mainInventory, true) &&
-                            !takePickAxeProgram.pickupToolFromTarget(PickaxeItem.class, target.inputsInventory, true) &&
-                            !takePickAxeProgram.pickupToolFromTarget(PickaxeItem.class, target.specialResourcesInventory, true)
-            )
-    ) {
-        return false;
-    }
 
     if(getNextHarvestTargetFromFarm(target) == null)
         return false;
@@ -140,11 +147,18 @@ boolean canQuarry(EntityQuarry target){
 
     public int runQuarryProgram(EntityQuarry farm) {
 
+
         if (currentTargetPos != null && farm.blocksToMine.contains(currentTargetPos)) {
             // lock the target so no other worker goes there
             lockTargetPosition();
 
-            int takePickExit = runTakePickFromFarmAnyInventory(farm);
+            BlockState stateToMine = farm.getLevel().getBlockState(currentTargetPos);
+            if(stateToMine.isAir()){
+                farm.blocksToMine.remove(currentTargetPos);
+                return SUCCESS_STILL_RUNNING;
+            }
+
+            int takePickExit = runTakePickFromFarmAnyInventory(farm, stateToMine);
             if (takePickExit == SUCCESS_STILL_RUNNING){
                 return SUCCESS_STILL_RUNNING;
             }
@@ -154,7 +168,7 @@ boolean canQuarry(EntityQuarry target){
             }
 
             // take the tool to main hand
-            takePickAxeProgram.takeToolToMainHand(PickaxeItem.class);
+            takePickAxeProgram.takeToolForDropsToMainHand(stateToMine);
 
             int pathFindExit = worker.slowMobNavigation.moveToPosition(
                     currentTargetPos,
@@ -164,23 +178,39 @@ boolean canQuarry(EntityQuarry target){
                     worker.slowNavigationStepPerTick
             );
 
-
             if (pathFindExit == EXIT_FAIL) {
                 currentTargetPos = null;
                 recalculateHasWork(farm);
+
                 return SUCCESS_STILL_RUNNING;
             } else if (pathFindExit == SUCCESS_STILL_RUNNING) {
                 workDelay = 0;
+                lastDestroyProgressUpdated=0;
+                blockDestroyProgress = 0;
                 return SUCCESS_STILL_RUNNING;
             }
+
             worker.lookAt(EntityAnchorArgument.Anchor.EYES, currentTargetPos.getCenter());
             worker.lookAt(EntityAnchorArgument.Anchor.FEET, currentTargetPos.getCenter());
 
             workDelay++;
             if (workDelay > 20) {
-                workDelay = 0;
-                    BlockState s = worker.level().getBlockState(currentTargetPos);
-                    LootParams.Builder b = (new LootParams.Builder((ServerLevel) worker.level())).withParameter(LootContextParams.TOOL, new ItemStack(Items.IRON_PICKAXE)).withParameter(LootContextParams.ORIGIN, worker.getPosition(0));
+
+                worker.swing(InteractionHand.MAIN_HAND);
+                BlockState s = worker.level().getBlockState(currentTargetPos);
+                float destroyTime = s.getDestroySpeed(worker.level(),currentTargetPos);
+                float destroySpeed = worker.getMainHandItem().getDestroySpeed(s);
+                blockDestroyProgress+=destroySpeed / 100f;
+
+                int relativeScaledProgress = (int) (10 * blockDestroyProgress / destroyTime);
+                if(relativeScaledProgress != lastDestroyProgressUpdated){
+                    lastDestroyProgressUpdated = relativeScaledProgress;
+                    worker.level().destroyBlockProgress(worker.getId(),currentTargetPos,relativeScaledProgress);
+                }
+
+
+                if(relativeScaledProgress >= 10){
+                    LootParams.Builder b = (new LootParams.Builder((ServerLevel) worker.level())).withParameter(LootContextParams.TOOL, worker.getMainHandItem()).withParameter(LootContextParams.ORIGIN, worker.getPosition(0));
                     List<ItemStack> drops = s.getDrops(b);
                     for (ItemStack i : drops) {
                         for (int j = 0; j < worker.combinedInventory.getSlots(); ++j) {
@@ -188,14 +218,23 @@ boolean canQuarry(EntityQuarry target){
                         }
                     }
                     worker.level().destroyBlock(currentTargetPos, false);
-                    worker.swing(InteractionHand.MAIN_HAND);
+
                     ProgramUtils.damageMainHandItem(worker);
 
-                farm.blocksToMine.remove(currentTargetPos);
-                recalculateHasWork(farm);
+                    workDelay = 0;
+                    farm.blocksToMine.remove(currentTargetPos);
+                    lastDestroyProgressUpdated = 0;
+                    blockDestroyProgress= 0;
+
+                    worker.level().destroyBlockProgress(worker.getId(),currentTargetPos,-1);
+
+                    recalculateHasWork(farm);
+                }
             }
             return SUCCESS_STILL_RUNNING;
         }
+        lastDestroyProgressUpdated=0;
+        blockDestroyProgress = 0;
         currentTargetPos = getNextHarvestTargetFromFarm(farm);
         recalculateHasWork(farm);
         return SUCCESS_STILL_RUNNING;
@@ -224,15 +263,15 @@ boolean canQuarry(EntityQuarry target){
         //return EXIT_SUCCESS;
     }
 
-    public int runTakePickFromFarmAnyInventory(EntityQuarry farm) {
+    public int runTakePickFromFarmAnyInventory(EntityQuarry farm, BlockState stateToMine) {
         // first take from main inventory
-        int takeHoeExit = takePickAxeProgram.run(PickaxeItem.class, farm.getBlockPos(), farm.mainInventory);
+        int takeHoeExit = takePickAxeProgram.run(stateToMine, farm.getBlockPos(), farm.mainInventory);
         // if no tool there, take from inputs inventory
         if (takeHoeExit == -2)
-            takeHoeExit = takePickAxeProgram.run(PickaxeItem.class, farm.getBlockPos(), farm.inputsInventory);
+            takeHoeExit = takePickAxeProgram.run(stateToMine, farm.getBlockPos(), farm.inputsInventory);
         // if still no tool there, take from special resources inventory
         if (takeHoeExit == -2)
-            takeHoeExit = takePickAxeProgram.run(PickaxeItem.class, farm.getBlockPos(), farm.specialResourcesInventory);
+            takeHoeExit = takePickAxeProgram.run(stateToMine, farm.getBlockPos(), farm.specialResourcesInventory);
         // if it is still tool not found, the program failed to get a hoe from any farm inventory
         if (takeHoeExit == -2)
             return EXIT_FAIL;

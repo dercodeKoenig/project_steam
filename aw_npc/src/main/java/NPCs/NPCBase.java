@@ -288,6 +288,11 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(nameText);
         guiHandler.getModules().add(nameTextInput);
 
+        guiModuleButton resetTownHallButton = new guiModuleButton(2999, "reset Townhall", guiHandler, 90,110,80,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
+        resetTownHallButton.color = 0xffffffff;
+        resetTownHallButton.makeShadow = true;
+        guiHandler.getModules().add(resetTownHallButton);
+
         guiModuleButton setHomeButton = new guiModuleButton(3000,"set home",guiHandler,110,90,60,15,ResourceLocation.fromNamespaceAndPath("arlib", "textures/gui/gui_button_black.png"),64,20);
         setHomeButton.color = 0xffffffff;
         setHomeButton.makeShadow = true;
@@ -496,6 +501,10 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
             guiHandler.readServer(compoundTag);
 
             if (compoundTag.contains("guiButtonClick")) {
+                if (compoundTag.getInt("guiButtonClick") == 2999) {
+                    townHall = null;
+                    updateTownHall();
+                }
                 if (compoundTag.getInt("guiButtonClick") == 3000) {
                     ItemStack setHomeTool = new ItemStack(ITEM_SET_HOME_TOOL.get());
                     CompoundTag info = new CompoundTag();

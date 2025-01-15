@@ -13,6 +13,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.PickaxeItem;
@@ -68,7 +69,7 @@ public class EntityQuarry extends EntityWorkSiteBase {
     public ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return false;
+            return stack.getItem() instanceof AxeItem;
         }
 
         @Override
@@ -80,7 +81,7 @@ public class EntityQuarry extends EntityWorkSiteBase {
     public ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (stack.getItem().equals(Items.FISHING_ROD))
+            if (stack.getItem() instanceof AxeItem)
                 return true;
             else return false;
         }

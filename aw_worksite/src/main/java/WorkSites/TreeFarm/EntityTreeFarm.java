@@ -11,6 +11,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
+import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -45,7 +46,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
     public ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return isItemValidSapling(stack);
+            return isItemValidSapling(stack) || stack.getItem() instanceof AxeItem;
         }
 
         @Override
@@ -57,7 +58,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
     public ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (stack.getItem().equals(Items.BONE_MEAL) || stack.getItem().equals(Items.SHEARS))
+            if (stack.getItem().equals(Items.BONE_MEAL) || stack.getItem().equals(Items.SHEARS) || stack.getItem() instanceof AxeItem)
                 return true;
             else return false;
         }
@@ -131,7 +132,7 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         super.setRemoved();
     }
 
-    public boolean isItemValidSapling(ItemStack s) {
+    public static boolean isItemValidSapling(ItemStack s) {
         if (s.getItem() instanceof BlockItem bi) {
             Block itemBlock = bi.getBlock();
             if (itemBlock instanceof SaplingBlock) {

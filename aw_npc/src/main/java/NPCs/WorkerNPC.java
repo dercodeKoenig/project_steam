@@ -6,6 +6,7 @@ import NPCs.programs.FoodProgramWorker;
 import NPCs.programs.Mining.MainMiningProgram;
 import NPCs.programs.ProgramUtils;
 import NPCs.programs.SleepProgram;
+import NPCs.programs.TreeFarming.MainLumberjackProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -36,7 +37,7 @@ public class WorkerNPC extends NPCBase {
         FISHER,
         Miner,
         HUNTER,
-        LUMBERJACK,
+        Lumberjack,
         Worker
     }
 
@@ -92,6 +93,9 @@ public class WorkerNPC extends NPCBase {
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Miner.ordinal()) {
             this.goalSelector.addGoal(priority++, new MainMiningProgram(this));
         }
+        if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Lumberjack.ordinal()) {
+            this.goalSelector.addGoal(priority++, new MainLumberjackProgram(this));
+        }
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));
         this.goalSelector.addGoal(priority++, new LookAtPlayerGoal(this, Player.class, 8.0F));
@@ -120,6 +124,15 @@ public class WorkerNPC extends NPCBase {
                 getEntityData().set(DATA_WORKTYPE,WorkTypes.Miner.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 5 + 1;
                 getEntityData().set(DATA_TEXTURE,"po_worker_miner_"+randomNumber+".png");
+                player.setItemInHand(hand, ItemStack.EMPTY);
+                registerGoals();
+                return InteractionResult.SUCCESS;
+            }
+
+            if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_AXE)) {
+                getEntityData().set(DATA_WORKTYPE,WorkTypes.Lumberjack.ordinal());
+                int randomNumber = Math.abs(level().random.nextInt()) % 2 + 1;
+                getEntityData().set(DATA_TEXTURE,"po_worker_lumberjack_"+randomNumber+".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 return InteractionResult.SUCCESS;

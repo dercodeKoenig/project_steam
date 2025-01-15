@@ -69,7 +69,7 @@ public class EntityQuarry extends EntityWorkSiteBase {
     public ItemStackHandler inputsInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            return stack.getItem() instanceof AxeItem;
+            return stack.getItem() instanceof PickaxeItem;
         }
 
         @Override
@@ -81,7 +81,7 @@ public class EntityQuarry extends EntityWorkSiteBase {
     public ItemStackHandler specialResourcesInventory = new ItemStackHandler(6) {
         @Override
         public boolean isItemValid(int slot, ItemStack stack) {
-            if (stack.getItem() instanceof AxeItem)
+            if (stack.getItem() instanceof PickaxeItem)
                 return true;
             else return false;
         }

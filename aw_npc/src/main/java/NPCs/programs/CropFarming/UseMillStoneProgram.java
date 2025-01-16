@@ -89,10 +89,10 @@ public class UseMillStoneProgram {
     }
 
 
-    public static ItemStack takeOneValidMillStoneInputFromFarm(EntityCropFarm farm, WorkerNPC worker, boolean simulate) {
+    public static ItemStack takeOneValidMillStoneInputFromFarm(ItemStack stackToTakeFrom, EntityCropFarm farm, WorkerNPC worker, boolean simulate) {
         for (int i = 0; i < farm.mainInventory.getSlots(); i++) {
             ItemStack canExtract = farm.mainInventory.extractItem(i, 1, true);
-            if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract)) {
+            if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract) && stackToTakeFrom.getItem().equals(canExtract.getItem())) {
                 for (int j = 0; j < worker.combinedInventory.getSlots(); j++) {
                     ItemStack notInserted = worker.combinedInventory.insertItem(j, canExtract, true);
                     if (notInserted.isEmpty()) {
@@ -202,7 +202,6 @@ public class UseMillStoneProgram {
         w.canTakeOutputs = takeItemOutOfMillStone(millstone, worker, true);
 
         // only take from farm if more than 64 are present
-        // if we are close to the farm we can reduce the filter because we want the worker to take the entire batch and not just one item
         w.canPutInputsFromFarm = getPossibleMillstoneInput(farm.mainInventory, millstone, 64);
 
         // if the farm is not stocked up with enough inputs, do not put into millstone but into farm first.
@@ -214,7 +213,7 @@ public class UseMillStoneProgram {
 
         // if we can put inputs from farm check if the worker can take from farm ( in case inventory full)
         if (!w.canPutInputsFromFarm.isEmpty()) {
-            if (takeOneValidMillStoneInputFromFarm(farm, worker, true).isEmpty()) {
+            if (takeOneValidMillStoneInputFromFarm(w.canPutInputsFromFarm, farm, worker, true).isEmpty()) {
                 w.canPutInputsFromFarm = ItemStack.EMPTY;
             }
         }
@@ -328,7 +327,7 @@ public class UseMillStoneProgram {
 
                 if (workDelay > 10) {
                     workDelay = 0;
-                    takeOneValidMillStoneInputFromFarm(farm, worker, false);
+                    takeOneValidMillStoneInputFromFarm(canPutInputsFromFarm,farm, worker, false);
                     recalculateHasWork(farm);
                 }
                 workDelay++;

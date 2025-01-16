@@ -1,9 +1,6 @@
 package WorkSites.TreeFarm;
 
-import ARLib.gui.modules.GuiModuleBase;
-import ARLib.gui.modules.guiModuleItemHandlerSlot;
-import ARLib.gui.modules.guiModulePlayerInventorySlot;
-import ARLib.gui.modules.guiModuleText;
+import ARLib.gui.modules.*;
 import ARLib.utils.InventoryUtils;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
@@ -33,6 +30,9 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
     public int energy_harvest_leaves = 2000;
     public int energy_harvest_logs = 9000;
     public int energy_boneMeal = 2000;
+
+    public int useWoodmillsInRadius = 32;
+    guiModuleTextInput useWoodmillsInRadiusTextInput;
 
     double maxEnergy = 0;
 
@@ -120,6 +120,32 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
             guiModuleItemHandlerSlot s = new guiModuleItemHandlerSlot(800 + i, mainInventory, i, 1, 0, guiHandlerMain, x, y);
             guiHandlerMain.getModules().add(s);
         }
+
+        guiModuleText useWoodmillsInRadiusText = new guiModuleText(-1, "use woodmills: r=", guiHandlerMain, 60, 13, 0xff000000, false);
+        guiHandlerMain.getModules().add(useWoodmillsInRadiusText);
+        useWoodmillsInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
+            @Override
+            public void server_readNetworkData(CompoundTag tag) {
+                String lastText = new String(text);
+                super.server_readNetworkData(tag);
+                try {
+                    if(text.length() > 1){
+                        while (text.charAt(0) == '0')
+                            this.text = this.text.substring(1, this.text.length());
+                    }
+                    useWoodmillsInRadius = Integer.parseInt(text);
+                    broadcastModuleUpdate();
+                } catch (NumberFormatException e) {
+                    if(text == "")
+                        text = "0";
+                    else
+                        text = lastText;
+                    broadcastModuleUpdate();
+                }
+            }
+        };
+        guiHandlerMain.getModules().add(useWoodmillsInRadiusTextInput);
+        useWoodmillsInRadiusTextInput.text = String.valueOf(useWoodmillsInRadius);
     }
     @Override
     public void onLoad(){
@@ -369,6 +395,8 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         tag.put("inv1", mainInventory.serializeNBT(registries));
         tag.put("inv2", inputsInventory.serializeNBT(registries));
         tag.put("inv3", specialResourcesInventory.serializeNBT(registries));
+
+        tag.putInt("useWoodmillRadius", useWoodmillsInRadius);
     }
 
     @Override
@@ -377,5 +405,8 @@ public class EntityTreeFarm extends EntityWorkSiteBase {
         mainInventory.deserializeNBT(registries, tag.getCompound("inv1"));
         inputsInventory.deserializeNBT(registries, tag.getCompound("inv2"));
         specialResourcesInventory.deserializeNBT(registries, tag.getCompound("inv3"));
+
+        useWoodmillsInRadius = tag.getInt("useWoodmillRadius");
+        useWoodmillsInRadiusTextInput.text = String.valueOf(useWoodmillsInRadius);
     }
 }

@@ -25,8 +25,14 @@ public class WorkerNPCRenderer extends MobRenderer<WorkerNPC, HumanoidModel<Work
 
     @Override
     public ResourceLocation getTextureLocation(WorkerNPC entity) {
-        ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/"+entity.getEntityData().get(WorkerNPC.DATA_TEXTURE));
-        return tex;
+        if(!entity.getEntityData().get(WorkerNPC.DATA_TEXTURE).isEmpty()) {
+            ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/" + entity.getEntityData().get(WorkerNPC.DATA_TEXTURE));
+            return tex;
+        }else{
+            ResourceLocation tex = ResourceLocation.fromNamespaceAndPath("aw_npc", "textures/entity/worker.png");
+            return tex;
+        }
+
     }
 
     @Override

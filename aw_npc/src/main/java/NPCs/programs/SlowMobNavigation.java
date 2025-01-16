@@ -12,7 +12,7 @@ import static NPCs.programs.ProgramUtils.*;
 public class SlowMobNavigation {
     public NPCBase npc;
     int failTimeOut = 0;
-    int removeInvalidTargetsTime = 20 * 120;
+    int removeInvalidTargetsTime = 20 * 60;
     HashMap<BlockPos, Long> unreachableBlocks = new HashMap<>();
 
     SlowPathFinder pathFinder;
@@ -72,13 +72,13 @@ public class SlowMobNavigation {
         }
 
 
-        if (npc.getNavigation().isStuck() || npc.getNavigation().isDone()) {
+        if (npc.getNavigation().isStuck()) {
             failTimeOut++;
-            if (failTimeOut > 5 && npc.getNavigation().isStuck()) {
+            if (failTimeOut > 50 && npc.getNavigation().isStuck()) {
                 // try to jump if we are stuck
                 npc.getJumpControl().jump();
             }
-            if (failTimeOut > 10) {
+            if (failTimeOut > 200) {
                 npc.getNavigation().stop();
                 unreachableBlocks.put(target, npc.level().getGameTime());
                 return EXIT_FAIL;

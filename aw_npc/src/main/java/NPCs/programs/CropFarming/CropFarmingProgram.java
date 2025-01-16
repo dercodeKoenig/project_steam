@@ -109,10 +109,15 @@ public class CropFarmingProgram {
         // But because if he takes a hoe, he will use up one free slot, this can cause him to have x free slots sp he can work, he takes a hoe, he has x-1 free slots, he can not work, he puts hoe back, he has x free......
         // This is why the hoe should be ignored
         int numEmptySlotsIgnoreHoe = 0;
+        boolean ignoredTool = false; // only ignore one tool item
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
             if (worker.combinedInventory.getStackInSlot(i).isEmpty() ||
-                    worker.combinedInventory.getStackInSlot(i).getItem() instanceof HoeItem)
+                    (worker.combinedInventory.getStackInSlot(i).getItem() instanceof HoeItem && !ignoredTool)) {
                 numEmptySlotsIgnoreHoe++;
+                if(worker.combinedInventory.getStackInSlot(i).getItem() instanceof HoeItem){
+                    ignoredTool = true;
+                }
+            }
         }
         if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
             if (numEmptySlotsIgnoreHoe < requiredFreeSlotsToHarvest) return false;

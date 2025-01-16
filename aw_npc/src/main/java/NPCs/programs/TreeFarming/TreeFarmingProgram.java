@@ -105,10 +105,14 @@ public class TreeFarmingProgram {
 
         
         int numEmptySlotsIgnoreTool = 0;
+        boolean ignoredTool = false;
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
             if (worker.combinedInventory.getStackInSlot(i).isEmpty() ||
-                    worker.combinedInventory.getStackInSlot(i).getItem() instanceof AxeItem)
+                    (worker.combinedInventory.getStackInSlot(i).getItem() instanceof AxeItem && ! ignoredTool))
                 numEmptySlotsIgnoreTool++;
+            if(worker.combinedInventory.getStackInSlot(i).getItem() instanceof AxeItem){
+                ignoredTool = true;
+            }
         }
         if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
             if (numEmptySlotsIgnoreTool < requiredFreeSlotsToHarvest) return false;

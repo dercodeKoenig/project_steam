@@ -63,7 +63,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
         List<ItemStack> outputStacks = new ArrayList<>();
     }
 
-    List<workingRecipe> currentWorkingRecipes = new ArrayList<>();
+    public List<workingRecipe> currentWorkingRecipes = new ArrayList<>();
 
     double myFriction = WoodMillConfig.INSTANCE.baseResistance;
     double myInertia = 1;
@@ -242,7 +242,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
     }
 
 
-    WoodMillConfig.WoodMillRecipe getRecipeForInputs(ItemStack inputs) {
+    public static WoodMillConfig.WoodMillRecipe getRecipeForInputs(ItemStack inputs) {
         for (WoodMillConfig.WoodMillRecipe i : WoodMillConfig.INSTANCE.recipes) {
             RecipePart input = i.inputItem;
             if (ItemUtils.matches(input.id, inputs)) {
@@ -285,7 +285,7 @@ public class EntityWoodMill extends EntityMultiblockMaster implements IMechanica
         return canFitInputs;
     }
 
-    boolean tryAddInput(ItemStack stack) {
+    public boolean tryAddInput(ItemStack stack) {
         if (stack.isEmpty()) return false;
         if (!canFitInput()) return false;
 

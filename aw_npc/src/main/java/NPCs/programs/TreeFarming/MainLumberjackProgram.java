@@ -22,6 +22,7 @@ public class MainLumberjackProgram extends Goal {
 
     public TreeFarmingProgram treeFarmingProgram;
     public UnloadInventoryToFarmProgram unloadInventoryProgram;
+    public UseSawMillProgram useSawMillProgram;
 
     public MainLumberjackProgram(WorkerNPC worker) {
         this.worker = worker;
@@ -29,6 +30,7 @@ public class MainLumberjackProgram extends Goal {
 
         unloadInventoryProgram = new UnloadInventoryToFarmProgram(worker);
         treeFarmingProgram = new TreeFarmingProgram(worker);
+        useSawMillProgram = new UseSawMillProgram(worker);
     }
 
     @Override
@@ -46,6 +48,8 @@ public class MainLumberjackProgram extends Goal {
 
         // check if he can unload his inventory there
         if (unloadInventoryProgram.recalculateHasWork(farm)) return true;
+
+        if(useSawMillProgram.recalculateHasWork(farm)) return true;
 
         return false;
     }
@@ -127,9 +131,17 @@ public class MainLumberjackProgram extends Goal {
         farm.workersWorkingHereWithTimeout.put(worker, 0);
 
         // try to farm
-            int cropFarmingExit = treeFarmingProgram.run(farm);
-            if (cropFarmingExit == EXIT_FAIL) return EXIT_FAIL;
-            if (cropFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+        if(!useSawMillProgram.hasWork) {
+            int treeFarmingExit = treeFarmingProgram.run(farm);
+            if (treeFarmingExit == EXIT_FAIL) return EXIT_FAIL;
+            if (treeFarmingExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+        }
+        // try to use sawmill
+        if(!treeFarmingProgram.hasWork) {
+            int samillExit = useSawMillProgram.run(farm);
+            if (samillExit == EXIT_FAIL) return EXIT_FAIL;
+            if (samillExit == SUCCESS_STILL_RUNNING) return SUCCESS_STILL_RUNNING;
+        }
 
         // try to unload Inventory
         int tryUnloadExit = unloadInventoryProgram.run(farm);

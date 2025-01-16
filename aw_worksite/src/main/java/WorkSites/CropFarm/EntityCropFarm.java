@@ -118,11 +118,20 @@ public class EntityCropFarm extends EntityWorkSiteBase {
         useMillStonesInRadiusTextInput = new guiModuleTextInput(6, guiHandlerMain, 150, 12, 20, 10) {
             @Override
             public void server_readNetworkData(CompoundTag tag) {
+                String lastText = new String(text);
                 super.server_readNetworkData(tag);
                 try {
+                    if(text.length() > 1){
+                        while (text.charAt(0) == '0')
+                            this.text = this.text.substring(1, this.text.length());
+                    }
                     useMillStonesInRadius = Integer.parseInt(text);
+                    broadcastModuleUpdate();
                 } catch (NumberFormatException e) {
-                    text = "";
+                    if(text == "")
+                        text = "0";
+                    else
+                        text = lastText;
                     broadcastModuleUpdate();
                 }
             }

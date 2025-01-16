@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.EnumProperty;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
@@ -45,7 +46,7 @@ public abstract class BlockAxleBase extends BlockMultiblockPart implements Entit
             Vec3 lookVec = placer.getLookAngle();
             Direction.Axis newAxis;
 
-            if (Math.abs(lookVec.y)< 0.8) {
+            if (Math.abs(lookVec.y) < 0.8) {
                 newAxis = placer.getDirection().getClockWise().getAxis();
             } else {
                 newAxis = Direction.Axis.Y; // Dominant Y-axis
@@ -55,17 +56,17 @@ public abstract class BlockAxleBase extends BlockMultiblockPart implements Entit
         }
 
         state = level.getBlockState(pos);
-        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos),3) ;
+        level.setBlock(pos, updateFromNeighbourShapes(state, level, pos), 3);
     }
 
     @Override
     public BlockState updateShape(BlockState state, Direction direction, BlockState neighborState, LevelAccessor level, BlockPos pos, BlockPos neighborPos) {
         BlockEntity tile = level.getBlockEntity(pos);
         if (tile instanceof IMechanicalBlockProvider provider) {
-            if(provider.getConnectedParts(provider, null).isEmpty()){
+            if (provider.getConnectedParts(provider, null).isEmpty()) {
                 BlockEntity neighbor = tile.getLevel().getBlockEntity(tile.getBlockPos().relative(direction));
                 if (neighbor instanceof IMechanicalBlockProvider otherProvider) {
-                    if(otherProvider.getMechanicalBlock(direction.getOpposite()) != null){
+                    if (otherProvider.getMechanicalBlock(direction.getOpposite()) != null) {
                         state = state.setValue(ROTATION_AXIS, direction.getAxis());
                     }
                 }
@@ -76,8 +77,9 @@ public abstract class BlockAxleBase extends BlockMultiblockPart implements Entit
 
 
     VoxelShape shapeX = Shapes.create(0.25, 0, 0.25, 0.75, 1, 0.75);
-VoxelShape shapeY = Shapes.create(0, 0.25, 0.25, 1, 0.75, 0.75);
-    VoxelShape shapeZ =Shapes.create(0.25, 0.25, 0, 0.75, 0.75, 1);
+    VoxelShape shapeY = Shapes.create(0, 0.25, 0.25, 1, 0.75, 0.75);
+    VoxelShape shapeZ = Shapes.create(0.25, 0.25, 0, 0.75, 0.75, 1);
+
     @Override
     public VoxelShape getShape(BlockState state, BlockGetter world, BlockPos pos, CollisionContext context) {
         if (state.getValue(ROTATION_AXIS) == Direction.Axis.Y)
@@ -93,5 +95,9 @@ VoxelShape shapeY = Shapes.create(0, 0.25, 0.25, 1, 0.75, 0.75);
     @Override
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         return EntityAxleBase::tick;
+    }
+
+    protected boolean isPathfindable(BlockState state, PathComputationType pathComputationType) {
+        return false;
     }
 }

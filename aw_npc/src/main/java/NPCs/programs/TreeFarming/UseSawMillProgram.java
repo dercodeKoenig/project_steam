@@ -1,7 +1,10 @@
 package NPCs.programs.TreeFarming;
 
 import AOSWorkshopExpansion.WoodMill.EntityWoodMill;
+import AOSWorkshopExpansion.WoodMill.WoodMillConfig;
 import ARLib.multiblockCore.BlockMultiblockMaster;
+import ARLib.utils.ItemUtils;
+import ARLib.utils.RecipePartWithProbability;
 import NPCs.WorkerNPC;
 import NPCs.programs.ProgramUtils;
 import WorkSites.TreeFarm.EntityTreeFarm;
@@ -35,9 +38,8 @@ public class UseSawMillProgram {
     boolean takeOutput = false;
     ItemStack canPutInputsFromInventory = ItemStack.EMPTY;
     ItemStack canPutInputsFromFarm = ItemStack.EMPTY;
-    int stackSizeToTakeFromFarm = 16;
     int requiredDistance = 2;
-    int requiredDistanceTomill = 3;
+    int requiredDistanceToMill = 3;
     boolean hasWork;
 
     public UseSawMillProgram(WorkerNPC worker) {
@@ -75,6 +77,17 @@ public class UseSawMillProgram {
 
     public static boolean isItemValidRecipeInput(ItemStack item) {
         return EntityWoodMill.getRecipeForInputs(item) != null;
+    }
+
+    public static boolean isItemValidRecipeOutput(ItemStack item) {
+        for(WoodMillConfig.WoodMillRecipe r : WoodMillConfig.INSTANCE.recipes){
+            for(RecipePartWithProbability i : r.outputItems){
+                if(ItemUtils.matches(i.id,item)){
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 
@@ -148,6 +161,21 @@ public class UseSawMillProgram {
     public workinfo recalculateWorkForWoodmill(EntityTreeFarm farm, EntityWoodMill mill) {
         workinfo w = new workinfo();
 
+        // it can happen that because a worker goes eat or sleep, another worker will start working
+        // this is usually not a problem for other worksite, but on the woodmill they will wait until they cam input wood
+        // this can cause workers to get stuck waiting forever at a woodmill
+        // so check if other workers are nearby that are currently working on this mill
+        List<WorkerNPC> workersAround = worker.level().getEntitiesOfClass(WorkerNPC.class,new AABB(mill.getBlockPos()).inflate(10));
+        for (WorkerNPC i : workersAround)
+            if(i.getId() != worker.getId())
+                if(i.lumberjackProgram != null)
+                    if(i.lumberjackProgram.useSawMillProgram != null)
+                        if(i.lumberjackProgram.useSawMillProgram.currentWoodmill != null)
+                            if(i.lumberjackProgram.useSawMillProgram.currentWoodmill.getBlockPos().equals(mill.getBlockPos()))
+                                return w;
+
+
+
         if (worker.hunger < worker.maxHunger * 0.25) {
             return w;
         }
@@ -177,13 +205,12 @@ public class UseSawMillProgram {
         }
 
         // if there are items on the ground or the mill is moving and has recipes working, take outputs / wait for them to finish
-        if (
-                !worker.level().getEntitiesOfClass(ItemEntity.class, new AABB(mill.getBlockPos()).inflate(5)).isEmpty()
-                        //||
-                        //(!mill.currentWorkingRecipes.isEmpty() && Math.abs(farm.myMechanicalBlock.internalVelocity) > 0)
-        ) {
-            // if we are close to a farm, assume unloading and unload more than just to 3 free stacks or he will run back all the time to unload one item
-            w.takeOutput = true;
+        List<ItemEntity> entitiesOnGround =worker.level().getEntitiesOfClass(ItemEntity.class, new AABB(mill.getBlockPos()).inflate(5));
+        for (ItemEntity e : entitiesOnGround){
+            if(isItemValidRecipeOutput(e.getItem())){
+                w.takeOutput = true;
+                break;
+            }
         }
 
         // if not moving, there is nothing to do except pick up items on the ground
@@ -223,6 +250,12 @@ public class UseSawMillProgram {
         canPutInputsFromInventory = ItemStack.EMPTY;
         hasWork = false;
 
+        if(!isPositionWorkable(farm.getBlockPos()) ||  worker.hunger < worker.maxHunger * 0.25){
+            return false;
+        }
+        if (currentWoodmill != null) {
+            if(currentWoodmill.isRemoved())currentWoodmill = null;
+        }
         if (currentWoodmill != null) {
             workinfo w = recalculateWorkForWoodmill(farm, currentWoodmill);
             hasWork = !w.canPutInputsFromFarm.isEmpty() || w.takeOutput || !w.canPutInputsFromInventory.isEmpty();
@@ -231,7 +264,9 @@ public class UseSawMillProgram {
                 takeOutput = w.takeOutput;
                 canPutInputsFromFarm = w.canPutInputsFromFarm;
                 canPutInputsFromInventory = w.canPutInputsFromInventory;
+                lockTargetPosition();
             }
+            //System.out.println(takeOutput+":"+canPutInputsFromFarm+":"+canPutInputsFromInventory);
             return hasWork;
         } else {
             for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityWoodMill.knownBlockEntities, farm.getBlockPos().getCenter())) {
@@ -281,6 +316,8 @@ public class UseSawMillProgram {
 
             if (!itemsOnGround.isEmpty()) {
                 for (ItemEntity item : itemsOnGround) {
+                    if(!isItemValidRecipeOutput(item.getItem())) continue;
+
                     int pathFindExit = worker.slowMobNavigation.moveToPosition(
                             item.getOnPos(),
                             requiredDistance,
@@ -297,19 +334,8 @@ public class UseSawMillProgram {
                         return SUCCESS_STILL_RUNNING;
                     }
 
-                    worker.lookAt(EntityAnchorArgument.Anchor.EYES, item.getPosition(0));
-                    worker.lookAt(EntityAnchorArgument.Anchor.FEET, item.getPosition(0));
+                     // at this point the pickup items program should continue
 
-                    if (workDelay >= 20) {
-                        ItemStack onGround =item.getItem();
-                        ItemStack toInsertCopy = onGround.copy();
-                        for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
-                            toInsertCopy = worker.combinedInventory.insertItem(i, toInsertCopy, false);
-                        }
-                        onGround.setCount(0);
-                        recalculateHasWork(farm);
-                    }
-                    workDelay++;
                     return SUCCESS_STILL_RUNNING;
                 }
             }
@@ -325,7 +351,7 @@ public class UseSawMillProgram {
 
             int pathFindExit = worker.slowMobNavigation.moveToPosition(
                     currentWoodmill.getBlockPos().relative(currentWoodmill.getBlockState().getValue(BlockStateProperties.HORIZONTAL_FACING)),
-                    requiredDistanceTomill,
+                    requiredDistanceToMill,
                     worker.slowNavigationMaxDistance,
                     worker.slowNavigationMaxNodes,
                     worker.slowNavigationStepPerTick
@@ -355,13 +381,6 @@ public class UseSawMillProgram {
         }
 
         if (!canPutInputsFromFarm.isEmpty()) {
-            // count how many items of insertable type i have in inventory already do decide if i should take more
-            // i may have more items to insert in inventory because both only return the first valid item but this is not a problem
-            int itemsToInsertTotal =
-                    (ProgramUtils.countItems(canPutInputsFromFarm.getItem(), worker.combinedInventory)
-                            + ProgramUtils.countItems(canPutInputsFromInventory.getItem(), worker.combinedInventory)) / 2; // because it can count double
-
-            if (itemsToInsertTotal < stackSizeToTakeFromFarm) {
 
                 int pathFindExit = worker.slowMobNavigation.moveToPosition(
                         farm.getBlockPos(),
@@ -391,8 +410,9 @@ public class UseSawMillProgram {
                 workDelay++;
 
                 return SUCCESS_STILL_RUNNING;
-            }
+
         }
-        return EXIT_SUCCESS;
+        recalculateHasWork(farm);
+        return SUCCESS_STILL_RUNNING;
     }
 }

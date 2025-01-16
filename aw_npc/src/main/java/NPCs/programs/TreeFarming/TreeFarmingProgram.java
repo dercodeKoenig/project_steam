@@ -8,13 +8,16 @@ import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
+import net.minecraft.world.phys.AABB;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
@@ -75,16 +78,28 @@ public class TreeFarmingProgram {
 
     ///  HARVEST PROGRAM CODE START ///
     public BlockPos getNextHarvestTargetFromFarm(EntityTreeFarm farm) {
-        for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToHarvest_Leaves, worker)) {
-            if (isPositionWorkable(i)) {
-                return i;
+        List<BlockPos> potentialTargets = new ArrayList<>();
+
+        for (BlockPos i : farm.positionsToHarvest_Leaves) {
+            if (i.getY() <= farm.getBlockPos().getY() + 3) {
+                if (isPositionWorkable(i)) {
+                    potentialTargets.add(i);
+                }
             }
         }
-        for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToHarvest_Logs, worker)) {
+
+        for (BlockPos i : farm.positionsToHarvest_Logs) {
             if (isPositionWorkable(i)) {
-                return i;
+                potentialTargets.add(i);
             }
         }
+
+        // try to cut only leaves on lower parts to not waste too much time / tools breaking leaves
+        for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToNPC(potentialTargets, worker)) {
+            return i;
+        }
+
+
         return null;
     }
 
@@ -401,7 +416,22 @@ public class TreeFarmingProgram {
         hasWorkPlant = canPlantAtFarm(target);
         hasWorkTakeSeeds = shouldTakeSeedsFromFarm(target);
 
-        hasWork = hasWorkHarvest || hasWorkPlant || hasWorkTakeSeeds;
+        boolean canPickupDrops = false;
+        // if there are items on the ground
+        if(ProgramUtils.countEmptySlots(worker) > 0) {
+            List<ItemEntity> entitiesOnGround = worker.level().getEntitiesOfClass(ItemEntity.class,
+                    new AABB(target.pmin.getCenter(), target.pmax.getCenter()).inflate(1));
+            if (!entitiesOnGround.isEmpty()) {
+                for (ItemEntity i : entitiesOnGround) {
+                    if (!worker.slowMobNavigation.isPositionCachedAsInvalid(i.getOnPos())) {
+                        canPickupDrops = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        hasWork = hasWorkHarvest || hasWorkPlant || hasWorkTakeSeeds || canPickupDrops;
         hasWork = hasWork && isPositionWorkable(target.getBlockPos()) && worker.hunger > worker.maxHunger * 0.25;
         return hasWork;
     }
@@ -418,16 +448,48 @@ public class TreeFarmingProgram {
             return EXIT_SUCCESS;
         }
 
-        if(hasWorkTakeSeeds)
-            return runTakeSeedProgram(farm);
-
-        if(hasWorkPlant)
-            return runPlantProgram(farm);
-
         if (hasWorkHarvest)
             return runHarvestProgram(farm);
 
-        return EXIT_SUCCESS;
+        if (hasWorkTakeSeeds)
+            return runTakeSeedProgram(farm);
+
+        if (hasWorkPlant)
+            return runPlantProgram(farm);
+
+
+        // if there are items on the ground
+        if (ProgramUtils.countEmptySlots(worker) > 0) {
+            List<ItemEntity> entitiesOnGround = worker.level().getEntitiesOfClass(ItemEntity.class,
+                    new AABB(farm.pmin.getCenter(), farm.pmax.getCenter()).inflate(1));
+            if (!entitiesOnGround.isEmpty()) {
+                for (ItemEntity item : entitiesOnGround) {
+                    if (!worker.slowMobNavigation.isPositionCachedAsInvalid(item.getOnPos())) {
+
+                        int pathFindExit = worker.slowMobNavigation.moveToPosition(
+                                item.getOnPos(),
+                                1,
+                                worker.slowNavigationMaxDistance,
+                                worker.slowNavigationMaxNodes,
+                                worker.slowNavigationStepPerTick
+                        );
+
+                        if (pathFindExit == EXIT_FAIL) {
+                            // hm... bad
+                            continue;
+                        } else if (pathFindExit == SUCCESS_STILL_RUNNING) {
+                            workDelay = 0;
+                            return SUCCESS_STILL_RUNNING;
+                        }
+
+                        // at this point the pickup items program should continue
+                        return SUCCESS_STILL_RUNNING;
+                    }
+                }
+            }
+        }
+        recalculateHasWork(farm);
+        return SUCCESS_STILL_RUNNING;
     }
 
     public int runTakeAxeFromFarmAnyInventory(EntityTreeFarm farm) {

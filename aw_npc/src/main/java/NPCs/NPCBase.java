@@ -13,6 +13,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -173,6 +174,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         setGuaranteedDrop(EquipmentSlot.HEAD);
         setGuaranteedDrop(EquipmentSlot.LEGS);
         setGuaranteedDrop(EquipmentSlot.FEET);
+
+        setCanPickUpLoot(true);
 
         super.getNavigation().getNodeEvaluator().setCanOpenDoors(true);
         super.getNavigation().getNodeEvaluator().setCanPassDoors(true);
@@ -426,7 +429,24 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         this.updateSwingTime(); //wtf do i need to call this myself??
     }
 
+    @Override
+    public boolean canTakeItem(ItemStack itemstack) {
+        return ProgramUtils.countEmptySlots(this) > 0;
+    }
 
+@Override
+protected void pickUpItem(ItemEntity itemEntity) {
+    ItemStack itemstack = itemEntity.getItem();
+    if (ProgramUtils.countEmptySlots(this) > 0) {
+        ItemStack stackCopy = itemstack.copy();
+        for (int i = 0; i < combinedInventory.getSlots(); i++) {
+            stackCopy = combinedInventory.insertItem(i,stackCopy,false);
+        }
+        this.onItemPickup(itemEntity);
+        this.take(itemEntity, itemstack.getCount());
+        itemEntity.discard();
+    }
+}
 
     @Override
     protected void hurtArmor(DamageSource damageSource, float damage) {

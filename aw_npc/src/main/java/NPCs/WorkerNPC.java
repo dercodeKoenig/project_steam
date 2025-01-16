@@ -1,11 +1,8 @@
 package NPCs;
 
+import NPCs.programs.*;
 import NPCs.programs.CropFarming.MainFarmingProgram;
-import NPCs.programs.FollowOwnerProgram;
-import NPCs.programs.FoodProgramWorker;
 import NPCs.programs.Mining.MainMiningProgram;
-import NPCs.programs.ProgramUtils;
-import NPCs.programs.SleepProgram;
 import NPCs.programs.TreeFarming.MainLumberjackProgram;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -49,6 +46,9 @@ public class WorkerNPC extends NPCBase {
         super(entityType, level);
     }
 
+public    MainFarmingProgram farmingProgram;
+    public MainLumberjackProgram lumberjackProgram;
+    public MainMiningProgram miningProgram;
 
     public static AttributeSupplier.Builder createAttributes() {
         return Mob.createMobAttributes() // Base attributes for mobs
@@ -77,6 +77,10 @@ public class WorkerNPC extends NPCBase {
         }
         goalSelector.getAvailableGoals().clear();
 
+        farmingProgram = new MainFarmingProgram(this);
+        lumberjackProgram = new MainLumberjackProgram(this);
+        miningProgram = new MainMiningProgram(this);
+
         int priority = 0;
 
         goalSelector.addGoal(priority++, new FollowOwnerProgram(this));
@@ -87,14 +91,16 @@ public class WorkerNPC extends NPCBase {
 
         goalSelector.addGoal(priority++ ,new OpenDoorGoal(this, true));
 
+        //goalSelector.addGoal(priority++ ,new PickupItemsOnGroundProgram(this));
+
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Farmer.ordinal()) {
-            this.goalSelector.addGoal(priority++, new MainFarmingProgram(this));
+            this.goalSelector.addGoal(priority++, farmingProgram);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Miner.ordinal()) {
-            this.goalSelector.addGoal(priority++, new MainMiningProgram(this));
+            this.goalSelector.addGoal(priority++, miningProgram);
         }
         if (getEntityData().get(DATA_WORKTYPE) == WorkTypes.Lumberjack.ordinal()) {
-            this.goalSelector.addGoal(priority++, new MainLumberjackProgram(this));
+            this.goalSelector.addGoal(priority++, lumberjackProgram);
         }
 
         this.goalSelector.addGoal(priority++, new RandomStrollGoal(this, 1.0D));

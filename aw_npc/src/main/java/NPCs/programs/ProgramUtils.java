@@ -29,6 +29,16 @@ public class ProgramUtils {
     public static final int EXIT_FAIL = -1;
 
 
+    public static TreeSet<Vec3> sortByDistanceTo(Collection<Vec3> list, Vec3 position) {
+        TreeSet<Vec3> sorted = new TreeSet<>(new Comparator<Vec3>() {
+            @Override
+            public int compare(Vec3 o1, Vec3 o2) {
+                return (int) Math.signum(o1.distanceTo(position) - o2.distanceTo(position));
+            }
+        });
+        sorted.addAll(list);
+        return sorted;
+    }
 
     public static TreeSet<BlockPos> sortBlockPosByDistanceToNPC(Collection<BlockPos> list, Vec3 position) {
         TreeSet<BlockPos> sorted = new TreeSet<>(new Comparator<BlockPos>() {
@@ -113,7 +123,16 @@ public class ProgramUtils {
             }
         }
     }
-
+    public static int countEmptySlots(NPCBase npc) {
+        int numEmptySlots = 0;
+        boolean hadFoundInput = false;
+        for (int i = 0; i < npc.combinedInventory.getSlots(); i++) {
+            if (npc.combinedInventory.getStackInSlot(i).isEmpty()) {
+                numEmptySlots++;
+            }
+        }
+        return numEmptySlots;
+    }
     public static int countItemsMatchingId(String id, IItemHandler inventory){
         int count = 0;
         for (int i = 0; i < inventory.getSlots(); i++) {

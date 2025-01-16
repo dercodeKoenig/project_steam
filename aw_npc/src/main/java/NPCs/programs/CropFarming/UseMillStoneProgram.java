@@ -243,6 +243,10 @@ public class UseMillStoneProgram {
         canPutInputsFromInventory = ItemStack.EMPTY;
         hasWork = false;
 
+        if(!isPositionWorkable(farm.getBlockPos()) ||  worker.hunger < worker.maxHunger * 0.25){
+            return false;
+        }
+
         if(currentMillstone != null) {
             workinfo w = recalculateWorkForMillStone(farm, currentMillstone);
             hasWork = !w.canPutInputsFromFarm.isEmpty() || w.canTakeOutputs || !w.canPutInputsFromInventory.isEmpty();
@@ -251,6 +255,7 @@ public class UseMillStoneProgram {
                 canTakeOutputs = w.canTakeOutputs;
                 canPutInputsFromFarm = w.canPutInputsFromFarm;
                 canPutInputsFromInventory = w.canPutInputsFromInventory;
+                lockTargetPosition();
             }
             return hasWork;
         } else {

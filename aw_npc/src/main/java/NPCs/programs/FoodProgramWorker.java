@@ -1,11 +1,15 @@
 package NPCs.programs;
 
 import NPCs.NPCBase;
+import NPCs.Utils;
+import NPCs.Items.ItemFoodOrder;
 import NPCs.TownHall.EntityTownHall;
+import net.minecraft.commands.CacheableFunction;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.tags.ItemTags;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemStack;
@@ -15,7 +19,7 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.EnumSet;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class FoodProgramWorker extends Goal {
     NPCBase worker;
@@ -42,7 +46,7 @@ public class FoodProgramWorker extends Goal {
                     if (worker.combinedInventory.insertItem(i, stackInSlot.copyWithCount(1), true).isEmpty()) {
                         if (!simulate) {
                             worker.combinedInventory.insertItem(i, target.extractItem(j, 1, false), false);
-                            worker.swing(ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(i), worker));
+                            worker.swing(Utils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(i), worker));
                         }
                         return true;
                     }
@@ -66,7 +70,7 @@ public class FoodProgramWorker extends Goal {
         for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
             ItemStack stackInSlot = worker.combinedInventory.getStackInSlot(i);
             if (stackInSlot.has(DataComponents.FOOD)) {
-                ProgramUtils.moveItemStackToMainHand(stackInSlot, worker);
+                Utils.moveItemStackToMainHand(stackInSlot, worker);
                 return true;
             }
         }
@@ -82,19 +86,32 @@ public class FoodProgramWorker extends Goal {
 
         if(hasAnyFood()) return true;
 
-
-        // TODO check upkeep order when it is implemented
-        if (worker.townHall != null) {
-            if (worker.slowMobNavigation.isPositionCachedAsInvalid(worker.townHall)) {
-                return false;
-            }
-            BlockEntity e = worker.level().getBlockEntity(worker.townHall);
-            if (e instanceof EntityTownHall t) {
-                IItemHandler itemHandler = t.inventory;
-                if (takeFood(itemHandler, true)) {
-                    target = worker.townHall;
-                    inventoryTarget = t.inventory;
+        ItemStack foodOrderStack = worker.foodOrderStackHandler.getStackInSlot(0);
+        if(foodOrderStack.getItem() instanceof ItemFoodOrder){
+            CompoundTag itemTag = Utils.getStackTagOrEmpty(foodOrderStack);
+            if(itemTag.contains("x") && itemTag.contains("y") && itemTag.contains("z") && itemTag.contains("face")){
+                BlockPos targetPos = new BlockPos(itemTag.getInt("x"), itemTag.getInt("y"), itemTag.getInt("z"));
+                Direction face = Direction.values()[itemTag.getInt("face")];
+                IItemHandler inventory = worker.level().getCapability(Capabilities.ItemHandler.BLOCK,targetPos,face);
+                if(inventory != null){
+                    target = targetPos;
+                    inventoryTarget = inventory;
                     return true;
+                }
+            }
+        }else {
+            if (worker.townHall != null) {
+                if (worker.slowMobNavigation.isPositionCachedAsInvalid(worker.townHall)) {
+                    return false;
+                }
+                BlockEntity e = worker.level().getBlockEntity(worker.townHall);
+                if (e instanceof EntityTownHall t) {
+                    IItemHandler itemHandler = t.inventory;
+                    if (takeFood(itemHandler, true)) {
+                        target = worker.townHall;
+                        inventoryTarget = t.inventory;
+                        return true;
+                    }
                 }
             }
         }

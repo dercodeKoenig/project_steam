@@ -1,9 +1,8 @@
 package NPCs.programs.Mining;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import NPCs.programs.TakeToolProgram;
-import WorkSites.CropFarm.EntityCropFarm;
 import WorkSites.Quarry.EntityQuarry;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -11,8 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -20,7 +17,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class QuarryProgram {
     public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
@@ -136,7 +133,7 @@ boolean canQuarry(EntityQuarry target){
                 worker.combinedInventory.getStackInSlot(i).getItem() instanceof PickaxeItem)
             numEmptySlotsIgnorePickAxe++;
     }
-    if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 7) {
+    if (Utils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 7) {
         if (numEmptySlotsIgnorePickAxe < requiredFreeSlotsToHarvest) return false;
     } else {
         if (numEmptySlotsIgnorePickAxe < requiredFreeSlotsToHarvest + 5) return false;
@@ -219,7 +216,7 @@ boolean canQuarry(EntityQuarry target){
                     }
                     worker.level().destroyBlock(currentTargetPos, false);
 
-                    ProgramUtils.damageMainHandItem(worker);
+                    Utils.damageMainHandItem(worker);
 
                     workDelay = 0;
                     farm.blocksToMine.remove(currentTargetPos);

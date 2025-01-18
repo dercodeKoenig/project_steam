@@ -5,7 +5,7 @@ import AOSWorkshopExpansion.MillStone.MillStoneConfig;
 import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.utils.ItemUtils;
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
@@ -17,8 +17,8 @@ import net.neoforged.neoforge.items.IItemHandler;
 import java.util.HashMap;
 import java.util.Objects;
 
-import static NPCs.programs.ProgramUtils.*;
-import static NPCs.programs.ProgramUtils.SUCCESS_STILL_RUNNING;
+import static NPCs.Utils.*;
+import static NPCs.Utils.SUCCESS_STILL_RUNNING;
 
 
 public class UseMillStoneProgram {
@@ -99,7 +99,7 @@ public class UseMillStoneProgram {
                         if (!simulate) {
                             ItemStack extracted = farm.mainInventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
-                            InteractionHand movedTo = ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
+                            InteractionHand movedTo = Utils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
                             worker.swing(movedTo);
                         }
                         return canExtract.copy();
@@ -142,7 +142,7 @@ public class UseMillStoneProgram {
         for (int j = 0; j < inventory.getSlots(); j++) {
             ItemStack canExtract = inventory.extractItem(j, 1, true);
             ItemStack stackCopyToReturn = inventory.getStackInSlot(j).copy();
-            if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract) && ProgramUtils.countItems(canExtract.getItem(), inventory) > requiredMinStockInInvventory) {
+            if (!canExtract.isEmpty() && isItemValidRecipeInput(canExtract) && Utils.countItems(canExtract.getItem(), inventory) > requiredMinStockInInvventory) {
 
                 for (int i = 0; i < millstone.inventory.getSlots(); i++) {
                     ItemStack notInserted = millstone.inventory.insertItem(i, canExtract, true);
@@ -166,7 +166,7 @@ public class UseMillStoneProgram {
                         if (!simulate) {
                             ItemStack extracted = millStone.inventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
-                            worker.swing(ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker));
+                            worker.swing(Utils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker));
                         }
                         return true;
                     }
@@ -207,7 +207,7 @@ public class UseMillStoneProgram {
         // if the farm is not stocked up with enough inputs, do not put into millstone but into farm first.
         // so count if the farm has enough stock
         w.canPutInputsFromInventory = unloadOneItemIntoMillstone(millstone, worker, true);
-        if (ProgramUtils.countItems(w.canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
+        if (Utils.countItems(w.canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
             w.canPutInputsFromInventory = ItemStack.EMPTY;
         }
 
@@ -224,7 +224,7 @@ public class UseMillStoneProgram {
         // so i make it like this:
         // if the worker already HAS output items and is NOT near the millstone, assume he is on its way to bring the items to the farm
         // in this case, ignore that he can pick up items from the millstone
-        if (ProgramUtils.distanceManhattan(worker, millstone.getBlockPos().getCenter()) > 5) {
+        if (Utils.distanceManhattan(worker, millstone.getBlockPos().getCenter()) > 5) {
             for (int i = 0; i < worker.combinedInventory.getSlots(); i++) {
                 if (isItemValidRecipeOutput(worker.combinedInventory.getStackInSlot(i))) {
                     w.canTakeOutputs = false;
@@ -259,8 +259,8 @@ public class UseMillStoneProgram {
             }
             return hasWork;
         } else {
-            for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityMillStone.knownBlockEntities, farm.getBlockPos().getCenter())) {
-                if (ProgramUtils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useMillStonesInRadius)
+            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityMillStone.knownBlockEntities, farm.getBlockPos().getCenter())) {
+                if (Utils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useMillStonesInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);
                 if (be instanceof EntityMillStone millStone) {
@@ -301,12 +301,12 @@ public class UseMillStoneProgram {
         // first try to take a batch of items from the farm to carry to millstone
         // note that it can cause the worker to deposit one item in millstone and run back to farm to restock the batch
         // because of this, only consider this if we are more than x block away from millstone or when we do not have any input in inventory
-        if (!canPutInputsFromFarm.isEmpty() && (ProgramUtils.distanceManhattan(worker, currentMillstone.getBlockPos().getCenter()) > 10 || canPutInputsFromInventory.isEmpty())) {
+        if (!canPutInputsFromFarm.isEmpty() && (Utils.distanceManhattan(worker, currentMillstone.getBlockPos().getCenter()) > 10 || canPutInputsFromInventory.isEmpty())) {
             // count how many items of insertable type i have in inventory already do decide if i should take more
             // i may have more items to insert in inventory because both only return the first valid item but this is not a problem
             int itemsToInsertTotal =
-                    (ProgramUtils.countItems(canPutInputsFromFarm.getItem(), worker.combinedInventory)
-                            + ProgramUtils.countItems(canPutInputsFromInventory.getItem(), worker.combinedInventory)) / 2; // because it can count double
+                    (Utils.countItems(canPutInputsFromFarm.getItem(), worker.combinedInventory)
+                            + Utils.countItems(canPutInputsFromInventory.getItem(), worker.combinedInventory)) / 2; // because it can count double
 
             if (itemsToInsertTotal < stackSizeToTakeFromFarm) {
 
@@ -348,7 +348,7 @@ public class UseMillStoneProgram {
             //take the item in hand, just for visuals
             if (!ItemStack.isSameItemSameComponents(worker.getMainHandItem(), canPutInputsFromInventory) &&
                     !ItemStack.isSameItemSameComponents(worker.getOffhandItem(), canPutInputsFromInventory)) {
-                ProgramUtils.moveItemStackToAnyHand(canPutInputsFromInventory, worker);
+                Utils.moveItemStackToAnyHand(canPutInputsFromInventory, worker);
             }
 
             int pathFindExit = worker.slowMobNavigation.moveToPosition(

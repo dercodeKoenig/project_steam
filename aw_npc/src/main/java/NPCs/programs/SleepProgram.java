@@ -1,17 +1,13 @@
 package NPCs.programs;
 
 import NPCs.NPCBase;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.EnumSet;
 
-import static NPCs.programs.ProgramUtils.EXIT_FAIL;
-import static NPCs.programs.ProgramUtils.EXIT_SUCCESS;
+import static NPCs.Utils.EXIT_SUCCESS;
 import static net.minecraft.world.level.block.BedBlock.OCCUPIED;
 
 public class SleepProgram extends Goal {

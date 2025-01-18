@@ -1,14 +1,9 @@
-package NPCs.programs;
+package NPCs;
 
 import ARLib.utils.ItemUtils;
-import NPCs.NPCBase;
-import NPCs.WorkerNPC;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
@@ -21,7 +16,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.TreeSet;
 
-public class ProgramUtils {
+public class Utils {
 
 
     public static final int SUCCESS_STILL_RUNNING = 0;

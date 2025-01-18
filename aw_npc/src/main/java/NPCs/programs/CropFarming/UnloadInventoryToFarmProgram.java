@@ -4,9 +4,8 @@ import NPCs.WorkerNPC;
 import NPCs.programs.UnloadInventoryProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.items.IItemHandler;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class UnloadInventoryToFarmProgram {
     public WorkerNPC worker;

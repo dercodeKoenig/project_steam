@@ -1,7 +1,7 @@
 package NPCs.programs.Mining;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import WorkSites.EntityWorkSiteBase;
 import WorkSites.Quarry.EntityQuarry;
 import net.minecraft.core.BlockPos;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class MainMiningProgram extends Goal {
 
@@ -77,9 +77,9 @@ public class MainMiningProgram extends Goal {
         }
 
         long gameTime = worker.level().getGameTime();
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityQuarry.knownQuarries, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityQuarry.knownQuarries, worker)) {
 
-            if(ProgramUtils.distanceManhattan(worker, p.getCenter()) > 256) break;
+            if(Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 
             BlockEntity worksite = worker.level().getBlockEntity(p);
             if (worksite instanceof EntityQuarry w) {

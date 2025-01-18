@@ -5,15 +5,14 @@ import ARLib.gui.ModularScreen;
 import ARLib.gui.modules.*;
 import ARLib.network.INetworkTagReceiver;
 import ARLib.network.PacketEntity;
+import NPCs.Items.ItemFoodOrder;
 import NPCs.TownHall.TownHallNames;
 import NPCs.TownHall.TownHallOwners;
-import NPCs.programs.ProgramUtils;
 import NPCs.programs.SlowMobNavigation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
-import net.minecraft.core.Vec3i;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -32,7 +31,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.food.FoodProperties;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.block.entity.BlockEntity;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
@@ -56,8 +54,20 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
     public String owner;
 
     public ItemStackHandler inventory = new ItemStackHandler(8);
-    public ItemStackHandler combinedInventory = new ItemStackHandler(0) {
 
+    public ItemStackHandler foodOrderStackHandler = new ItemStackHandler(1) {
+        @Override
+        public boolean isItemValid(int slot, ItemStack stack) {
+            if (slot == 0) {
+                if (stack.getItem() instanceof ItemFoodOrder) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    };
+
+    public ItemStackHandler combinedInventory = new ItemStackHandler(0) {
         public void setStackInSlot(int slot, ItemStack stack) {
             if (slot == 0)
                 setItemInHand(InteractionHand.MAIN_HAND, stack);
@@ -255,6 +265,9 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         guiHandler.getModules().add(leg);
         guiHandler.getModules().add(feet);
 
+        guiModuleItemHandlerSlot foodOrderSlot = new guiModuleItemHandlerSlot(13001, foodOrderStackHandler, 0, 1,0,guiHandler, 140,50);
+        guiHandler.getModules().addFirst(foodOrderSlot);
+
         int w = 5;
         for (int i = 0; i < combinedInventory.getSlots(); i++) {
             int x = i % w * 18 + 40;
@@ -319,8 +332,8 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
         // assign to townhall
         if (townHall == null) {
             // scan for townhall, use anyone where owner is registered as an owner of the townhall
-            for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(), this)) {
-                if(ProgramUtils.distanceManhattan(this, p.getCenter()) > 256)
+            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(TownHallOwners.getEntries(level()).keySet(), this)) {
+                if(Utils.distanceManhattan(this, p.getCenter()) > 256)
                     break;
 
                 if (TownHallOwners.getOwners(level(), p).contains(owner)) {
@@ -431,13 +444,13 @@ public abstract class NPCBase extends PathfinderMob implements INetworkTagReceiv
 
     @Override
     public boolean canTakeItem(ItemStack itemstack) {
-        return ProgramUtils.countEmptySlots(this) > 0;
+        return Utils.countEmptySlots(this) > 0;
     }
 
 @Override
 protected void pickUpItem(ItemEntity itemEntity) {
     ItemStack itemstack = itemEntity.getItem();
-    if (ProgramUtils.countEmptySlots(this) > 0) {
+    if (Utils.countEmptySlots(this) > 0) {
         ItemStack stackCopy = itemstack.copy();
         for (int i = 0; i < combinedInventory.getSlots(); i++) {
             stackCopy = combinedInventory.insertItem(i,stackCopy,false);
@@ -529,7 +542,7 @@ protected void pickUpItem(ItemEntity itemEntity) {
                     ItemStack setHomeTool = new ItemStack(ITEM_SET_HOME_TOOL.get());
                     CompoundTag info = new CompoundTag();
                     info.putUUID("uuid", getUUID());
-                    ProgramUtils.setStackTag(setHomeTool,info);
+                    Utils.setStackTag(setHomeTool,info);
                     level().addFreshEntity(new ItemEntity(level(),p.position().x, p.position().y, p.position().z,setHomeTool));
 
                     CompoundTag response = new CompoundTag();

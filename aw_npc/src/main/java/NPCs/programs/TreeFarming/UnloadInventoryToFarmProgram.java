@@ -5,7 +5,7 @@ import NPCs.programs.UnloadInventoryProgram;
 import WorkSites.TreeFarm.EntityTreeFarm;
 import net.minecraft.world.item.ItemStack;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class UnloadInventoryToFarmProgram {
     public WorkerNPC worker;

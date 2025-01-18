@@ -1,8 +1,7 @@
 package NPCs.programs.CropFarming;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
-import NPCs.programs.UnloadInventoryProgram;
+import NPCs.Utils;
 import WorkSites.CropFarm.EntityCropFarm;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
@@ -12,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class MainFarmingProgram extends Goal {
 
@@ -83,9 +82,9 @@ public class MainFarmingProgram extends Goal {
         }
 
         long gameTime = worker.level().getGameTime();
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityCropFarm.knownCropFarms, worker)) {
 
-            if(ProgramUtils.distanceManhattan(worker, p.getCenter()) > 256) break;
+            if(Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 
             BlockEntity worksite = worker.level().getBlockEntity(p);
             if (worksite instanceof EntityWorkSiteBase w) {

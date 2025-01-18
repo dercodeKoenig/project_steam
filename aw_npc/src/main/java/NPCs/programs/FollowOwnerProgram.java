@@ -9,7 +9,7 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.EnumSet;
 
-import static NPCs.programs.ProgramUtils.EXIT_FAIL;
+import static NPCs.Utils.EXIT_FAIL;
 
 public class FollowOwnerProgram extends Goal {
     NPCBase worker;

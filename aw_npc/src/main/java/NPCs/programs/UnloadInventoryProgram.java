@@ -2,14 +2,15 @@ package NPCs.programs;
 
 import NPCs.NPCBase;
 
+import NPCs.Utils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.IItemHandler;
 
-import static NPCs.programs.ProgramUtils.*;
-import static NPCs.programs.ProgramUtils.SUCCESS_STILL_RUNNING;
+import static NPCs.Utils.*;
+import static NPCs.Utils.SUCCESS_STILL_RUNNING;
 
 public class UnloadInventoryProgram {
 
@@ -62,7 +63,7 @@ public class UnloadInventoryProgram {
 //System.out.println(nextStackToUnload);
         if (!ItemStack.isSameItemSameComponents(npc.getMainHandItem(), nextStackToUnload) &&
                 !ItemStack.isSameItemSameComponents(npc.getOffhandItem(), nextStackToUnload)) {
-            ProgramUtils.moveItemStackToAnyHand(nextStackToUnload, npc);
+            Utils.moveItemStackToAnyHand(nextStackToUnload, npc);
         }
 
         int pathFindExit = npc.slowMobNavigation.moveToPosition(

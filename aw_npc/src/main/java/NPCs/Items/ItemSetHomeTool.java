@@ -1,6 +1,7 @@
-package NPCs;
+package NPCs.Items;
 
-import NPCs.programs.ProgramUtils;
+import NPCs.NPCBase;
+import NPCs.Utils;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -8,13 +9,11 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ItemAttributeModifiers;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 public class ItemSetHomeTool extends Item {
     public ItemSetHomeTool() {
@@ -30,7 +29,7 @@ public class ItemSetHomeTool extends Item {
     public InteractionResult useOn(UseOnContext context) {
 
     if (context.getLevel() instanceof ServerLevel l) {
-        CompoundTag t = ProgramUtils.getStackTagOrEmpty(context.getItemInHand());
+        CompoundTag t = Utils.getStackTagOrEmpty(context.getItemInHand());
         if (t.contains("uuid")) {
             Entity e = l.getEntity(t.getUUID("uuid"));
             if (e instanceof NPCBase npc) {

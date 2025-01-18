@@ -1,14 +1,14 @@
 package NPCs.programs;
 
 import NPCs.NPCBase;
+import NPCs.Utils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.IItemHandler;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class TakeToolProgram {
 
@@ -30,7 +30,7 @@ public class TakeToolProgram {
 
         ItemStack stack = npc.combinedInventory.getStackInSlot(cachedToolIndex);
         if (stack.isCorrectToolForDrops(state)) {
-            ProgramUtils.moveItemStackToMainHand(stack, npc);
+            Utils.moveItemStackToMainHand(stack, npc);
             return true;
         }
         return false;
@@ -60,7 +60,7 @@ public class TakeToolProgram {
                     if (npc.combinedInventory.insertItem(i, stackInSlot.copyWithCount(1), true).isEmpty()) {
                         if (!simulate) {
                             npc.combinedInventory.insertItem(i, target.extractItem(j, 1, false), false);
-                            npc.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, npc));
+                            npc.swing(Utils.moveItemStackToAnyHand(stackInSlot, npc));
                         }
                         return true;
                     }
@@ -78,7 +78,7 @@ public class TakeToolProgram {
 
         ItemStack stack = npc.combinedInventory.getStackInSlot(cachedToolIndex);
         if (itemClass.isInstance(stack.getItem())) {
-            ProgramUtils.moveItemStackToMainHand(stack, npc);
+            Utils.moveItemStackToMainHand(stack, npc);
             return true;
         }
         return false;
@@ -105,7 +105,7 @@ public class TakeToolProgram {
                     if (npc.combinedInventory.insertItem(i, stackInSlot.copyWithCount(1), true).isEmpty()) {
                         if (!simulate) {
                             npc.combinedInventory.insertItem(i, target.extractItem(j, 1, false), false);
-                            npc.swing(ProgramUtils.moveItemStackToAnyHand(stackInSlot, npc));
+                            npc.swing(Utils.moveItemStackToAnyHand(stackInSlot, npc));
                         }
                         return true;
                     }

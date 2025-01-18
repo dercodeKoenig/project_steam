@@ -1,6 +1,8 @@
 package NPCs;
 
+import ARLib.gui.modules.guiModuleItemHandlerSlot;
 import NPCs.programs.*;
+import NPCs.Items.ItemFoodOrder;
 import NPCs.programs.CropFarming.MainFarmingProgram;
 import NPCs.programs.Mining.MainMiningProgram;
 import NPCs.programs.TreeFarming.MainLumberjackProgram;
@@ -19,14 +21,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.items.ItemStackHandler;
 
 import java.util.ArrayList;
 import java.util.List;
 
+
 public class WorkerNPC extends NPCBase {
 
-    public static EntityDataAccessor<Integer> DATA_WORKTYPE = SynchedEntityData.defineId(WorkerNPC.class,EntityDataSerializers.INT);
-    public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(WorkerNPC.class,EntityDataSerializers.STRING);
+    public static EntityDataAccessor<Integer> DATA_WORKTYPE = SynchedEntityData.defineId(WorkerNPC.class, EntityDataSerializers.INT);
+    public static EntityDataAccessor<String> DATA_TEXTURE = SynchedEntityData.defineId(WorkerNPC.class, EntityDataSerializers.STRING);
 
 
     public enum WorkTypes {
@@ -39,14 +43,16 @@ public class WorkerNPC extends NPCBase {
     }
 
     public BlockPos lastWorksitePosition;
-
     public double cachedDistanceManhattanToWorksite;
+
 
     protected WorkerNPC(EntityType<WorkerNPC> entityType, Level level) {
         super(entityType, level);
+        //guiModuleItemHandlerSlot workOrderSlot = new guiModuleItemHandlerSlot(13002, ordersStackHandler, 1, 1,0,guiHandler, 140,70);
+        //guiHandler.getModules().addFirst(workOrderSlot);
     }
 
-public    MainFarmingProgram farmingProgram;
+    public MainFarmingProgram farmingProgram;
     public MainLumberjackProgram lumberjackProgram;
     public MainMiningProgram miningProgram;
 
@@ -72,7 +78,7 @@ public    MainFarmingProgram farmingProgram;
     protected void registerGoals() {
         List<WrappedGoal> activeGoals = new ArrayList<>(goalSelector.getAvailableGoals());
         for (WrappedGoal i : activeGoals) {
-            if(i.isRunning())
+            if (i.isRunning())
                 i.stop();
         }
         goalSelector.getAvailableGoals().clear();
@@ -89,7 +95,7 @@ public    MainFarmingProgram farmingProgram;
 
         this.goalSelector.addGoal(priority++, new FoodProgramWorker(this));
 
-        goalSelector.addGoal(priority++ ,new OpenDoorGoal(this, true));
+        goalSelector.addGoal(priority++, new OpenDoorGoal(this, true));
 
         //goalSelector.addGoal(priority++ ,new PickupItemsOnGroundProgram(this));
 
@@ -116,35 +122,35 @@ public    MainFarmingProgram farmingProgram;
 
     @Override
     protected InteractionResult mobInteract(Player player, InteractionHand hand) {
-        if(!level().isClientSide) {
+        if (!level().isClientSide) {
             if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_HOE)) {
-                getEntityData().set(DATA_WORKTYPE,WorkTypes.Farmer.ordinal());
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.Farmer.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 7 + 1;
-                getEntityData().set(DATA_TEXTURE,"po_worker_farmer_"+randomNumber+".png");
+                getEntityData().set(DATA_TEXTURE, "po_worker_farmer_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 return InteractionResult.SUCCESS;
             }
 
             if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_PICKAXE)) {
-                getEntityData().set(DATA_WORKTYPE,WorkTypes.Miner.ordinal());
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.Miner.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 5 + 1;
-                getEntityData().set(DATA_TEXTURE,"po_worker_miner_"+randomNumber+".png");
+                getEntityData().set(DATA_TEXTURE, "po_worker_miner_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 return InteractionResult.SUCCESS;
             }
 
             if (player.getItemInHand(hand).getItem().equals(Items.WOODEN_AXE)) {
-                getEntityData().set(DATA_WORKTYPE,WorkTypes.Lumberjack.ordinal());
+                getEntityData().set(DATA_WORKTYPE, WorkTypes.Lumberjack.ordinal());
                 int randomNumber = Math.abs(level().random.nextInt()) % 2 + 1;
-                getEntityData().set(DATA_TEXTURE,"po_worker_lumberjack_"+randomNumber+".png");
+                getEntityData().set(DATA_TEXTURE, "po_worker_lumberjack_" + randomNumber + ".png");
                 player.setItemInHand(hand, ItemStack.EMPTY);
                 registerGoals();
                 return InteractionResult.SUCCESS;
             }
         }
-        return super.mobInteract(player,hand);
+        return super.mobInteract(player, hand);
     }
 
     @Override
@@ -152,7 +158,7 @@ public    MainFarmingProgram farmingProgram;
         super.tick();
         if (!level().isClientSide) {
             if (lastWorksitePosition != null)
-                cachedDistanceManhattanToWorksite = ProgramUtils.distanceManhattan(this, lastWorksitePosition.getCenter());
+                cachedDistanceManhattanToWorksite = Utils.distanceManhattan(this, lastWorksitePosition.getCenter());
             else {
                 cachedDistanceManhattanToWorksite = -1;
             }

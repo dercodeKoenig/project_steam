@@ -1,5 +1,7 @@
 package NPCs;
 
+import NPCs.Items.ItemSetHomeTool;
+import NPCs.Items.ItemFoodOrder;
 import NPCs.TownHall.BlockTownHall;
 import NPCs.TownHall.EntityTownHall;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -47,6 +49,12 @@ public class Registry {
             "set_home_tool",
             () -> new ItemSetHomeTool()
     );
+
+    public static final Supplier<Item> ITEM_FOOD_ORDER = ITEMS.register(
+            "food_order",
+            () -> new ItemFoodOrder()
+    );
+
     static {
         registerBlockItem("townhall", TOWNHALL);
     }

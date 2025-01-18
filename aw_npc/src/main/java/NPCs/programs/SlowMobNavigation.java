@@ -1,13 +1,13 @@
 package NPCs.programs;
 
 import NPCs.NPCBase;
+import NPCs.Utils;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.pathfinder.Path;
 
 import java.util.HashMap;
 import java.util.Objects;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class SlowMobNavigation {
     public NPCBase npc;
@@ -39,7 +39,7 @@ public class SlowMobNavigation {
 
         if (target == null) return EXIT_FAIL;
 
-        double distToTarget = ProgramUtils.distanceManhattan(npc, target.getCenter());
+        double distToTarget = Utils.distanceManhattan(npc, target.getCenter());
         if (distToTarget <= precision +2) {
             return EXIT_SUCCESS;
         }

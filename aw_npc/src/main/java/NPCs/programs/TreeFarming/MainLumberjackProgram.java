@@ -1,7 +1,7 @@
 package NPCs.programs.TreeFarming;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import WorkSites.TreeFarm.EntityTreeFarm;
 import WorkSites.EntityWorkSiteBase;
 import net.minecraft.core.BlockPos;
@@ -11,7 +11,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import java.util.EnumSet;
 import java.util.HashMap;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class MainLumberjackProgram extends Goal {
 
@@ -81,9 +81,9 @@ public class MainLumberjackProgram extends Goal {
         }
 
         long gameTime = worker.level().getGameTime();
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityTreeFarm.knownTreeFarms, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityTreeFarm.knownTreeFarms, worker)) {
 
-            if(ProgramUtils.distanceManhattan(worker, p.getCenter()) > 256) break;
+            if(Utils.distanceManhattan(worker, p.getCenter()) > 256) break;
 
             BlockEntity worksite = worker.level().getBlockEntity(p);
             if (worksite instanceof EntityWorkSiteBase w) {

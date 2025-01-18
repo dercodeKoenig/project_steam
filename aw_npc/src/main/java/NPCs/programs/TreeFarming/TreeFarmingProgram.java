@@ -1,7 +1,7 @@
 package NPCs.programs.TreeFarming;
 
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import NPCs.programs.TakeToolProgram;
 import WorkSites.TreeFarm.EntityTreeFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -10,8 +10,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
@@ -22,7 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class TreeFarmingProgram {
     public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
@@ -95,7 +93,7 @@ public class TreeFarmingProgram {
         }
 
         // try to cut only leaves on lower parts to not waste too much time / tools breaking leaves
-        for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToNPC(potentialTargets, worker)) {
+        for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(potentialTargets, worker)) {
             return i;
         }
 
@@ -129,7 +127,7 @@ public class TreeFarmingProgram {
                 ignoredTool = true;
             }
         }
-        if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
+        if (Utils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
             if (numEmptySlotsIgnoreTool < requiredFreeSlotsToHarvest) return false;
         } else {
             if (numEmptySlotsIgnoreTool < requiredFreeSlotsToHarvest + 3) return false;
@@ -193,7 +191,7 @@ public class TreeFarmingProgram {
                     }
                     worker.level().destroyBlock(currentTargetPos, false);
                     worker.swing(InteractionHand.MAIN_HAND);
-                    ProgramUtils.damageMainHandItem(worker);
+                    Utils.damageMainHandItem(worker);
                 }
                 farm.positionsToHarvest_Logs.remove(currentTargetPos);
                 farm.positionsToHarvest_Leaves.remove(currentTargetPos);
@@ -237,7 +235,7 @@ public class TreeFarmingProgram {
     }
 
     public BlockPos getNextPlantTarget(EntityTreeFarm farm) {
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
+        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
             if(!isPositionWorkable(p)) continue;
             ItemStack s = getStackToPlantAtPosition(farm, p);
             if(!s.isEmpty()){
@@ -288,7 +286,7 @@ public class TreeFarmingProgram {
 
                 if (!ItemStack.isSameItemSameComponents(worker.getMainHandItem(), stackToPlant) &&
                         !ItemStack.isSameItemSameComponents(worker.getOffhandItem(), stackToPlant)) {
-                    ProgramUtils.moveItemStackToAnyHand(stackToPlant, worker);
+                    Utils.moveItemStackToAnyHand(stackToPlant, worker);
                 }
 
                 if (pathFindExit == EXIT_FAIL) {
@@ -349,7 +347,7 @@ public class TreeFarmingProgram {
                             // if it can be inserted, do the actual movement and break
                             ItemStack extracted = farm.inputsInventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
-                            InteractionHand movedTo = ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
+                            InteractionHand movedTo = Utils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
                             worker.swing(movedTo);
                         }
                         return canExtract.copy();
@@ -418,7 +416,7 @@ public class TreeFarmingProgram {
 
         boolean canPickupDrops = false;
         // if there are items on the ground
-        if(ProgramUtils.countEmptySlots(worker) > 0) {
+        if(Utils.countEmptySlots(worker) > 0) {
             List<ItemEntity> entitiesOnGround = worker.level().getEntitiesOfClass(ItemEntity.class,
                     new AABB(target.pmin.getCenter(), target.pmax.getCenter()).inflate(1));
             if (!entitiesOnGround.isEmpty()) {
@@ -459,7 +457,7 @@ public class TreeFarmingProgram {
 
 
         // if there are items on the ground
-        if (ProgramUtils.countEmptySlots(worker) > 0) {
+        if (Utils.countEmptySlots(worker) > 0) {
             List<ItemEntity> entitiesOnGround = worker.level().getEntitiesOfClass(ItemEntity.class,
                     new AABB(farm.pmin.getCenter(), farm.pmax.getCenter()).inflate(1));
             if (!entitiesOnGround.isEmpty()) {

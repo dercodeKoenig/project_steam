@@ -8,7 +8,7 @@ import net.minecraft.world.level.pathfinder.*;
 
 import java.util.*;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class SlowPathFinder {
 

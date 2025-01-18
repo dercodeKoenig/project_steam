@@ -1,18 +1,17 @@
 package NPCs.programs;
 
 import NPCs.NPCBase;
+import NPCs.Utils;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.*;
 
-import static NPCs.programs.ProgramUtils.EXIT_FAIL;
-import static NPCs.programs.ProgramUtils.SUCCESS_STILL_RUNNING;
+import static NPCs.Utils.EXIT_FAIL;
+import static NPCs.Utils.SUCCESS_STILL_RUNNING;
 
 public class PickupItemsOnGroundProgram extends Goal {
     NPCBase npc;
@@ -42,7 +41,7 @@ public class PickupItemsOnGroundProgram extends Goal {
         long gametime = npc.level().getGameTime();
         if (gametime > lastScanTime + 10) {
 
-            if (ProgramUtils. countEmptySlots(npc) < 1) return false;
+            if (Utils. countEmptySlots(npc) < 1) return false;
 
             lastScanTime = gametime;
 
@@ -79,7 +78,7 @@ public class PickupItemsOnGroundProgram extends Goal {
     @Override
     public void tick() {
 
-        if (ProgramUtils. countEmptySlots(npc)  < 1) {
+        if (Utils. countEmptySlots(npc)  < 1) {
             canUse = false;
             return;
         }

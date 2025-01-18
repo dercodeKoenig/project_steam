@@ -62,6 +62,7 @@ public class Main {
     private void addCreative(BuildCreativeModeTabContentsEvent e) {
         if (e.getTab().equals(Registry.CREATIVETAB.get())) {
             e.accept(TOWNHALL.get());
+            e.accept(ITEM_FOOD_ORDER.get());
         }
     }
 }

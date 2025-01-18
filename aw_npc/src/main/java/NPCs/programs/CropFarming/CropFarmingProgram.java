@@ -1,8 +1,7 @@
 package NPCs.programs.CropFarming;
 
-import NPCs.NPCBase;
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import NPCs.programs.TakeToolProgram;
 import WorkSites.CropFarm.EntityCropFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
@@ -20,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 public class CropFarmingProgram {
     public static HashMap<BlockPos, Long> positionsInUseWithLastUseTime = new HashMap<>();
@@ -77,7 +76,7 @@ public class CropFarmingProgram {
 
     ///  HARVEST PROGRAM CODE START ///
     public BlockPos getNextHarvestTargetFromFarm(EntityCropFarm farm) {
-        for (BlockPos i : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToHarvest, worker)) {
+        for (BlockPos i : Utils.sortBlockPosByDistanceToNPC(farm.positionsToHarvest, worker)) {
             if (isPositionWorkable(i)) {
                 return i;
             }
@@ -119,7 +118,7 @@ public class CropFarmingProgram {
                 }
             }
         }
-        if (ProgramUtils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
+        if (Utils.distanceManhattan(worker, target.getBlockPos().getCenter()) > 5) {
             if (numEmptySlotsIgnoreHoe < requiredFreeSlotsToHarvest) return false;
         } else {
             if (numEmptySlotsIgnoreHoe < requiredFreeSlotsToHarvest + 3) return false;
@@ -187,7 +186,7 @@ public class CropFarmingProgram {
                     }
                     worker.level().destroyBlock(currentTargetPos, false);
                     worker.swing(InteractionHand.MAIN_HAND);
-                    ProgramUtils.damageMainHandItem(worker);
+                    Utils.damageMainHandItem(worker);
                 }
                 farm.positionsToHarvest.remove(currentTargetPos);
                 recalculateHasWork(farm);
@@ -230,7 +229,7 @@ public class CropFarmingProgram {
     }
 
     public BlockPos getNextPlantTarget(EntityCropFarm farm) {
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
+        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)){
             if(!isPositionWorkable(p)) continue;
             ItemStack s = getStackToPlantAtPosition(farm, p);
             if(!s.isEmpty()){
@@ -281,7 +280,7 @@ public class CropFarmingProgram {
 
                 if (!ItemStack.isSameItemSameComponents(worker.getMainHandItem(), stackToPlant) &&
                         !ItemStack.isSameItemSameComponents(worker.getOffhandItem(), stackToPlant)) {
-                    ProgramUtils.moveItemStackToAnyHand(stackToPlant, worker);
+                    Utils.moveItemStackToAnyHand(stackToPlant, worker);
                 }
 
                 if (pathFindExit == EXIT_FAIL) {
@@ -342,7 +341,7 @@ public class CropFarmingProgram {
                             // if it can be inserted, do the actual movement and break
                             ItemStack extracted = farm.inputsInventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
-                            InteractionHand movedTo = ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
+                            InteractionHand movedTo = Utils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
                             worker.swing(movedTo);
                         }
                         return canExtract.copy();
@@ -439,7 +438,7 @@ public class CropFarmingProgram {
     }
 
     public BlockPos getNextTillTarget(EntityCropFarm farm){
-        for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)) {
+        for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(farm.positionsToPlant, worker)) {
             if (canTillPosition(farm, p)) {
                 return p;
             }
@@ -517,7 +516,7 @@ public class CropFarmingProgram {
                     worker.level().setBlock(currentTargetPos.below(), Blocks.FARMLAND.defaultBlockState(), 3);
                     worker.swing(InteractionHand.MAIN_HAND);
                     farm.positionsToPlant.remove(currentTargetPos);
-                    ProgramUtils.damageMainHandItem(worker);
+                    Utils.damageMainHandItem(worker);
                     recalculateHasWork(farm);
                 }
                 return SUCCESS_STILL_RUNNING;

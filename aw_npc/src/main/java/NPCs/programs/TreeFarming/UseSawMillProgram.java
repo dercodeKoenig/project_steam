@@ -6,12 +6,11 @@ import ARLib.multiblockCore.BlockMultiblockMaster;
 import ARLib.utils.ItemUtils;
 import ARLib.utils.RecipePartWithProbability;
 import NPCs.WorkerNPC;
-import NPCs.programs.ProgramUtils;
+import NPCs.Utils;
 import WorkSites.TreeFarm.EntityTreeFarm;
 import net.minecraft.commands.arguments.EntityAnchorArgument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -23,7 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import static NPCs.programs.ProgramUtils.*;
+import static NPCs.Utils.*;
 
 
 public class UseSawMillProgram {
@@ -101,7 +100,7 @@ public class UseSawMillProgram {
                         if (!simulate) {
                             ItemStack extracted = farm.mainInventory.extractItem(i, 1, false);
                             worker.combinedInventory.insertItem(j, extracted, false);
-                            InteractionHand movedTo = ProgramUtils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
+                            InteractionHand movedTo = Utils.moveItemStackToAnyHand(worker.combinedInventory.getStackInSlot(j), worker);
                             worker.swing(movedTo);
                         }
                         return canExtract.copy();
@@ -145,7 +144,7 @@ public class UseSawMillProgram {
             ItemStack stackCopyToReturn = inventory.getStackInSlot(j).copy();
             if (!canExtract.isEmpty() &&
                     isItemValidRecipeInput(canExtract) &&
-                    ProgramUtils.countItems(canExtract.getItem(), inventory) > requiredMinStockInInventory) {
+                    Utils.countItems(canExtract.getItem(), inventory) > requiredMinStockInInventory) {
                 return stackCopyToReturn;
             }
         }
@@ -191,7 +190,7 @@ public class UseSawMillProgram {
                 hadFoundInput = true;
             }
         }
-        if (ProgramUtils.distanceManhattan(worker, mill.getBlockPos().getCenter()) > 5) {
+        if (Utils.distanceManhattan(worker, mill.getBlockPos().getCenter()) > 5) {
             if (numEmptySlotsIgnoreFirstInputStack < 3) return w;
         } else {
             if (numEmptySlotsIgnoreFirstInputStack < 5) return w;
@@ -228,7 +227,7 @@ public class UseSawMillProgram {
 
         // if the farm is not stocked up with enough inputs, do not put into mill but into farm first.
         // so count if the farm has enough stock
-        if (ProgramUtils.countItems(w.canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
+        if (Utils.countItems(w.canPutInputsFromInventory.getItem(), farm.mainInventory) < 64) {
             w.canPutInputsFromInventory = ItemStack.EMPTY;
         }
 
@@ -269,8 +268,8 @@ public class UseSawMillProgram {
             //System.out.println(takeOutput+":"+canPutInputsFromFarm+":"+canPutInputsFromInventory);
             return hasWork;
         } else {
-            for (BlockPos p : ProgramUtils.sortBlockPosByDistanceToNPC(EntityWoodMill.knownBlockEntities, farm.getBlockPos().getCenter())) {
-                if (ProgramUtils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useWoodmillsInRadius)
+            for (BlockPos p : Utils.sortBlockPosByDistanceToNPC(EntityWoodMill.knownBlockEntities, farm.getBlockPos().getCenter())) {
+                if (Utils.distanceManhattan(farm.getBlockPos().getCenter(), p.getCenter()) > farm.useWoodmillsInRadius)
                     break;
                 BlockEntity be = worker.level().getBlockEntity(p);
                 if (be instanceof EntityWoodMill mill) {
@@ -346,7 +345,7 @@ public class UseSawMillProgram {
             //take the item in hand, just for visuals
             if (!ItemStack.isSameItemSameComponents(worker.getMainHandItem(), canPutInputsFromInventory) &&
                     !ItemStack.isSameItemSameComponents(worker.getOffhandItem(), canPutInputsFromInventory)) {
-                ProgramUtils.moveItemStackToAnyHand(canPutInputsFromInventory, worker);
+                Utils.moveItemStackToAnyHand(canPutInputsFromInventory, worker);
             }
 
             int pathFindExit = worker.slowMobNavigation.moveToPosition(
